@@ -30,16 +30,15 @@
 
 	<div class="large">Projects</div><br>
     
-	<li>
 	<?php 
 	$files = scandir('.');
 	foreach ($files as $file) {
 	    if ($file != '.' && $file != '..' && is_dir($file)) { 
-	        echo '<a class="medium" href=' . $file . '>'. $file . '</a><br>';
+	        echo '<li><a class="medium" href=' . $file . '>'. $file . '</a></li><br>';
 	    }
 	}
 	?>
-	</li><br>
+	<br>
 	
 	
 	<div class="medium">more coming soon!</div><br>
