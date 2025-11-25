@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="IHEARTCOMPUTER - Public Projects Page">
   <title>IHEARTCOMPUTER</title>
-  <link rel="icon" type="image/x-icon" href="logo.png">
+  <link rel="icon" type="image/x-icon" href="../logo.png">
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
@@ -34,7 +34,7 @@
 	$files = scandir('.');
 	foreach ($files as $file) {
 	    if ($file != '.' && $file != '..' && is_dir($file)) { 
-	        echo '<li><a class="medium" href=' . $file . '>'. $file . '</a></li><br>';
+	        echo '<li><a class="medium link" href=' . $file . '>'. $file . '</a></li><br>';
 	    }
 	}
 	?>
