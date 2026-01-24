@@ -23,8 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="IHEARTCOMPUTER - A club for computer lovers at NJIT">
   <title>IHEARTCOMPUTER</title>
-  <link rel="icon" type="image/x-icon" href="logo.png">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/x-icon" href="/logo.png">
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <div class="main">
@@ -33,9 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
         <strong class="large" style="align-self: flex-start;">I<span style="color: #e00;">♥</span>COMPUTER</strong>
       </div>
       <nav class="nav">
-        <a class="link" href="index.php">home</a>
+        <a class="link" href="/">home</a>
         <a class="link" href="https://discord.gg/JpRw84Ybwg" target="_blank">discord</a>
-        <a class="link" href="projects/">projects</a>
+        <a class="link" href="/projects/">projects</a>
       </nav>
     </header>
 
@@ -63,9 +63,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
         <?php endif; ?>
         
         <hr class="break">
-
-        cool stuff coming soon
-
+	cool stuff coming soon
+    <img src="/heart.gif" style="width:300px">
+	cool stuff coming soon
+	<!--
+        <canvas width="500" height="500" id="a"></canvas>
+        <script src="/heart.js"></script>
+	-->
         <hr class="break">
 
         <div class="large">What do we actually do here?</div>
@@ -76,6 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
         <div class="small">demonstrations and lectures on cool computing concepts</div>    
         <div class="small">get together to talk about projects and things we are working on</div>   
         <div class="small">career advice + resume review + workshops + networking</div>   
+        <br> 
+        <div class="medium"><a class="link" href="/projects">here</a> are some of our projects</div>    
         <br> 
         <div class="small">its gonna be awesome you should join us</div>    
         <br>
