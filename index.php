@@ -47,29 +47,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
         <br>
         <div class="medium">you must be here for the computers...</div>    
         <br>
-        <div class="medium"><a class="link" href="https://discord.gg/JpRw84Ybwg">here</a> is a link to our discord</div>   
+        <div class="medium">here is a <a class="link" href="https://discord.gg/JpRw84Ybwg">link to our discord</a>!</div>   
         <br>
-        <div class="medium">if you are really really interested, type your email in this box</div>   
+        <div class="medium">here is a <a class="link" href="https://www.instagram.com/iheartcomputer.club/">link to our instagram</a>!</div>   
         <br>
-
-        <form method="post" action="">
-          <label class="small">email:
-            <input class="small" type="email" name="email" required placeholder="you@email.com">
-          </label>
-	  <button type="submit" class="small">submit</button>
-        </form>
-        <?php if ($email_msg): ?>
-          <p class="small" role="status"><?php echo $email_msg; ?></p>
-        <?php endif; ?>
-        
+        <div class="medium">next meeting March 4th... do not miss it</div>   
         <hr class="break">
+
+<!--
 	cool stuff coming soon
     <img src="/heart.gif" style="width:300px">
 	cool stuff coming soon
-	<!--
-        <canvas width="500" height="500" id="a"></canvas>
-        <script src="/heart.js"></script>
-	-->
+-->
+        <!--<canvas id="heart" style="border:1px solid #000000;"></canvas>-->
+        <canvas id="heart" style=""></canvas>
+        <script src="render.js"></script>
+
         <hr class="break">
 
         <div class="large">What do we actually do here?</div>
@@ -81,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
         <div class="small">get together to talk about projects and things we are working on</div>   
         <div class="small">career advice + resume review + workshops + networking</div>   
         <br> 
-        <div class="medium"><a class="link" href="/projects">here</a> are some of our projects</div>    
+        <div class="medium">here are <a class="link" href="/projects">some of our projects</a></div>    
         <br> 
         <div class="small">its gonna be awesome you should join us</div>    
         <br>
