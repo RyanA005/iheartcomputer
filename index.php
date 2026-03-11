@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
         <br>
         <div class="medium">here is a <a class="link" href="https://www.instagram.com/iheartcomputer.club/">link to our instagram</a>!</div>   
         <br>
-        <div class="medium">next meeting March 4th... do not miss it</div>   
+        <div class="medium">next meeting March 11th... do not miss it</div>   
         <hr class="break">
 
 <!--
