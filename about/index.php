@@ -130,7 +130,7 @@ $presenters = people_by_group($people, 'presenter');
 
   <meta name="description" content="IHEARTCOMPUTER - About the club and founding contributors">
 
-  <title>About — IHEARTCOMPUTER</title>
+  <title>About - IHEARTCOMPUTER</title>
 
   <link rel="icon" type="image/x-icon" href="/logo.png">
 
@@ -181,13 +181,13 @@ $presenters = people_by_group($people, 'presenter');
 
       <div class="large">About</div>
 
-      <p class="small">IHEARTCOMPUTER is an unoffical club at NJIT open to all founded by Ryan Alport and his friends as a way to get together and present some of the cool projects we are working on.</p>
+      <p class="small">IHEARTCOMPUTER is an unoffical club at NJIT open to all founded by Ryan Alport and his friends as a way to get together and present some of the cool projects they are working on.</p>
 
-      <p class="small">Topics range from cyber security, game dev, AI, vibe coding, buisness, careers, programming workshops, you name it.</p>
+      <p class="small">Topics range from cyber security, to game dev, AI, vibe coding, buisness, careers, programming workshops, you name it.</p>
 
-      <p class="small">We love but are not limited to: weird implementations, hacking the world in ways you wouldn't expect: breaking things, doing it from scratch, or generally just having fun.</p>
+      <p class="small">We love but are not limited to: weird implementations, hacking the world in ways you wouldn't expect, breaking things, doing it from scratch, or generally just having fun.</p>
 
-      <p class="small">The idea is to create a weird space where we can show off the things we are building while also learning from eachother and getting exposed to some new areas of computing.</p>
+      <p class="small">The idea is to create a cool space where we can show off the things we are building while also learning from eachother and getting exposed to some new areas of computing.</p>
 
       <p class="small">There are no rules, all are welcome to join, anyone can present, everyone is encouraged to ask questions or share their thoughts. Join our discord and say hi if you're interested!</p>
 
