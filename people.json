@@ -1,0 +1,67 @@
+{
+  "ryan-alport": {
+    "name": "Ryan Alport",
+    "detail": "The man the myth the legend. Started the club and does most of the presentations. Also the genius behind the stylesheet. You're welcome.",
+    "photo": "/about/avatars/ryan-alport.jpg",
+    "links": [
+      { "label": "github", "url": "https://github.com/RyanA005" },
+      { "label": "site", "url": "https://ryanhub.org/ryan-alport" },
+      { "label": "linkedin", "url": "https://www.linkedin.com/in/ryanalport/" },
+      { "label": "x", "url": "https://x.com/ryanalport" },
+      { "label": "instagram", "url": "https://www.instagram.com/ryan_alport/" },
+      { "label": "youtube", "url": "https://www.youtube.com/@ralport" }
+    ]
+  },
+  "armen-deroian": {
+    "name": "Armen Deroian",
+    "detail": "Unreasonably cracked and also handsome. Physics, game dev, you name it, Armen does it better than you.",
+    "photo": "/about/avatars/armen-deroian.jpg",
+    "links": [
+      { "label": "github", "url": "https://github.com/aderoian" },
+      { "label": "site", "url": "https://armenderoian.dev" },
+      { "label": "linkedin", "url": "https://www.linkedin.com/in/armen-deroian/" },
+      { "label": "instagram", "url": "https://www.instagram.com/armenderoian/" }
+    ]
+  },
+  "kyle-butel": {
+    "name": "Kyle Butel",
+    "detail": "Kyle studies architecture but he dabbles in various areas of software development. He is an extraordinarily lean and athletic member of the team.",
+    "photo": "/about/avatars/kyle-butel.jpg",
+    "links": [
+      { "label": "github", "url": "https://github.com/NapalmKyle" },
+      { "label": "site", "url": "https://kylebeutel.com" },
+      { "label": "linkedin", "url": "https://www.linkedin.com/in/kyle-beutel-b0826b327" },
+      { "label": "instagram", "url": "https://www.instagram.com/kylebeutel/" }
+    ]
+  },
+  "nicholas-columbus": {
+    "name": "Nicholas Columbus",
+    "detail": "Our resident cyber security expert and generally pretty funny guy. Nick has worked in sys admin, web dev, games, education, content, and more. Go read his newsletter!",
+    "photo": "/about/avatars/nicholas-columbus.jpg",
+    "links": [
+      { "label": "github", "url": "https://github.com/hackermanman" },
+      { "label": "linkedin", "url": "https://www.linkedin.com/in/nick-columbus-6a5441293" },
+      { "label": "newsletter", "url": "https://hmn.beehiiv.com/" }
+    ]
+  },
+  "aruntej-thummepally": {
+    "name": "Aruntej Thummepally",
+    "detail": "Possibly our most handsome member. Arun schools everyone in every class but he is too humble to admit that. He is a master of his craft and a true gentleman.",
+    "photo": "/about/avatars/aruntej-thummepally.jpg",
+    "links": [
+      { "label": "github", "url": "https://github.com/GoldenBoi111" },
+      { "label": "linkedin", "url": "https://www.linkedin.com/in/aruntej-thummepally" }
+    ]
+  },
+  "aidan-lowell": {
+    "name": "Aidan Lowell",
+    "detail": "Aidan is a Biomedical Engineering student and vibe coding extraordinaire. He focuses on full stack mobile app development as well as being our tallest and sweetest presenter.",
+    "photo": "/about/avatars/aidan-lowell.jpg",
+    "links": [
+      { "label": "linkedin", "url": "https://www.linkedin.com/in/aidanlowell/" },
+      { "label": "site", "url": "https://decksense.app" },
+      { "label": "instagram", "url": "https://www.instagram.com/decksense.app" },
+      { "label": "instagram", "url": "https://www.instagram.com/alow304/" }
+    ]
+  }
+}
