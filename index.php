@@ -23,8 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="IHEARTCOMPUTER - A club for computer lovers at NJIT">
   <title>IHEARTCOMPUTER</title>
-  <link rel="icon" type="image/x-icon" href="/logo.png">
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/x-icon" href="/assets/logo.png">
+  <link rel="stylesheet" href="/assets/styles.css">
 </head>
 <body>
   <div class="main">
@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
 -->
         <!--<canvas id="heart" style="border:1px solid #000000;"></canvas>-->
         <canvas id="heart" style=""></canvas>
-        <script src="render.js"></script>
+        <script src="/assets/render.js"></script>
 
         <hr class="break">
 

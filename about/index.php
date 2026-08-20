@@ -4,7 +4,7 @@
 
 function load_people(): array {
 
-    $path = dirname(__DIR__) . '/people.json';
+    $path = dirname(__DIR__) . '/assets/people.json';
 
     if (!file_exists($path)) {
 
@@ -132,9 +132,9 @@ $presenters = people_by_group($people, 'presenter');
 
   <title>About - IHEARTCOMPUTER</title>
 
-  <link rel="icon" type="image/x-icon" href="/logo.png">
+  <link rel="icon" type="image/x-icon" href="/assets/logo.png">
 
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/assets/styles.css">
   <style>
     .about-page { width:100%; max-width:640px; margin:0 auto; padding:0 10px 20px; align-items:stretch; text-align:left; }
     .contributor-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:18px; width:100%; }

@@ -1,3 +1,2 @@
-admin.php
-subscribers.txt
-projects/*/
+*.env
+*.log

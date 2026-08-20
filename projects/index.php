@@ -1,7 +1,7 @@
 <?php
 
 function load_people(): array {
-    $path = dirname(__DIR__) . '/people.json';
+    $path = dirname(__DIR__) . '/assets/people.json';
     if (!file_exists($path)) {
         return [];
     }
@@ -32,7 +32,7 @@ function format_project_date(?string $date): string {
 function project_thumbnail_src(string $slug, ?array $meta): string {
     $thumbnail = $meta['thumbnail'] ?? null;
     if (!$thumbnail) {
-        return '/logo.png';
+        return '/assets/logo.png';
     }
 
     if (str_starts_with($thumbnail, '/')) {
@@ -50,7 +50,7 @@ function resolve_author(?string $authorId, array $people): ?array {
     return [
         'id' => $authorId,
         'name' => $people[$authorId]['name'],
-        'profile_url' => '/about/#' . $authorId,
+        'profile_url' => '/assets/about/#' . $authorId,
     ];
 }
 
@@ -99,8 +99,8 @@ usort($projects, function (array $a, array $b): int {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="IHEARTCOMPUTER - Public Projects Page">
   <title>IHEARTCOMPUTER</title>
-  <link rel="icon" type="image/x-icon" href="/logo.png">
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/x-icon" href="/assets/logo.png">
+  <link rel="stylesheet" href="/assets/styles.css">
   <style>
     .projects-page { width:100%; max-width:1100px; margin:0 auto; padding:0 10px 20px; align-items:stretch; text-align:left; }
     .projects-footer { margin-top:28px; align-self:center; text-align:center; }
