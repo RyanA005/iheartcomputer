@@ -1,21 +1,3 @@
-<?php
-$email_msg = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
-  $email = trim($_POST['email']);
-  if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $line = date('c') . " " . $email . PHP_EOL;
-    $file = __DIR__ . '/subscribers.txt';
-    if (file_put_contents($file, $line, FILE_APPEND) !== false) {
-      $email_msg = '<span style="color:green;">got it! thank you</span>';
-    } else {
-      $email_msg = '<span style="color:red;">error! probably already got it</span>';
-    }
-  } else {
-    $email_msg = '<span style="color:blue;">actually enter your email jackass... think im a dummy?</span>';
-  }
-}
-?>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -51,15 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
         <br>
         <div class="medium">here is a <a class="link" href="https://www.instagram.com/iheartcomputer.club/">link to our instagram</a>!</div>   
         <br>
-        <div class="medium">Happy summer! Got a topic you want to see this fall? <a class="link" href="/forms/project-suggestion">tell us here</a></div>
+        <div class="medium">Happy summer! Got a topic you want to see this fall? let us know!</div>
         <hr class="break">
 
-<!--
-	cool stuff coming soon
-    <img src="/heart.gif" style="width:300px">
-	cool stuff coming soon
--->
-        <!--<canvas id="heart" style="border:1px solid #000000;"></canvas>-->
         <canvas id="heart" style=""></canvas>
         <script src="/assets/render.js"></script>
 
