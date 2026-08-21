@@ -31,7 +31,7 @@ http_response_code(500);
       <br>
       <div class="medium">something broke</div>
       <br>
-      <div class="small">try again later, or go yell at ryan</div>
+      <div class="small">try again later</div>
       <br>
       <div class="medium"><a class="link" href="/">go home</a></div>
     </div>

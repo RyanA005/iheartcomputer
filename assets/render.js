@@ -9,8 +9,7 @@ canvas.height = size
 
 // helpers
 function clear() {
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, size, size);
+    ctx.clearRect(0, 0, size, size);
 }
 function draw(p) {
     const s = 10;
