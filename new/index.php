@@ -39,7 +39,7 @@
             <a class="btn" href="https://discord.gg/JpRw84Ybwg">join discord →</a>
             <a class="upper blue" href="/new/about/" style="font-size: 0.85rem;">about us →</a>
           </div>
-          <p class="nca-aside desktop-only" style="margin: 1.1rem 0 0;">
+          <p class="nca-aside" style="margin: 1.1rem 0 0;">
             <a href="https://ryanhub.org/blogs/neural-cellular-automata.html" class="muted" style="font-size: 0.78rem; text-decoration: none;" target="_blank" rel="noopener noreferrer">← read more about neural cellular automata</a>
           </p>
         </div>
