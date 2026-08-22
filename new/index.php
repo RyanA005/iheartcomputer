@@ -27,32 +27,38 @@
 
     <main style="padding-top: 1.5rem;">
       <section class="split" style="margin-bottom: 1.75rem;">
-        <div style="display: flex; justify-content: center; min-height: 14rem;">
-          <canvas id="heart" width="300" height="300" aria-label="rotating heart demo" style="max-width: 100%; height: auto;"></canvas>
+        <div style="display: flex; justify-content: center; align-items: center; width: 100%;">
+          <div class="ca-wrap" style="width: min(100%, 32rem); aspect-ratio: 72 / 70; position: relative; overflow: hidden; background: #f2f2f0; touch-action: none; cursor: crosshair;">
+            <canvas id="ca-canvas" aria-label="growing neural cellular automata" style="opacity: 0; background: #f2f2f0;"></canvas>
+          </div>
         </div>
         <div>
           <h1 class="h1">Computer Club at NJIT</h1>
-          <p class="muted" style="margin: 0 0 1.1rem;">Join us for weekly talks, demos, and workshops.</p>
+          <p class="muted" style="margin: 0 0 1.1rem;">Weekly projects, demos, workshops, and whatever else we feel like!</p>
           <div class="row" style="justify-content: flex-start; gap: 1rem 1.25rem;">
             <a class="btn" href="https://discord.gg/JpRw84Ybwg">join discord →</a>
             <a class="upper blue" href="/new/about/" style="font-size: 0.85rem;">about us →</a>
           </div>
+          <p class="nca-aside desktop-only" style="margin: 1.1rem 0 0;">
+            <a href="https://ryanhub.org/blog/neural-cellular-automata.html" class="muted" style="font-size: 0.78rem; text-decoration: none;" target="_blank" rel="noopener noreferrer">← read more about neural cellular automata</a>
+          </p>
         </div>
       </section>
 
       <a class="panel band" href="https://discord.gg/JpRw84Ybwg" style="padding: 1.1rem 1.1rem 1.1rem 1.25rem; margin-bottom: 2rem;">
         <div>
           <span class="upper red" style="display: block; font-size: 0.75rem; margin-bottom: 0.35rem;">next meeting</span>
-          <strong class="upper" style="display: block; font-size: 1.35rem; line-height: 1.15;">schedule coming soon</strong>
+          <strong class="upper" style="display: block; font-size: 1.35rem; line-height: 1.15;">Welcome back and how to start building real projects</strong>
         </div>
         <ul class="upper" style="list-style: none; margin: 0; padding: 0; font-size: 0.85rem;">
-          <li style="margin: 0.15rem 0;">fall 2026</li>
-          <li style="margin: 0.15rem 0;">time tba</li>
-          <li style="margin: 0.15rem 0;">room tba</li>
+          <li style="margin: 0.15rem 0;">date/time: tba</li>
+          <li style="margin: 0.15rem 0;">room: tba</li>
         </ul>
         <p style="margin: 0; font-size: 0.9rem; color: #333;">
-          Kickoff for the year. Project showcases, stories, and advice for
-          building whatever you want.
+          Kickoff for the year. Club intro, schedule, ideas, and a quick talk on how to start making things with some starter repos and inspiration included!
+        </p>
+        <p class="upper">
+          DONT MISS IT...
         </p>
       </a>
 
@@ -135,6 +141,7 @@
     </main>
   </div>
 
-  <script src="/assets/render.js"></script>
+  <script src="/assets/nca/twgl.min.js"></script>
+  <script type="module" src="/assets/nca/render.js"></script>
 </body>
 </html>

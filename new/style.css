@@ -257,6 +257,12 @@ a:hover { text-decoration: underline; }
 .green { color: #1a9e4a; }
 .purple { color: #7a3cff; }
 
+.desktop-only { display: block; }
+
+@media (max-width: 760px) {
+  .desktop-only { display: none; }
+}
+
 .upper {
   font-weight: 700;
   letter-spacing: 0.04em;
