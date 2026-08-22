@@ -4,7 +4,7 @@ import { createCA } from "./ca.js";
 const MODEL_URL = new URL("./models/logo_regenerating.json", import.meta.url);
 const ZOOM = 1.28; // crop in so the grown pattern fills most of the wrap
 const SPEED = 2;
-const BRUSH = 8;
+const BRUSH = 4;
 
 async function main() {
   const canvas = document.getElementById("ca-canvas");

@@ -40,7 +40,7 @@
             <a class="upper blue" href="/new/about/" style="font-size: 0.85rem;">about us →</a>
           </div>
           <p class="nca-aside desktop-only" style="margin: 1.1rem 0 0;">
-            <a href="https://ryanhub.org/blog/neural-cellular-automata.html" class="muted" style="font-size: 0.78rem; text-decoration: none;" target="_blank" rel="noopener noreferrer">← read more about neural cellular automata</a>
+            <a href="https://ryanhub.org/blogs/neural-cellular-automata.html" class="muted" style="font-size: 0.78rem; text-decoration: none;" target="_blank" rel="noopener noreferrer">← read more about neural cellular automata</a>
           </p>
         </div>
       </section>
@@ -84,7 +84,7 @@
           </li>
           <li class="card" style="border-left-color: #1a4fff;">
             <a href="/projects/not-a-virus/">
-              <img src="/projects/not-a-virus/images/vectors.png" alt="" loading="lazy" width="320" height="180">
+              <img src="/projects/not-a-virus/thumbnail.png" alt="" loading="lazy" width="320" height="180">
               <div style="padding: 0.7rem 0.85rem 0.85rem;">
                 <strong class="upper" style="display: block; font-size: 0.95rem; line-height: 1.2;">NOT How To Write Computer Viruses</strong>
                 <div class="row" style="font-size: 0.72rem; margin-top: 0.25rem;">
