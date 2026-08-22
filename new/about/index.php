@@ -42,7 +42,7 @@ new_render_header('About - IHEARTCOMPUTER', 'IHEARTCOMPUTER - About the club and
           led by one of our members.
         </p>
         <p style="margin: 0 0 0.85rem; font-size: 1.05rem; line-height: 1.55; color: #333;">
-          Topics range from security, to graphics, AI, systems, games,
+          We do whatever we want! Topics range from security, to graphics, AI, systems, games,
           startups, careers, and whatever else we feel like.
           We like to do things from scratch and show off how they really work.
         </p>

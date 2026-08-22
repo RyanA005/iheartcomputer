@@ -34,7 +34,7 @@
         </div>
         <div>
           <h1 class="h1">Computer Club at NJIT</h1>
-          <p class="muted" style="margin: 0 0 1.1rem;">Weekly projects, demos, workshops, and whatever else we feel like!</p>
+          <p class="muted" style="margin: 0 0 1.1rem;">Weekly projects, demos, workshops, and whatever else we feel like. Come make cool stuff with us!</p>
           <div class="row" style="justify-content: flex-start; gap: 1rem 1.25rem;">
             <a class="btn" href="https://discord.gg/JpRw84Ybwg">join discord →</a>
             <a class="upper blue" href="/new/about/" style="font-size: 0.85rem;">about us →</a>
@@ -64,8 +64,8 @@
 
       <section>
         <div class="row" style="align-items: baseline; margin-bottom: 1rem;">
-          <h2 class="h2">featured projects</h2>
-          <a class="upper blue" href="/new/projects/" style="font-size: 0.85rem;">view all projects →</a>
+          <h2 class="h2">some of our favorite projects</h2>
+          <a class="upper blue" href="/new/projects/" style="font-size: 0.85rem;">see all projects →</a>
         </div>
 
         <ul class="grid">
