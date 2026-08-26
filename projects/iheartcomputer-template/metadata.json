@@ -4,7 +4,7 @@
   "topics": ["Topic One", "Topic Two"],
   "author": "ryan-alport",
   "date": "2026-06-10",
-  "thumbnail": "thumbnail.png",
+  "thumbnail": "/assets/logo.png",
   "video": "https://www.youtube.com/watch?v=VIDEO_ID",
   "listed": false
 }

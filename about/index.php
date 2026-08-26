@@ -1,225 +1,104 @@
 <?php
 
+require dirname(__DIR__) . '/_layout.php';
 
-
-function load_people(): array {
-
+function load_people(): array
+{
     $path = dirname(__DIR__) . '/assets/people.json';
-
     if (!file_exists($path)) {
-
         return [];
-
     }
-
-
 
     $data = json_decode(file_get_contents($path), true);
-
     return is_array($data) ? $data : [];
-
 }
 
-
-
-function people_by_group(array $people, string $group): array {
-
+function people_by_group(array $people, string $group): array
+{
     $filtered = [];
-
     foreach ($people as $id => $person) {
-
         $personGroup = $person['group'] ?? 'founding';
-
         if ($personGroup === $group) {
-
             $filtered[$id] = $person;
-
         }
-
     }
-
     return $filtered;
-
 }
-
-
-
-function render_contributor_list(array $people): void {
-
-    ?>
-
-    <ul class="contributor-list">
-
-      <?php foreach ($people as $id => $person): ?>
-
-        <li class="contributor" id="<?= htmlspecialchars($id) ?>">
-
-          <?php if (!empty($person['photo'])): ?>
-
-            <img
-
-              class="contributor-photo"
-
-              src="<?= htmlspecialchars($person['photo']) ?>"
-
-              alt="<?= htmlspecialchars($person['name']) ?>"
-
-              width="72"
-
-              height="72"
-
-              loading="lazy"
-
-            >
-
-          <?php endif; ?>
-
-          <div class="contributor-body">
-
-            <strong class="contributor-name"><?= htmlspecialchars($person['name']) ?></strong>
-
-            <span class="contributor-detail"><?= htmlspecialchars($person['detail']) ?></span>
-
-            <?php if (!empty($person['links'])): ?>
-
-              <div class="contributor-links">
-
-                <?php foreach ($person['links'] as $link): ?>
-
-                  <a class="link" href="<?= htmlspecialchars($link['url']) ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars($link['label']) ?></a>
-
-                <?php endforeach; ?>
-
-              </div>
-
-            <?php endif; ?>
-
-          </div>
-
-        </li>
-
-      <?php endforeach; ?>
-
-    </ul>
-
-    <?php
-
-}
-
-
 
 $people = load_people();
-
 $founding = people_by_group($people, 'founding');
-
 $presenters = people_by_group($people, 'presenter');
+$allPeople = $founding + $presenters;
+$accents = ['#e10600', '#1a4fff', '#1a9e4a', '#7a3cff'];
 
-
-
+new_render_header('About - IHEARTCOMPUTER', 'IHEARTCOMPUTER - About the club and contributors');
 ?>
 
-<!DOCTYPE html>
+      <section style="margin-bottom: 2.25rem;">
+        <h1 class="h1" style="margin-bottom: 0.2rem;">About</h1>
+        <p style="margin: 0 0 0.85rem; font-size: 1.05rem; line-height: 1.55; color: #333;">
+          We're a student run club at NJIT for people who like computers and
+          want to do more with them. We meet weekly for a lecture, demo, or workshop
+          led by one of our members.
+        </p>
+        <p style="margin: 0 0 0.85rem; font-size: 1.05rem; line-height: 1.55; color: #333;">
+          We do whatever we want! Topics range from security, to graphics, AI, systems, games,
+          startups, careers, and whatever else we feel like.
+          We like to do things from scratch and show off how they really work.
+        </p>
+        <p style="margin: 0 0 1.35rem; font-size: 1.05rem; line-height: 1.55; color: #333;">
+          All experience levels. All majors. Anyone can join, anyone can
+          present, we got no rules.
+        </p>
+        <a class="upper blue" href="https://discord.gg/JpRw84Ybwg" style="font-size: 0.85rem;">come to a meeting →</a>
+      </section>
 
-<html>
+      <hr>
 
-<head>
-
-  <meta charset="UTF-8">
-
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <meta name="description" content="IHEARTCOMPUTER - About the club and founding contributors">
-
-  <title>About - IHEARTCOMPUTER</title>
-
-  <link rel="icon" type="image/x-icon" href="/assets/logo.png">
-
-  <link rel="stylesheet" href="/assets/styles.css">
-  <style>
-    .about-page { width:100%; max-width:640px; margin:0 auto; padding:0 10px 20px; align-items:stretch; text-align:left; }
-    .contributor-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:18px; width:100%; }
-    .contributor { display:flex; gap:14px; align-items:flex-start; padding:14px 16px; border:1px solid #ccc; border-radius:6px; scroll-margin-top:20px; }
-    .contributor-photo { width:72px; height:72px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid #ddd; }
-    .contributor-body { display:flex; flex-direction:column; gap:4px; flex:1; min-width:0; }
-    .contributor-name { font-size:1.1rem; }
-    .contributor-detail { font-size:.95rem; color:#555; line-height:1.4; }
-    .contributor-links { display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:4px; }
-  </style>
-</head>
-
-<body>
-
-  <div class="main">
-
-    <header class="header">
-
-      <div class="title">
-
-        <strong class="large" style="align-self: flex-start;">I<span style="color: #e00;">♥</span>COMPUTER</strong>
-
+      <div class="row" style="align-items: baseline; margin-bottom: 1rem;">
+        <h2 class="h2">people</h2>
       </div>
 
-      <nav class="nav">
+      <ul class="list">
+        <?php $i = 0; foreach ($allPeople as $id => $person): ?>
+          <?php
+            $num = str_pad((string) (++$i), 2, '0', STR_PAD_LEFT);
+            $accent = $accents[($i - 1) % count($accents)];
+          ?>
+          <li id="<?= htmlspecialchars($id, ENT_QUOTES, 'UTF-8') ?>" style="scroll-margin-top: 1rem;">
+            <div class="list-row list-row-people" style="border-left: 4px solid <?= htmlspecialchars($accent, ENT_QUOTES, 'UTF-8') ?>;">
+              <?php if (!empty($person['photo'])): ?>
+                <img
+                  src="<?= htmlspecialchars($person['photo'], ENT_QUOTES, 'UTF-8') ?>"
+                  alt="<?= htmlspecialchars($person['name'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                  width="104"
+                  height="104"
+                  loading="lazy"
+                >
+              <?php else: ?>
+                <span></span>
+              <?php endif; ?>
+              <span class="list-num upper" style="font-size: 1.35rem;"><?= htmlspecialchars($num, ENT_QUOTES, 'UTF-8') ?></span>
+              <strong class="list-title upper" style="display: block; font-size: 1.15rem; line-height: 1.25;">
+                <?= htmlspecialchars($person['name'] ?? '', ENT_QUOTES, 'UTF-8') ?>
+              </strong>
+              <span class="list-body" style="min-width: 0;">
+                <?php if (!empty($person['detail'])): ?>
+                  <span style="display: block; font-size: 0.95rem; line-height: 1.45; color: #333;">
+                    <?= htmlspecialchars($person['detail'], ENT_QUOTES, 'UTF-8') ?>
+                  </span>
+                <?php endif; ?>
+                <?php if (!empty($person['links']) && is_array($person['links'])): ?>
+                  <span class="row" style="justify-content: flex-start; gap: 0.45rem 1rem; margin-top: 0.55rem; font-size: 0.88rem;">
+                    <?php foreach ($person['links'] as $link): ?>
+                      <a href="<?= htmlspecialchars($link['url'] ?? '#', ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars($link['label'] ?? 'link', ENT_QUOTES, 'UTF-8') ?></a>
+                    <?php endforeach; ?>
+                  </span>
+                <?php endif; ?>
+              </span>
+            </div>
+          </li>
+        <?php endforeach; ?>
+      </ul>
 
-        <a class="link" href="/">home</a>
-
-        <a class="link" href="https://discord.gg/JpRw84Ybwg" target="_blank">discord</a>
-
-        <a class="link" href="/projects/">projects</a>
-
-      </nav>
-
-    </header>
-
-
-
-    <hr class="break">
-
-
-
-    <div class="content about-page">
-
-      <div class="large">About</div>
-
-      <p class="small">IHEARTCOMPUTER is an unoffical club at NJIT open to all founded by Ryan Alport and his friends as a way to get together and present some of the cool projects they are working on.</p>
-
-      <p class="small">Topics range from cyber security, to game dev, AI, vibe coding, buisness, careers, programming workshops, you name it.</p>
-
-      <p class="small">We love but are not limited to: weird implementations, hacking the world in ways you wouldn't expect, breaking things, doing it from scratch, or generally just having fun.</p>
-
-      <p class="small">The idea is to create a cool space where we can show off the things we are building while also learning from eachother and getting exposed to some new areas of computing.</p>
-
-      <p class="small">There are no rules, all are welcome to join, anyone can present, everyone is encouraged to ask questions or share their thoughts. Join our discord and say hi if you're interested!</p>
-
-      <hr class="break">
-
-
-
-      <div class="large">Founding Fathers</div>
-
-      <br>
-
-      <?php render_contributor_list($founding); ?>
-
-
-
-      <?php if (!empty($presenters)): ?>
-
-        <hr class="break">
-
-        <div class="large">Presenters</div>
-
-        <br>
-
-        <?php render_contributor_list($presenters); ?>
-
-      <?php endif; ?>
-
-    </div>
-
-  </div>
-
-</body>
-
-</html>
-
+<?php new_render_footer(); ?>
