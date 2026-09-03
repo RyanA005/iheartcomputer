@@ -1,31 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="IHEARTCOMPUTER - an unofficial computer club at NJIT">
-  <title>IHEARTCOMPUTER</title>
-  <link rel="icon" type="image/x-icon" href="/assets/logo.png">
-  <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-  <div class="wrap">
-    <header class="row" style="padding: 1.25rem 0; border-bottom: 1px solid #ccc;">
-      <div class="row" style="gap: 0.75rem; justify-content: flex-start;">
-        <a href="/" class="upper" style="color: #111; font-size: clamp(1.75rem, 4vw, 2.5rem); letter-spacing: 0.02em; line-height: 1; text-decoration: none;">
-          I<span class="red">♥</span>COMPUTER
-        </a>
-        <span class="badge" aria-hidden="true" style="margin-top: 0.35rem;">new stylesheet!</span>
-      </div>
-      <nav class="nav" aria-label="primary">
-        <a href="/projects/">projects</a>
-        <a href="/about/">about</a>
-        <a href="https://discord.gg/JpRw84Ybwg">discord</a>
-        <a href="https://www.instagram.com/iheartcomputer.club/">instagram</a>
-      </nav>
-    </header>
+<?php
 
-    <main style="padding-top: 1.5rem;">
+require __DIR__ . '/assets/_layout.php';
+
+new_render_header('IHEARTCOMPUTER');
+?>
+
       <section class="split" style="margin-bottom: 1.75rem;">
         <div style="display: flex; justify-content: center; align-items: center; width: 100%;">
           <div class="ca-wrap" style="width: min(100%, 32rem); aspect-ratio: 72 / 70; position: relative; overflow: hidden; background: #f2f2f0; touch-action: none; cursor: crosshair;">
@@ -48,17 +27,17 @@
       <a class="panel band" href="https://discord.gg/JpRw84Ybwg" style="padding: 1.1rem 1.1rem 1.1rem 1.25rem; margin-bottom: 2rem;">
         <div>
           <span class="upper red" style="display: block; font-size: 0.75rem; margin-bottom: 0.35rem;">next meeting</span>
-          <strong class="upper" style="display: block; font-size: 1.35rem; line-height: 1.15;">Welcome back and how to start building real projects</strong>
+          <strong class="upper" style="display: block; font-size: 1.35rem; line-height: 1.15;">Welcome Back!</strong>
         </div>
         <ul class="upper" style="list-style: none; margin: 0; padding: 0; font-size: 0.85rem;">
-          <li style="margin: 0.15rem 0;">date/time: tba</li>
-          <li style="margin: 0.15rem 0;">room: tba</li>
+          <li style="margin: 0.15rem 0;">date/time: 9/9</li>
+          <li style="margin: 0.15rem 0;">room: TBA</li>
         </ul>
         <p style="margin: 0; font-size: 0.9rem; color: #333;">
-          Kickoff for the year. Club intro, schedule, ideas, and a quick talk on how to start making things with some starter repos and inspiration included!
+          Intro and member showcase.
         </p>
         <p class="upper">
-          DONT MISS IT...
+          SEE YOU THERE...
         </p>
       </a>
 
@@ -124,24 +103,7 @@
         </ul>
       </section>
 
-      <hr>
-
-      <footer class="row" style="align-items: baseline;">
-        <p style="margin: 0; max-width: 34rem;">
-          "Computer club is fun pull up" -
-          <a href="/about/#">all members unanimously</a>
-        </p>
-        <nav class="nav" aria-label="footer">
-          <a href="/projects/">projects</a>
-          <a href="/about/">about</a>
-          <a href="https://discord.gg/JpRw84Ybwg">discord</a>
-          <a href="https://www.instagram.com/iheartcomputer.club/">instagram</a>
-        </nav>
-      </footer>
-    </main>
-  </div>
-
   <script src="/assets/nca/twgl.min.js"></script>
   <script type="module" src="/assets/nca/render.js"></script>
-</body>
-</html>
+
+<?php new_render_footer(); ?>

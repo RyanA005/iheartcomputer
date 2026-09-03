@@ -40,7 +40,7 @@ function new_render_footer(): void
       <footer class="row" style="align-items: baseline;">
         <p style="margin: 0; max-width: 34rem;">
           "Computer club is fun pull up" -
-          <a href="/about/#ryan-alport">Ryan Alport</a>
+          <a href="/about/#">all members unanimously</a>
         </p>
         <nav class="nav" aria-label="footer">
           <a href="/projects/">projects</a>

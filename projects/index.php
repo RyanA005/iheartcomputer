@@ -1,6 +1,6 @@
 <?php
 
-require dirname(__DIR__) . '/_layout.php';
+require dirname(__DIR__) . '/assets/_layout.php';
 
 function load_people(): array
 {
