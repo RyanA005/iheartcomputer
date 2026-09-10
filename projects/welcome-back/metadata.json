@@ -1,9 +1,9 @@
 {
   "title": "Welcome Back!",
   "subtitle": "Intro and member showcase",
-  "topics": ["Social", "Career", "Showcase"],
-  "author": "ryan-alport",
+  "topics": ["Social", "Showcase"],
+  "author": "everyone",
   "date": "2026-09-09",
-  "thumbnail": "thumbnail.png",
-  "video": ""
+  "thumbnail": "thumbnail.jpg",
+  "video": "https://www.youtube.com/watch?v=1bAfHLXRQU0"
 }

@@ -50,7 +50,19 @@ function project_thumbnail_src(string $slug, ?array $meta): string
 
 function resolve_author(?string $authorId, array $people): ?array
 {
-    if (!$authorId || !isset($people[$authorId])) {
+    if (!$authorId) {
+        return null;
+    }
+
+    if ($authorId === 'everyone') {
+        return [
+            'id' => 'everyone',
+            'name' => 'everyone',
+            'profile_url' => '/about/#',
+        ];
+    }
+
+    if (!isset($people[$authorId])) {
         return null;
     }
 

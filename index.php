@@ -27,14 +27,14 @@ new_render_header('IHEARTCOMPUTER');
       <a class="panel band" href="https://discord.gg/JpRw84Ybwg" style="padding: 1.1rem 1.1rem 1.1rem 1.25rem; margin-bottom: 2rem;">
         <div>
           <span class="upper red" style="display: block; font-size: 0.75rem; margin-bottom: 0.35rem;">next meeting</span>
-          <strong class="upper" style="display: block; font-size: 1.35rem; line-height: 1.15;">Welcome Back! Intro and member showcase</strong>
+          <strong class="upper" style="display: block; font-size: 1.35rem; line-height: 1.15;">Neural Networks!</strong>
         </div>
         <ul class="upper" style="list-style: none; margin: 0; padding: 0; font-size: 0.85rem;">
-          <li style="margin: 0.15rem 0;">date/time: 9/9</li>
+          <li style="margin: 0.15rem 0;">date/time: 9/16</li>
           <li style="margin: 0.15rem 0;">room: TBA</li>
         </ul>
         <p style="margin: 0; font-size: 0.9rem; color: #333;">
-          a brief talk about what we do and what we have planned this year, plus a summer recap from some of our senior members
+          We will explain the math and programming behind neural networks and then show a use case on Computer Club's own website....
         </p>
         <p class="upper">
           SEE YOU THERE...
