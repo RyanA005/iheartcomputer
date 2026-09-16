@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Neural Networks - implementing and scaling machine learning in a spreadsheet - IHEARTCOMPUTER">
+  <title>Neural Networks - IHEARTCOMPUTER</title>
+  <link rel="icon" type="image/x-icon" href="/assets/logo.png">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jBdy5RE5a+3mlM9HhePwgo3/9dsvk1Gu2qcvSIzUpghyORj1JQRxbtQt" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3Gg4Sbp9R4EcvUMaSz5BIbJEg/Sd/ugMHmLgN0A4RMDxKcajrj0n6Sj" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWUIvlSg2mF5MwYdA8ZcqHVwIOuIyEQb+yqwzYlF8N9jaiL8QVkJJrXz" crossorigin="anonymous"
+    onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});"></script>
+</head>
+<body>
+  <div class="wrap">
+    <header class="row" style="padding: 1.25rem 0;">
+      <div class="row" style="gap: 0.75rem; justify-content: flex-start;">
+        <a href="/" class="upper" style="color: #111; font-size: clamp(1.75rem, 4vw, 2.5rem); letter-spacing: 0.02em; line-height: 1; text-decoration: none;">
+          I<span class="red">♥</span>COMPUTER
+        </a>
+        <span class="badge" aria-hidden="true" style="margin-top: 0.35rem;">now part of ACM!</span>
+      </div>
+      <nav class="nav" aria-label="primary">
+        <a href="/projects/">projects</a>
+        <a href="/about/">about</a>
+        <a href="https://discord.gg/JpRw84Ybwg">discord</a>
+        <a href="https://www.instagram.com/iheartcomputer.club/">instagram</a>
+      </nav>
+    </header>
+    <hr>
+    
+
+    <br><section class="hero">
+        <p style="">
+          <strong class="title">Neural Networks</strong><br>
+          implementing machine learning in excel spreadsheet
+        </p>
+        <div class="image-row">
+          <img src="images/proof.png" height=275>
+          <strong class="title">→</strong>
+          <img src="images/sheet.png" height=275>
+          <strong class="title">→</strong>
+          <img src="images/too-far.png" height=275>
+          <strong class="title">→</strong>
+          <img src="images/terminator.png" height=275>
+        </div>
+        <p>
+          by <a href="/about/#ryan-alport">Ryan Alport</a>
+        </p>
+    </section><br>
+
+
+    <hr><br><section class="plan">
+        <p>
+          <strong class="large">Today's Master Plan</strong><br>
+          <ul>
+              <li class="medium">intro and thank you to ACM</li>
+              <li class="medium">talk about what neural networks do</li>
+              <li class="medium">examine the key-terms / math / philosophy</li>
+              <li class="medium">implement and scale up a basic neural network in a spreadsheet</li>
+              <li class="medium">extend the model we have built and explain how we can use it to do useful work</li>
+              <li class="medium"><strong>SMILE AND HAVE FUN</strong></li>
+          </ul>
+        </p>
+    </section><br>
+
+    <hr><br><section class="thank-you-acm">
+          <strong class="large">THANK YOU ACM</strong><br>
+          <div class="image-row">
+            <img src="images/acm-logo.png" height=300>
+            <strong class="title">+</strong>
+            <img src="images/ihc-logo.png" height=300>
+          </div>
+          <p class="medium">
+          we are officially an ACM special interest group now!<br>
+          see <a href="https://acm.njit.edu/">acm.njit.edu</a> for all official ACM info
+          </p>
+    </section><br>
+
+    <hr><br><section class="what-it-do">
+        <p>
+          <strong class="large">What Do Neural Networks Do?</strong><br>
+          <img src="images/dog.png" width=800>
+        </p>
+        <p class="medium">
+          neural networks can be thought of as rule approximators<br>
+          they learn these rules gradually via many examples<br><br>
+          <strong>rule examples:</strong><br>
+          <ul>
+              <li class="medium"><strong>functions</strong>, given x, what is y</li>
+              <li class="medium"><strong>classification</strong>, given factors {x1, x2, x3}, is this {y1, y2, y3}</li>
+              <li class="medium"><strong>prediction</strong>, given the last x words, what word comes next</li>
+              <li class="medium"><strong>transformation</strong> ...</li>
+              <li class="medium"><strong>generation</strong> ...</li>
+              <li class="medium"><strong>scoring</strong> ...</li>
+          </ul>
+        </p>
+    </section><br>
+
+    <hr><br><section class="math-terms-philosophy">
+        <p>
+          <strong class="large">Key-terms / Math / Philosophy</strong><br>
+          <ul>
+            <li class="medium"><strong>weight</strong> = a number (usually floating point) stored inside a model</li>
+            <li class="medium"><strong>bias</strong> = a weight, with a different interpretation in the neuron</li>
+            <li class="medium"><strong>activation</strong> = a function that makes a weight scale its contribution</li>
+            <li class="medium"><strong>neuron</strong> = the actual math that links a weight, inputs, and output</li>
+            <li class="medium"><strong>loss</strong> = a measure of how wrong a model's prediction is</li>
+            <li class="medium"><strong>gradient</strong> = the direction of a model's errors per weight</li>
+            <li class="medium"><strong>forward pass</strong> = running the model to get a single output</li>
+            <li class="medium"><strong>learning rate</strong> = a constant that determines how fast to update weights</li>
+            <li class="medium"><strong>backpropagation</strong> = calculating and applying gradients to update weights</li>
+          </ul>
+          <img src="images/intro-net.png" width=800>
+        </p>
+        <br>
+        <p class="medium">
+          at every neuron the following math is happening:
+          <img src="images/neuron.png" width=600><br>
+          compared to normal programs where we write fixed rules, 
+          the neural network is an adjustable function where we learn coefficients that minimize loss<br><br>
+          a simple example: assume a trained network that predicts <strong>f(x) = 5x</strong><br>
+          there is one linear neuron and one weight, no bias, predictions come from <strong>x * w</strong>
+          <img src="images/1-neuron.png" width=800><br>
+          if w = 5 you can see how this network predicts the function perfectly for any input<br><br>
+          this example is very simple but we will prove this architecture scales and we can teach it much more interesting relations...
+        </p>
+    </section><br>
+
+    <hr><br><section class="learning">
+        <p>
+          <strong class="large">Learning</strong><br>
+        </p>
+        <p class="medium">
+          learning starts with knowing how wrong a prediction is<br>
+          we measure error, then loss like so:<br><br>
+          <img src="images/error.png" width=800><br>
+          <img src="images/loss.png" width=600><br>
+          the big idea of neural networks is to take the derivative of loss, per neuron, with respect to relevant weights, then move the weights in a way which lowers loss<br><br>
+          <img src="images/single-dl.png" width=800><br>
+          <img src="images/single-wnew.png" width=600><br>
+          let's see the spreadsheet...
+        </p>
+    </section><br>
+
+    <hr><br><section class="sheet-1">
+        <p>
+          <strong class="large">simplest possible spreadsheet network</strong><br>
+        </p>
+        <p class="medium">
+          <img src="images/net-1.png" width=600><br>
+          <img src="images/net-1-graphs.png" width=1000><br>
+          note the weight adjusting and predictions approaching the right values
+        </p>
+    </section><br>
+
+    <hr><br><section class="sheet-2">
+        <p class="medium">
+          <strong class="large">adding bias</strong><br>
+          we can add a bias to the network allowing it to learn an intercept
+        </p>
+        <p class="medium">
+          <img src="images/add-bias.png" width=400><br>
+          <img src="images/net-2.png" width=800><br>
+          <img src="images/net-2-graphs.png" width=600><br>
+        </p>
+    </section><br>
+
+    <hr><br><section class="sheet-3">
+        <p class="medium">
+          <strong class="large">what about more complex functions?</strong><br>
+          what happens if we try to learn a function like y = x^2
+        </p>
+        <img src="images/net-3-graphs.png" width=800><br>
+    </section><br>
+
+    <hr><br><section class="sheet-3">
+        <p class="medium">
+          <strong class="large">time to scale the model</strong><br>
+          let's add more weights and apply an actual activation function to our model...<br>
+          we will need to do some lovely partial derivatives!
+        </p>
+          <img src="images/final-math.png" width=600><br>
+        <p class="medium">
+          and the result...
+        </p>
+          <img src="images/net-3.png" width=800><br>
+          <img src="images/bad-x-sq.png" width=600><br>
+        <p class="medium">
+          this may not look that convincing but very importantly it proves that we can 
+          combine multiple neurons and activation functions to teach our network to change its output conditionally<br>
+          let's try to improve it...
+        </p>
+    </section><br>
+
+    <hr><br><section class="sheet-4">
+        <p class="medium">
+          <strong class="large">adding more neurons</strong><br>
+          no math changes needed here, let's just add another few weights and biases and see what happens
+        </p>
+        <div class="image-row">
+          <img src="images/net-4.png" width=1000><br>
+          <img src="images/net-4-graph-3.png" width=300><br>
+          <img src="images/net-4-graph-2.png" width=300><br>
+          <img src="images/net-4-graph-1.png" width=300><br>
+        </div>
+        <p class="medium">
+          more nodes in our network allows for more bends in the predicted function and in turn a better prediction
+        </p>
+    </section><br>
+
+    <hr><br><section class="layers-and-inputs">
+        <p class="medium">
+          <strong class="large">layers and multiple inputs</strong><br>
+          there is no reason we cannot have multiple inputs to a neuron:
+          <img src="images/multiple-x-1.png" width=600><br>
+          <img src="images/multiple-x-2.png" width=520><br>
+          with this we can learn functions with any number of inputs<br>
+          we can also apply these ideas inside the network, we can feed the output of a single layer into another layer
+          <img src="images/neural-network.png" width=800><br>
+          we can model more complex relationships by either adding more neurons or more layers, each layer can also change size or activation for different effects in the outputs
+        <div class="image-row">
+          <img src="images/learning-1.gif" width=300><br>
+          <img src="images/learning-2.gif" width=300><br>
+          <img src="images/learning-3.gif" width=300><br>
+        </div>
+        </p>
+    </section><br>
+
+    <hr><br><section class="what-gives">
+        <p class="medium">
+          <strong class="large">sounds cool, so what</strong><br>
+          there theoretically exists a network that can model any relationship if architected and trained properly
+        <div class="image-row">
+          <img src="images/uses.png" width=800><br>
+        </div>
+        </p>
+    </section><br>
+
+    <hr><br><section class="words">
+        <p class="medium">
+          <strong class="large">some words you will hear</strong><br>
+          <ul>
+            <li class="medium"><strong>MLP</strong> = multilayer perceptron, exactly what we just built</li>
+            <li class="medium"><strong>CNN</strong> = convolutional neural network, a neural network that uses "convolutions/kernels" as inputs</li>
+            <li class="medium"><strong>RNN</strong> = recurrent neural network, a network that feeds back into itself, basically keeping some state between passes</li>
+            <li class="medium"><strong>transformer</strong> = a neural network architecture designed to handle sequence data very quickly in parallel</li>
+          </ul>
+          <img src="images/all-nn.png" width=800><br>
+        </p>
+    </section><br>
+
+    <hr><br><section class="examples">
+        <p class="medium">
+          <strong class="large">an interesting cute example</strong><br>
+          <img src="images/nca.gif" width=400><br>
+          everyone really loves the new computer club landing page thing, but what no one knew was that it was actually a neural network this whole time<br><br>
+          <img src="images/blog.png" width=800>
+            <p class="small">screenshot directly from <a href="https://ryanalport.com/blogs/neural-cellular-automata.html">my blog</a></p>
+          <img src="images/wow.png" width=800>
+        </p>
+    </section><br>
+
+    <hr><br><section class="summary">
+        <p class="medium">
+          <strong class="large">summary</strong><br>
+          <ul>
+            <li class="medium">neural networks are adjustable functions that we can teach through examples</li>
+            <li class="medium">single neurons do very basic math, a large network leverages many neurons to do potentially very complex math</li>
+            <li class="medium">learning is about changing weights in a way that reduces loss</li>
+            <li class="medium">playing with architectures and scale allows us to use neural networks to do different things</li>
+          </ul>
+          <img src="images/closing.png" width=800><br>
+          go out and build things with neural networks!
+        </p>
+    </section><br>
+
+    <hr><br><section class="thanks">
+        <p class="medium">
+          <strong class="large">THANK YOU!</strong><br>
+          <img src="images/qr.png" width=900>
+        </p>
+    </section><br>
+
+    <hr>
+    <footer class="row" style="align-items: baseline;">
+      <p style="margin: 0; max-width: 34rem;">
+        "Computer club is fun pull up" -
+        <a href="/about/#">all members unanimously</a>
+      </p>
+      <nav class="nav" aria-label="footer">
+        <a href="/projects/">projects</a>
+        <a href="/about/">about</a>
+        <a href="https://discord.gg/JpRw84Ybwg">discord</a>
+        <a href="https://www.instagram.com/iheartcomputer.club/">instagram</a>
+      </nav>
+    </footer>
+  </div>
+</body>
+</html>
