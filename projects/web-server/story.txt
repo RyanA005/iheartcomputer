@@ -1,0 +1,18 @@
+welcome
+what is a webserver, examples
+what do webservers really do, static files, proxy, application gateway
+basics of http protocal
+simplest possible server, socket -> bind -> listen -> accept -> handle
+why is this so slow, intro concurrency
+spmc queue, atomics
+why is thread/process per connection so slow, intro workers
+why is malloc so slow, intro custom allocators
+why is blocking io so slow, intro epoll
+what is sendfile
+caching open file descriptors
+reuse tcp connections for proxy
+align cache
+-- worth a mention --
+cmov vs jmp vs none
+instruction selection
+vector operations

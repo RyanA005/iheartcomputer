@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="web servers - what they do, and how to build a fast one from scratch in C - IHEARTCOMPUTER">
+  <title>web servers - IHEARTCOMPUTER</title>
+  <link rel="icon" type="image/x-icon" href="/assets/logo.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="page">
+
+  <header class="bar">
+    <a href="/" style="text-decoration: none;"><strong>I<span class="heart">♥</span>COMPUTER</strong></a>
+    <nav>
+      <a href="/projects/">projects</a>
+      <a href="/about/">about</a>
+      <a href="https://discord.gg/JpRw84Ybwg">discord</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <h1>high preformance web servers<span>.</span></h1>
+    <p class="sub">the process of writing stupidly performant apps applied to web servers</p>
+    <p class="by">by <a href="https://ryanalport.com">Ryan Alport</a></p>
+  </div>
+
+  <section id="what">
+    <div class="tag"><span class="n">01</span><span class="p">/web-servers</span></div>
+    <div class="body">
+      <h2>what is a web server</h2>
+      <div class="logos">
+        <img src="images/nginx.png" alt="nginx">
+        <img src="images/apache.png" alt="apache">
+        <img src="images/cloudflare.png" alt="cloudflare">
+        <img src="images/caddy.png" alt="caddy">
+      </div>
+      <p>a program that listens on a <a href="https://en.wikipedia.org/wiki/Port_(computer_networking)">port</a>, reads <a href="https://en.wikipedia.org/wiki/HTTP">HTTP</a> requests, and writes HTTP responses.</p>
+      <p>you interact with <a href="https://nginx.org/">nginx</a>, <a href="https://httpd.apache.org/">apache</a>, <a href="https://www.cloudflare.com/">cloudflare</a>, <a href="https://caddyserver.com/">caddy</a>, or <a href="https://en.wikipedia.org/wiki/Internet_Information_Services">IIS</a> hundreds of times a day.</p>
+      <div class="pair">
+        <figure class="l"><img src="images/first-web-server.jpg" alt="NeXT cube at CERN"><figcaption><a href="https://en.wikipedia.org/wiki/CERN_httpd">the first web server</a>, a <a href="https://en.wikipedia.org/wiki/NeXTcube">NeXT cube</a> at CERN, 1990</figcaption></figure>      </div>
+      <figure class="l"><img src="images/web-server-share.png" alt="web server usage share"><figcaption>usage share of web servers, <a href="https://www.netcraft.com/blog/">Netcraft</a></figcaption></figure>
+    </div>
+  </section>
+
+  <section id="jobs">
+    <div class="tag"><span class="n">02</span><span class="p">/jobs</span></div>
+    <div class="body">
+      <h2>responsibilities of the web server</h2>
+      <dl>
+        <div><dt>serve static files</dt><dd>put a computer's filesystem on the web.</dd></div>
+        <div><dt>proxy another server</dt><dd>forward http requests to another server. (<a href="https://en.wikipedia.org/wiki/Reverse_proxy">reverse proxy</a>)</dd></div>
+        <div><dt>application gateway</dt><dd>translate http into another protocol and forward it (<a href="https://en.wikipedia.org/wiki/FastCGI">FastCGI</a>, <a href="https://www.php.net/manual/en/install.fpm.php">php-fpm</a>).</dd></div>
+      </dl>
+      <figure class="l"><img src="images/job-static.svg" alt="browser requests /file.html, web server reads it from disk and sends the bytes back"><figcaption>static: the answer is already on disk</figcaption></figure>
+      <figure class="l"><img src="images/job-proxy.svg" alt="browser requests /api/hello, web server forwards it over HTTP to an app server on port 3000"><figcaption>proxy: HTTP in, HTTP out, to someone else</figcaption></figure>
+      <figure class="l"><img src="images/job-gateway.svg" alt="browser requests /app/index.php, web server translates it to FastCGI for php-fpm"><figcaption>gateway: HTTP in, <a href="https://en.wikipedia.org/wiki/FastCGI">FastCGI</a> out (also <a href="https://en.wikipedia.org/wiki/Simple_Common_Gateway_Interface">SCGI</a>, <a href="https://en.wikipedia.org/wiki/Common_Gateway_Interface">CGI</a>)</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="http">
+    <div class="tag"><span class="n">03</span><span class="p">/http</span></div>
+    <div class="body">
+      <h2>the hypertext transfer protocol</h2>
+      <figure class="l"><img src="images/http-telnet.png" alt="HTTP request typed in telnet"><figcaption>typing a request by hand in <a href="https://en.wikipedia.org/wiki/Telnet">telnet</a></figcaption></figure>
+      <pre>GET /cat.jpg HTTP/1.1
+Host: iheartcomputer.club
+Connection: keep-alive
+Accept: image/*</pre>
+      <pre>HTTP/1.1 200 OK
+Content-Length: 42817
+Content-Type: image/jpeg
+
+&lt;42817 bytes&gt;</pre>
+      <dl>
+        <div><dt>request line</dt><dd>method, path, version</dd></div>
+        <div><dt>headers</dt><dd><code>key: value</code>, one per line, a blank line ends them</dd></div>
+        <div><dt>body</dt><dd>optional, length comes from <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Length"><code>Content-Length</code></a></dd></div>
+        <div><dt>status</dt><dd><code>200 OK</code>, <code>404 Not Found</code>, ... (<a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes">full list</a>)</dd></div>
+        <div><dt>keep-alive</dt><dd>leave the socket open for the next request (<a href="https://en.wikipedia.org/wiki/HTTP_persistent_connection">persistent connection</a>)</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section id="simple">
+    <div class="tag"><span class="n">04</span><span class="p">/simple server</span></div>
+    <div class="body">
+      <h2>the simplest possible web server</h2>
+      <pre>int fd = socket(AF_INET, SOCK_STREAM, 0);
+bind(fd, (struct sockaddr *)&amp;addr, sizeof(addr));
+listen(fd, 128);
+
+while (1) {
+    int c = accept(fd, NULL, NULL);
+    handle(c);
+    close(c);
+}</pre>
+      <p>this is a <i>totally</i> valid webserver that can now serve pages to the browser.</p>
+      <p>lets benchmark it...</p>
+    </div>
+  </section>
+
+  <section id="benchmark">
+    <div class="tag"><span class="n">05</span><span class="p">/benchmarks</span></div>
+    <div class="body">
+      <h2>benchmarks</h2>
+      <p>when benchmarking, we should test our app through realistic workloads. we will then compare it against apache and nginx on the same workload.</p>
+      <p>we will use <a href="https://github.com/wg/wrk">wrk</a>, an http benchmarking program that reports requests per second and a latency distribution.</p>
+      <p class="lead">cases we will test:</p>
+      <dl>
+        <div><dt>small</dt><dd>19 byte page, 64 keep-alive clients.</dd></div>
+        <div><dt>small_close</dt><dd>same page, <code>Connection: close</code>. an accept and a close every request</dd></div>
+        <div><dt>medium</dt><dd>64 KiB file, 32 clients</dd></div>
+        <div><dt>large</dt><dd>1 MiB file, 16 clients.</dd></div>
+        <div><dt>not_found</dt><dd><code>/no/such/file</code>, 64 clients.</dd></div>
+        <div><dt>high_c</dt><dd>small page, 256 clients</dd></div>
+      </dl>
+      <p class="lead">other real world considerations:</p>
+      <dl>
+        <div><dt>slow clients</dt><dd>hold a slot for seconds but dont do much. <a href="https://en.wikipedia.org/wiki/Slowloris_(cyber_attack)">slowloris</a></dd></div>
+        <div><dt>traffic in bursts</dt><dd>in the real world, traffic is distrubuted irrecgularly.</dd></div>
+        <div><dt>big headers</dt><dd>browsers send 500 B to 2 KB of headers and cookies.</dd></div>
+        <div><dt>long runs</dt><dd>real webservers need to run for days, months, or years without leaking memory, ports, etc.</dd></div>
+      </dl>
+      <p class="lead">simplest possible server performance:</p>
+      <dl>
+          <!-- FILL THIS LATER -->
+      </dl>
+    </div>
+  </section>
+  <section id="concurrency">
+    <div class="tag"><span class="n">06</span><span class="p">/concurrency</span></div>
+    <div class="body">
+      <h2>concurrency</h2>
+      <p>while one client is being handled, everyone else is stuck in the <a href="https://man7.org/linux/man-pages/man2/listen.2.html">listen backlog</a>.</p>
+      <p>it would be lovely if we could do two things at once...</p>
+      <figure class="l"><img src="images/single-vs-multi.jpg" alt="single vs multithreaded process"><figcaption><a href="https://en.wikipedia.org/wiki/Thread_(computing)">threads</a> are provided by the operating system to do exactly that!</figcaption></figure>
+      <p>we can now seperate responsibilites and handle more than one connection at a time, but this requires careful architecting.</p>
+      <p>how will we fairly and quickly distribute connections between some number of worker threads?</p>
+    </div>
+  </section>
+
+  <section id="queue">
+    <div class="tag"><span class="n">07</span><span class="p">/queue</span></div>
+    <div class="body">
+      <h2>atomic queues</h2>
+      <figure class="l"><img src="images/thread-pool.png" alt="thread pool"><figcaption>a task queue feeding a <a href="https://en.wikipedia.org/wiki/Thread_pool">thread pool</a></figcaption></figure>
+      <pre>if (__atomic_compare_exchange_n(&amp;q-&gt;head_id, &amp;pos, pos + 1, 0,
+                                __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {
+    connection_copy_payload(c, slot);
+    __atomic_store_n(&amp;slot-&gt;ready, 0, __ATOMIC_RELEASE);
+    return 1;
+}</pre>
+      <p class="src">a worker claiming the next slot. <a href="https://gcc.gnu.org/onlinedocs/gcc/_005f_005fatomic-Builtins.html">gcc __atomic builtins</a></p>
+      <p><a href="https://en.wikipedia.org/wiki/Compare-and-swap">compare-and-swap</a> lets us only claim a slot if no one else has changed it since our last look.</p>
+
+      <p class="lead">concurrent server performance:</p>
+      <dl>
+          <!-- FILL THIS LATER -->
+      </dl>
+  </section>
+
+  <section id="malloc">
+    <div class="tag"><span class="n">08</span><span class="p">/memory</span></div>
+    <div class="body">
+      <h2>memory</h2>
+      <figure class="l"><img src="images/program-memory.png"</figure><br>
+      <p>in low level programs we must reserve all the memory we will need when we start the program or we may use the operating system's dynamic memory manager.</p>
+      <p><a href="https://man7.org/linux/man-pages/man3/malloc.3.html">malloc</a> is the interface for getting an arbitrary ammount of memory at runtime. the common pattern:</p>
+      <pre>request = malloc(...);
+headers = malloc(...);
+path    = malloc(...);
+...
+free(path);
+free(headers);
+free(request);</pre>
+      <p>this takes a lot of time and it can leave our heap <a href="https://en.wikipedia.org/wiki/Fragmentation_(computing)">fragmented</a>, ie. even slower :(</p>
+      <figure class="m"><img src="images/fragmentation.png" alt="external fragmentation"></figure>
+      <p>one solution is to reserve a large part of memory ourselves once at the beginning of our program, then manually manage it as we work.</p>
+      <p>the humble <a href="https://en.wikipedia.org/wiki/Region-based_memory_management">bump arena</a> is perfect for this use case</p>
+      <pre>void *bump_alloc(bump *b, uint64_t size, uint64_t alignment) {
+    ...
+    b-&gt;offset = offset + size;
+    return (void *)aligned;
+}
+
+void bump_reset(bump *b) {
+    b-&gt;offset = 0;
+}</pre>
+      <p>we can give each thread a bump arena which it can use for a whole request, then restart in only a few CPU cycles.</p>
+      <p class="lead">no malloc server performance:</p>
+      <dl>
+          <!-- FILL THIS LATER -->
+      </dl>
+    </div>
+  </section>
+
+  <section id="epoll">
+    <div class="tag"><span class="n">09</span><span class="p">/epoll</span></div>
+    <div class="body">
+      <h2>epoll</h2>
+      <p>just because we have a connection doesn't mean there is any work to do.</p>
+      <pre>read(fd, buf, len);   /* and if nothing has arrived yet? */</pre>
+      <figure class="m"><img src="images/blocking-io.png" alt="blocking I/O model"><figcaption><a href="https://en.wikipedia.org/wiki/Asynchronous_I/O">blocking I/O</a>, the thread sleeps inside the call</figcaption></figure>
+      <p>we need the operating system to tell us which sockets are actually ready.</p>
+      <figure class="m"><img src="images/multiplexing-io.png" alt="I/O multiplexing model"><figcaption>I/O multiplexing, wait on many sockets at once. from <a href="https://en.wikipedia.org/wiki/UNIX_Network_Programming">Unix Network Programming</a></figcaption></figure>
+      <pre>n = epoll_wait(epfd, events, TINY_EPOLL_EVENTS_MAX, timeout);
+
+for (i = 0; i &lt; n; i++) {
+    handle(events[i].data.u32);
+}</pre>
+      <p>we can make every socket <a href="https://man7.org/linux/man-pages/man2/fcntl.2.html">nonblocking</a>, then each worker can use epoll to watch theoretically thousands of connections at once, then we only do work when one is ready.</p>
+      <p class="lead">epoll server performance:</p>
+      <dl>
+          <!-- FILL THIS LATER -->
+      </dl>
+
+    </div>
+  </section>
+
+  <section id="sendfile">
+    <div class="tag"><span class="n">10</span><span class="p">/sendfile</span></div>
+    <div class="body">
+      <h2>sendfile</h2>
+      <p>the naive way to get a file from our disk to the network is to read it into our program's memory, then write it out to the connection port.</p>
+      <figure class="l"><img src="images/kernel-user.png"></figure>
+      <p>so we read from the operating system, then we write directly back to the operating system? there must be a smarter way...</p>
+      <pre>sendfile(sock_fd, file_fd, &amp;offset, count);</pre>
+      <p class="src"><a href="https://man7.org/linux/man-pages/man2/sendfile.2.html">sendfile(2)</a></p>
+      <figure class="l"><img src="images/zero-copy-gather.jpg" alt="sendfile with gather copy"><figcaption>sendfile, page cache straight to the network card with <a href="https://en.wikipedia.org/wiki/Direct_memory_access">DMA</a>. <a href="https://en.wikipedia.org/wiki/Zero-copy">zero-copy</a></figcaption></figure>
+
+      <p class="lead">sendfile server performance:</p>
+      <dl>
+          <!-- FILL THIS LATER -->
+      </dl>
+  </section>
+
+  <section id="file-cache">
+    <div class="tag"><span class="n">11</span><span class="p">/file-cache</span></div>
+    <div class="body">
+      <h2>file cache</h2>
+      <p>despite sendfile, we still do need to operate on the actual file in order to return a proper http response.</p>
+      <pre>open("index.html");
+fstat(fd, ...);
+close(fd);</pre>
+      <p>if we could just save the information we need about the file after we serve it, we could remove more syscalls.</p>
+      <pre>typedef struct {
+    uint64_t hash;
+    off_t size;
+    const char *mime;
+    int32_t fd;
+    char path[192];
+    ...
+} cached_file;</pre>
+
+      <p class="lead">caching server performance:</p>
+      <dl>
+          <!-- FILL THIS LATER -->
+      </dl>
+    </div>
+  </section>
+
+  <section id="cache-lines">
+    <div class="tag"><span class="n">12</span><span class="p">/cpu cache</span></div>
+    <div class="body">
+      <h2>cpu cache optimization</h2>
+      <figure class="l"><img src="images/memory-hierarchy.png"></figure>
+      <p>the CPU has the illusion that it operates on contiguous linear memory, but this is a lie. in reality, there are a series of caches finally culminating in 64 byte <a href="https://en.wikipedia.org/wiki/CPU_cache#Cache_entries">cache lines</a> which the cpu can actually use.</p>
+      <figure class="l"><img src="images/cache-layout.png"></figure>
+      <p>we play a delicate game of fitting as many relevant bytes into a cache line as we can, then doing as much work on it as we can before we go to the next one.</p>
+      <figure class="l"><img src="images/cache-coherence.png"></figure>
+      <p>with threads, we have another challenege, <a href="https://en.wikipedia.org/wiki/False_sharing">false sharing</a>, threads on different cores may update a line, immediately invalidating any other thread's copy of that same line.</p>
+      <figure class="l"><img src="images/false-sharing.png"></figure>
+      <p class="lead">so how can we write code that avoids the pitfalls and takes advantage of the cache?</p>
+      <dl>
+        <div><dt>pack your structs</dt><dd>put the largest members first* to minimize struct padding.</dd></div>
+        <div><dt>align the damn memory</dt><dd>when possible, align memory to a a multiple of 8, or even better 64.</dd></div>
+        <div><dt>give it its own cache line</dt><dd>if threads touch it, give it a whole own cache line. if it is smaller than 64 bytes, consider padding it*.</dd></div>
+        <div><dt>dont always pack your structs</dt><dd>in some cases, pack your structs based on access patterns rather than member sizes.</dd></div>
+        <div><dt>store data in predictible ways</dt><dd>the cpu, compiler, and hardware prefeter are your friends, but only if your code makes sense to them.</dd></div>
+      </dl>
+      <p>a few fun examples:</p>
+      <pre>typedef struct {
+    connection *data;
+    uint32_t capacity;
+    uint64_t head_id __attribute__((aligned(64)));
+    uint64_t tail_id __attribute__((aligned(64)));
+} connection_queue;</pre>
+      <p class="src">putting the queue head and tail ids in their own line to avoid false sharing</p>
+      <pre>typedef struct http_conn {
+  connection conn;
+  bump *arena;
+  char *buf;
+  uint32_t used;
+  uint8_t phase;
+  uint8_t keep;
+  int32_t file_fd;
+
+  char header_buf[TINY_HEADER_SIZE];
+} http_conn;</pre>
+    <p class="src">putting hot http metadata before the request buffer so common operations touch fewer cache lines</p>
+    <pre>typedef struct {
+  pthread_t thread;
+  uint32_t id;
+  int32_t status;
+  tiny_runtime *rt;
+  tiny_slot *slots;
+} __attribute__((aligned(TINY_CACHE_LINE))) tiny_worker;</pre>
+    <p class="src">aligning each worker to a cache line size so neighboring workers can never share cache lines</p>
+
+    </div>
+  </section>
+
+  <section id="branches">
+    <div class="tag"><span class="n">13</span><span class="p">/branches</span></div>
+    <div class="body">
+      <h2>branches</h2>
+      <p>yet another lie the CPU beleives is that instructions execute one at a time. in reality parts of instructions are being executed, a few at a time.</p>
+        <figure class="m"><img src="images/pipeline-bubble.png"></figure>
+      <p>this introduces hazards, a conditional may depend on a previous instruction, should the CPU just wait?</p>
+      <pre>if (x &gt; y)
+    return x;
+return y;</pre>
+      <p>NO! the CPU <a href="https://en.wikipedia.org/wiki/Branch_predictor">guesses</a> which way a branch goes and keeps working. if it guesses right, great, if not, catastrophe.</p>
+      <figure class="l"><img src="images/branch-counter.png" alt="2-bit branch predictor"><figcaption>a 2-bit <a href="https://en.wikipedia.org/wiki/Branch_predictor#Two-level_predictor">saturating predictor</a></figcaption></figure>
+      <p>we would like to avoid catastrophes so we should write code that either avoids conditionals entirely, calculates the compared items well in advance, or takes the same path the vast majority of the time.</p>
+      <pre>//normal
+int min(int a, int b) {
+    if (a < b) {
+        return a;
+    } else {
+        return b;
+    }
+}</pre>
+<pre>// branchless
+int min(int a, int b) {
+    return b ^ ((a ^ b) & -(a < b));
+}</pre>
+    </div>
+  </section>
+
+  <section id="isel">
+    <div class="tag"><span class="n">14</span><span class="p">/asm</span></div>
+    <div class="body">
+      <h2>over the top assembly level optimizations</h2>
+      <p>I generally do not reccomend writing assembly from scratch, the compiler is incredibly good at finding optimizations and assembly is hard.</p>
+      <p>that said, understanding and being able to read generated assembly does open the door to more optimizations...</p>
+      <figure class="l"><img src="images/unnatural.gif"</figure><br>
+      <p class="lead">cmov vs jmp:</p>
+      <p>conditionals are effectively implemented with the jmp class of instructions, a bonus way to avoid branches is to replace jumps with conditional moves.</p>
+      <pre>cmp   edi, esi      ; compare a and b (a - b)
+jle   .L2           ; jump to .L2 if a <= b
+mov   eax, edi      ; if a > b, move a into return register (eax)
+ret
+.L2:
+mov   eax, esi      ; if a <= b, move b into return register (eax)
+ret</pre>
+      <pre>mov     eax, esi       ; assume b is larger (move b to eax)
+cmp     edi, esi       ; compare a and b
+cmovg   eax, edi       ; if a > b (greater), overwrite eax with a
+ret
+</pre>
+      <p class="lead">faster math:</p>
+      <p>your compiler most likely does this already but we can take advantage of the binary system for multiplication, division, modulo, etc.</p>
+      <pre>shl eax, 1              ; x * 2
+shl eax, 3              ; x * 8
+shr eax, 1              ; x / 2
+and eax, 127            ; x % 128
+
+lea eax, [eax + eax*4]  ; x * 5
+
+lea eax, [eax + eax*4]  ; x * 10
+add eax, eax
+
+cmp eax, ebx            ; min(a, b)
+cmovg eax, ebx
+
+cmp eax, ebx            ; max(a, b)
+cmovl eax, ebx
+
+cdq                     ; abs(x)
+xor eax, edx
+sub eax, edx</pre>
+      <p class="lead">specialized instructions:</p>
+      <p>there are thousands of x86 instructions, some built for super highly specific operations from string comparison to polynomial evaluation.</p>
+      <pre>mov eax, [packet_buffer + 12]  ; load IP address from network buffer
+bswap eax                      ; instantly flip the bytes to x86 order
+
+; RDI = memory address mapped directly to network card queue
+; RAX = prepared network packet transmission command
+movdiri [rdi], rax   ; direct write to NIC without touching cpu cache
+
+; accumulate net packet data into rolling hardware checksum
+crc32 rax, qword ptr [rsi]  ; hashes 8 bytes into RAX instantly
+</pre>
+      <p class="lead">vector operations:</p>
+      <p>your modern CPU is capable of executing SIMD operations using vector registers to operate on multiple items at the same time on a single core.</p>
+      <pre>; find http header boundaries stupid fast
+vpcmpiand xmm1, xmm1, xmm1   ; clear target register with \r and \n
+vmovdqu   xmm2, [rsi]        ; load 16 bytes from network buffer
+vpcmpistri xmm1, xmm2, 0x00  ; scan and place \r or \n index in ECX.
+
+; k1 = mask register
+; ZMM0 = 16 IPv4 addresses loaded from network logs
+vpcompressd zmm1 {k1}, zmm0  ; filters ZMM0 through k1. matches go in ZMM1</pre>
+    </div>
+  </section>
+
+  <section id="result">
+    <div class="tag"><span class="n">15</span><span class="p">/results</span></div>
+    <div class="body">
+      <h2>benchmark results</h2>
+      <table>
+        <tr><th>static, req/s</th><th>tiny</th><th>nginx</th><th>apache</th><th>tiny/nginx</th><th>tiny/apache</th></tr>
+        <tr><td>small</td><td>396,715</td><td>289,063</td><td>52,178</td><td class="hot">1.37x</td><td>7.60x</td></tr>
+        <tr><td>small_close</td><td>92,556</td><td>41,284</td><td>43,401</td><td class="hot">2.24x</td><td>2.13x</td></tr>
+        <tr><td>medium</td><td>152,551</td><td>104,661</td><td>69,214</td><td class="hot">1.46x</td><td>2.20x</td></tr>
+        <tr><td>large</td><td>19,572</td><td>18,047</td><td>14,998</td><td class="hot">1.08x</td><td>1.30x</td></tr>
+        <tr><td>not_found</td><td>414,664</td><td>274,674</td><td>117,481</td><td class="hot">1.51x</td><td>3.53x</td></tr>
+        <tr><td>high_c</td><td>521,103</td><td>303,636</td><td>101,512</td><td class="hot">1.72x</td><td>5.13x</td></tr>
+      </table>
+      <table>
+        <tr><th>latency, p50 / p99</th><th>tiny</th><th>nginx</th><th>apache</th></tr>
+        <tr><td>small</td><td class="hot">111us / 523us</td><td>159us / 550us</td><td>1.22ms / 4.10ms</td></tr>
+        <tr><td>high_c</td><td class="hot">334us / 1.33ms</td><td>413us / 3.09ms</td><td>2.06ms / 8.95ms</td></tr>
+      </table>
+      <table>
+        <tr><th>proxy, req/s</th><th>tiny</th><th>nginx</th><th>apache</th><th>tiny/nginx</th><th>tiny/apache</th></tr>
+        <tr><td>small</td><td>150,179</td><td>131,617</td><td>66,229</td><td class="hot">1.14x</td><td>2.27x</td></tr>
+        <tr><td>small_close</td><td>63,609</td><td>38,622</td><td>43,889</td><td class="hot">1.65x</td><td>1.45x</td></tr>
+        <tr><td>high_c</td><td>204,764</td><td>199,517</td><td>88,057</td><td class="hot">1.03x</td><td>2.33x</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section id="end">
+    <div class="tag"><span class="n">16</span><span class="p">/end</span></div>
+    <div class="body">
+      <h2>thanks for listening</h2>
+      <p>questions to <a href="mailto:Ralport2005@gmail.com">Ralport2005@gmail.com</a></p>
+      <ul class="links">
+        <li><a href="https://github.com/RyanA005/tiny">github.com/RyanA005/tiny</a></li>
+        <li><a href="https://www.linuxjournal.com/article/6345">Zero Copy I: User-Mode Perspective, Linux Journal</a></li>
+        <li><a href="https://notes.shichao.io/unp/ch6/">I/O Multiplexing, Unix Network Programming notes</a></li>
+        <li><a href="https://man7.org/linux/man-pages/man7/epoll.7.html">epoll(7)</a> &middot; <a href="https://man7.org/linux/man-pages/man2/sendfile.2.html">sendfile(2)</a></li>
+        <li><a href="http://www.kegel.com/c10k.html">The C10K problem, Dan Kegel</a></li>
+        <li><a href="https://godbolt.org/">Compiler Explorer</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <span>diagrams from Wikimedia Commons, Linux Journal, and Unix Network Programming (Stevens)</span>
+  </footer>
+
+</div>
+</body>
+</html>
