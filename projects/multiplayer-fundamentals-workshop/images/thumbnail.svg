@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
+  <rect width="640" height="360" fill="#111"/>
+  <g stroke="#222" stroke-width="1">
+    <path d="M0 40H640M0 80H640M0 120H640M0 160H640M0 200H640M0 240H640M0 280H640M0 320H640"/>
+    <path d="M40 0V360M80 0V360M120 0V360M160 0V360M200 0V360M240 0V360M280 0V360M320 0V360M360 0V360M400 0V360M440 0V360M480 0V360M520 0V360M560 0V360M600 0V360"/>
+  </g>
+  <g stroke="#666" stroke-width="3" stroke-dasharray="8 8">
+    <line x1="320" y1="180" x2="140" y2="90"/>
+    <line x1="320" y1="180" x2="500" y2="90"/>
+    <line x1="320" y1="180" x2="140" y2="280"/>
+    <line x1="320" y1="180" x2="500" y2="280"/>
+  </g>
+  <rect x="290" y="150" width="60" height="60" fill="#f25a1a"/>
+  <text x="320" y="138" fill="#ff5a1a" font-family="monospace" font-size="22" font-weight="bold" text-anchor="middle">IT</text>
+  <rect x="118" y="68" width="44" height="44" fill="#3a8cf2"/>
+  <rect x="478" y="68" width="44" height="44" fill="#33cc73"/>
+  <rect x="118" y="258" width="44" height="44" fill="#d94dbf"/>
+  <rect x="478" y="258" width="44" height="44" fill="#f2cc33"/>
+  <text x="320" y="345" fill="#bbb" font-family="monospace" font-size="18" text-anchor="middle">peer 1 (server) + 4 clients</text>
+</svg>

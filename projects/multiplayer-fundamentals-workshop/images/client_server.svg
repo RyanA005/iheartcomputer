@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="400" height="240" role="img" aria-labelledby="title desc">
+  <title id="title">Client-server network</title>
+  <desc id="desc">Four players, A, B, C and D, each connected only to a central server.</desc>
+
+  <g stroke="#9a9a9a" stroke-width="2" stroke-linecap="round" fill="none">
+    <line x1="72" y1="52" x2="200" y2="120"/>
+    <line x1="328" y1="52" x2="200" y2="120"/>
+    <line x1="72" y1="188" x2="200" y2="120"/>
+    <line x1="328" y1="188" x2="200" y2="120"/>
+  </g>
+
+  <g fill="#e4e4e4">
+    <rect x="43" y="35" width="64" height="40" rx="8"/>
+    <rect x="299" y="35" width="64" height="40" rx="8"/>
+    <rect x="43" y="171" width="64" height="40" rx="8"/>
+    <rect x="299" y="171" width="64" height="40" rx="8"/>
+    <rect x="148" y="99" width="110" height="48" rx="8"/>
+  </g>
+  <g fill="#fff" stroke="#222" stroke-width="2">
+    <rect x="40" y="32" width="64" height="40" rx="8"/>
+    <rect x="296" y="32" width="64" height="40" rx="8"/>
+    <rect x="40" y="168" width="64" height="40" rx="8"/>
+    <rect x="296" y="168" width="64" height="40" rx="8"/>
+  </g>
+  <rect x="145" y="96" width="110" height="48" rx="8" fill="#222" stroke="#222" stroke-width="2"/>
+  <circle cx="161" cy="120" r="4" fill="#e00"/>
+
+  <g fill="#222" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="central">
+    <text x="72" y="52">A</text>
+    <text x="328" y="52">B</text>
+    <text x="72" y="188">C</text>
+    <text x="328" y="188">D</text>
+    <text x="206" y="120" fill="#fff" font-size="16" letter-spacing="1">SERVER</text>
+  </g>
+</svg>
