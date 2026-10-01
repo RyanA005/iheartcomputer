@@ -1,8 +1,0 @@
-{
-  "title": "Fundamentals of Multiplayer Games",
-  "subtitle": "networking concepts, introduction to multiplayer game architecture, then building a multiplayer tag game in Godot",
-  "topics": ["Game Development", "Multiplayer", "Networking", "Godot"],
-  "author": "armen-deroian",
-  "date": "2026-09-30",
-  "thumbnail": "images/thumbnail.svg"
-}
