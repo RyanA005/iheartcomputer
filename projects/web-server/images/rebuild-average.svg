@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 308" width="820" height="308">
+  <style>
+    text { font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; font-size: 13px; fill: #151515; }
+    .t { font-weight: 600; }
+    .m { fill: #6f6a60; font-size: 12px; }
+    .v { font-size: 11px; }
+    .grid { stroke: #d8d2c4; stroke-width: 1; }
+    .rule { stroke: #d8d2c4; stroke-width: 1; stroke-dasharray: 4 4; }
+  </style>
+  <text x="0" y="67" class="t">simple</text>
+  <rect x="120" y="55" width="35.0" height="16" fill="#151515"/>
+  <text x="160.0" y="67" class="v">37k<tspan class="m"> 1.0x</tspan></text>
+  <rect x="480" y="55" width="34.0" height="16" fill="#151515"/>
+  <text x="519.0" y="67" class="v">740MB/s<tspan class="m"> 1.0x</tspan></text>
+  <text x="0" y="97" class="t">threads</text>
+  <rect x="120" y="85" width="68.8" height="16" fill="#151515"/>
+  <text x="193.8" y="97" class="v">73k<tspan class="m"> 2.0x</tspan></text>
+  <rect x="480" y="85" width="95.9" height="16" fill="#151515"/>
+  <text x="580.9" y="97" class="v">2.0GB/s<tspan class="m"> 2.8x</tspan></text>
+  <text x="0" y="127" class="t">bump arena</text>
+  <rect x="120" y="115" width="68.4" height="16" fill="#151515"/>
+  <text x="193.4" y="127" class="v">73k<tspan class="m"> 2.0x</tspan></text>
+  <rect x="480" y="115" width="95.7" height="16" fill="#151515"/>
+  <text x="580.7" y="127" class="v">2.0GB/s<tspan class="m"> 2.8x</tspan></text>
+  <text x="0" y="157" class="t">epoll</text>
+  <rect x="120" y="145" width="212.5" height="16" fill="#151515"/>
+  <text x="337.5" y="157" class="v">227k<tspan class="m"> 6.1x</tspan></text>
+  <rect x="480" y="145" width="163.0" height="16" fill="#151515"/>
+  <text x="648.0" y="157" class="v">3.5GB/s<tspan class="m"> 4.8x</tspan></text>
+  <text x="0" y="187" class="t">sendfile</text>
+  <rect x="120" y="175" width="205.5" height="16" fill="#151515"/>
+  <text x="330.5" y="187" class="v">219k<tspan class="m"> 5.9x</tspan></text>
+  <rect x="480" y="175" width="217.4" height="16" fill="#151515"/>
+  <text x="702.4" y="187" class="v">4.6GB/s<tspan class="m"> 6.4x</tspan></text>
+  <text x="0" y="217" class="t">file cache</text>
+  <rect x="120" y="205" width="224.4" height="16" fill="#ff4a1c"/>
+  <text x="349.4" y="217" class="v">240k<tspan class="m"> 6.4x</tspan></text>
+  <rect x="480" y="205" width="224.4" height="16" fill="#ff4a1c"/>
+  <text x="709.4" y="217" class="v">4.8GB/s<tspan class="m"> 6.6x</tspan></text>
+  <line x1="0" y1="236" x2="820" y2="236" class="rule"/>
+  <text x="0" y="259" class="m">nginx</text>
+  <rect x="120" y="247" width="145.3" height="16" fill="#b9b2a3"/>
+  <text x="270.3" y="259" class="v">155k<tspan class="m"> 4.2x</tspan></text>
+  <rect x="480" y="247" width="187.1" height="16" fill="#b9b2a3"/>
+  <text x="672.1" y="259" class="v">4.0GB/s<tspan class="m"> 5.5x</tspan></text>
+  <text x="0" y="289" class="m">apache</text>
+  <rect x="120" y="277" width="57.9" height="16" fill="#b9b2a3"/>
+  <text x="182.9" y="289" class="v">62k<tspan class="m"> 1.7x</tspan></text>
+  <rect x="480" y="277" width="151.5" height="16" fill="#b9b2a3"/>
+  <text x="636.5" y="289" class="v">3.2GB/s<tspan class="m"> 4.5x</tspan></text>
+  <text x="120" y="14" class="t">requests/sec</text>
+  <line x1="120.0" y1="46" x2="120.0" y2="298" class="grid"/>
+  <text x="120.0" y="40" class="m" text-anchor="middle">0</text>
+  <line x1="213.6" y1="46" x2="213.6" y2="298" class="grid"/>
+  <text x="213.6" y="40" class="m" text-anchor="middle">100k</text>
+  <line x1="307.2" y1="46" x2="307.2" y2="298" class="grid"/>
+  <text x="307.2" y="40" class="m" text-anchor="middle">200k</text>
+  <line x1="400.9" y1="46" x2="400.9" y2="298" class="grid"/>
+  <text x="400.9" y="40" class="m" text-anchor="middle">300k</text>
+  <text x="480" y="14" class="t">transfer/sec</text>
+  <line x1="480.0" y1="46" x2="480.0" y2="298" class="grid"/>
+  <text x="480.0" y="40" class="m" text-anchor="middle">0</text>
+  <line x1="574.1" y1="46" x2="574.1" y2="298" class="grid"/>
+  <text x="574.1" y="40" class="m" text-anchor="middle">2 GB</text>
+  <line x1="668.2" y1="46" x2="668.2" y2="298" class="grid"/>
+  <text x="668.2" y="40" class="m" text-anchor="middle">4 GB</text>
+  <line x1="762.3" y1="46" x2="762.3" y2="298" class="grid"/>
+  <text x="762.3" y="40" class="m" text-anchor="middle">6 GB</text>
+</svg>

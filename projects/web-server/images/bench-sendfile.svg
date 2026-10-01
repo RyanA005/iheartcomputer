@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 490" width="820" height="490">
+  <style>
+    text { font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; font-size: 13px; fill: #151515; }
+    .t { font-weight: 600; }
+    .m { fill: #6f6a60; font-size: 12px; }
+    .v { font-size: 11px; }
+    .grid { stroke: #d8d2c4; stroke-width: 1; }
+    .rule { stroke: #d8d2c4; stroke-width: 1; stroke-dasharray: 4 4; }
+  </style>
+  <line x1="503.0" y1="314" x2="503.0" y2="470" class="grid"/>
+  <line x1="311.5" y1="314" x2="311.5" y2="470" class="grid"/>
+  <line x1="120.0" y1="314" x2="120.0" y2="470" class="grid"/>
+  <text x="0" y="67" class="t">simple</text>
+  <rect x="120" y="55" width="35.0" height="16" fill="#151515"/>
+  <text x="160.0" y="67" class="v">37k<tspan class="m"> 1.0x</tspan></text>
+  <rect x="480" y="55" width="34.0" height="16" fill="#151515"/>
+  <text x="519.0" y="67" class="v">740MB/s<tspan class="m"> 1.0x</tspan></text>
+  <text x="0" y="97" class="t">threads</text>
+  <rect x="120" y="85" width="68.8" height="16" fill="#151515"/>
+  <text x="193.8" y="97" class="v">73k<tspan class="m"> 2.0x</tspan></text>
+  <rect x="480" y="85" width="95.9" height="16" fill="#151515"/>
+  <text x="580.9" y="97" class="v">2.0GB/s<tspan class="m"> 2.8x</tspan></text>
+  <text x="0" y="127" class="t">bump arena</text>
+  <rect x="120" y="115" width="68.4" height="16" fill="#151515"/>
+  <text x="193.4" y="127" class="v">73k<tspan class="m"> 2.0x</tspan></text>
+  <rect x="480" y="115" width="95.7" height="16" fill="#151515"/>
+  <text x="580.7" y="127" class="v">2.0GB/s<tspan class="m"> 2.8x</tspan></text>
+  <text x="0" y="157" class="t">epoll</text>
+  <rect x="120" y="145" width="212.5" height="16" fill="#151515"/>
+  <text x="337.5" y="157" class="v">227k<tspan class="m"> 6.1x</tspan></text>
+  <rect x="480" y="145" width="163.0" height="16" fill="#151515"/>
+  <text x="648.0" y="157" class="v">3.5GB/s<tspan class="m"> 4.8x</tspan></text>
+  <text x="0" y="187" class="t">sendfile</text>
+  <rect x="120" y="175" width="205.5" height="16" fill="#ff4a1c"/>
+  <text x="330.5" y="187" class="v">219k<tspan class="m"> 5.9x</tspan></text>
+  <rect x="480" y="175" width="217.4" height="16" fill="#ff4a1c"/>
+  <text x="702.4" y="187" class="v">4.6GB/s<tspan class="m"> 6.4x</tspan></text>
+  <line x1="0" y1="206" x2="820" y2="206" class="rule"/>
+  <text x="0" y="229" class="m">nginx</text>
+  <rect x="120" y="217" width="145.3" height="16" fill="#b9b2a3"/>
+  <text x="270.3" y="229" class="v">155k<tspan class="m"> 4.2x</tspan></text>
+  <rect x="480" y="217" width="187.1" height="16" fill="#b9b2a3"/>
+  <text x="672.1" y="229" class="v">4.0GB/s<tspan class="m"> 5.5x</tspan></text>
+  <text x="0" y="259" class="m">apache</text>
+  <rect x="120" y="247" width="57.9" height="16" fill="#b9b2a3"/>
+  <text x="182.9" y="259" class="v">62k<tspan class="m"> 1.7x</tspan></text>
+  <rect x="480" y="247" width="151.5" height="16" fill="#b9b2a3"/>
+  <text x="636.5" y="259" class="v">3.2GB/s<tspan class="m"> 4.5x</tspan></text>
+  <text x="120" y="14" class="t">avg requests/sec</text>
+  <line x1="120.0" y1="46" x2="120.0" y2="268" class="grid"/>
+  <text x="120.0" y="40" class="m" text-anchor="middle">0</text>
+  <line x1="213.6" y1="46" x2="213.6" y2="268" class="grid"/>
+  <text x="213.6" y="40" class="m" text-anchor="middle">100k</text>
+  <line x1="307.2" y1="46" x2="307.2" y2="268" class="grid"/>
+  <text x="307.2" y="40" class="m" text-anchor="middle">200k</text>
+  <line x1="400.9" y1="46" x2="400.9" y2="268" class="grid"/>
+  <text x="400.9" y="40" class="m" text-anchor="middle">300k</text>
+  <text x="480" y="14" class="t">avg transfer/sec</text>
+  <line x1="480.0" y1="46" x2="480.0" y2="268" class="grid"/>
+  <text x="480.0" y="40" class="m" text-anchor="middle">0</text>
+  <line x1="574.1" y1="46" x2="574.1" y2="268" class="grid"/>
+  <text x="574.1" y="40" class="m" text-anchor="middle">2 GB</text>
+  <line x1="668.2" y1="46" x2="668.2" y2="268" class="grid"/>
+  <text x="668.2" y="40" class="m" text-anchor="middle">4 GB</text>
+  <line x1="762.3" y1="46" x2="762.3" y2="268" class="grid"/>
+  <text x="762.3" y="40" class="m" text-anchor="middle">6 GB</text>
+  <text x="0" y="302" class="t">wrk benchmark cases</text>
+  <text x="660" y="302" class="m">transfer/sec</text>
+  <text x="0" y="329" class="m">small</text>
+  <rect x="120" y="317" width="296.9" height="16" fill="#151515"/>
+  <text x="421.9" y="329" class="v">310k</text>
+  <text x="660" y="329" class="v">32 MB/s</text>
+  <text x="0" y="355" class="m">small_close</text>
+  <rect x="120" y="343" width="82.2" height="16" fill="#6f6a60"/>
+  <text x="207.2" y="355" class="v">86k</text>
+  <text x="660" y="355" class="v">8.4 MB/s</text>
+  <text x="0" y="381" class="m">medium</text>
+  <rect x="120" y="369" width="135.7" height="16" fill="#2f6f9f"/>
+  <text x="260.7" y="381" class="v">142k</text>
+  <text x="660" y="381" class="v">8.7 GB/s</text>
+  <text x="0" y="407" class="m">large</text>
+  <rect x="120" y="395" width="18.6" height="16" fill="#3a8f5c"/>
+  <text x="143.6" y="407" class="v">19k</text>
+  <text x="660" y="407" class="v">18.9 GB/s</text>
+  <text x="0" y="433" class="m">not_found</text>
+  <rect x="120" y="421" width="340.6" height="16" fill="#c9a227"/>
+  <text x="465.6" y="433" class="v">356k</text>
+  <text x="660" y="433" class="v">36 MB/s</text>
+  <text x="0" y="459" class="m">high_c</text>
+  <rect x="120" y="447" width="386.7" height="16" fill="#ff4a1c"/>
+  <text x="511.7" y="459" class="v">404k</text>
+  <text x="660" y="459" class="v">41 MB/s</text>
+  <text x="120.0" y="484" class="m" text-anchor="middle">0</text>
+  <text x="311.5" y="484" class="m" text-anchor="middle">200k</text>
+  <text x="503.0" y="484" class="m" text-anchor="middle">400k</text>
+</svg>

@@ -27,14 +27,14 @@ new_render_header('IHEARTCOMPUTER');
       <a class="panel band" href="https://discord.gg/JpRw84Ybwg" style="padding: 1.1rem 1.1rem 1.1rem 1.25rem; margin-bottom: 2rem;">
         <div>
           <span class="upper red" style="display: block; font-size: 0.75rem; margin-bottom: 0.35rem;">next meeting</span>
-          <strong class="upper" style="display: block; font-size: 1.35rem; line-height: 1.15;">Foundations of Creating Multiplayer Games</strong>
+          <strong class="upper" style="display: block; font-size: 1.35rem; line-height: 1.15;">High Performance Web Servers</strong>
         </div>
         <ul class="upper" style="list-style: none; margin: 0; padding: 0; font-size: 0.85rem;">
-          <li style="margin: 0.15rem 0;">date/time: 9/30</li>
-          <li style="margin: 0.15rem 0;">room: TBA</li>
+          <li style="margin: 0.15rem 0;">date/time: 10/07 - 2:30pm</li>
+          <li style="margin: 0.15rem 0;">room: GITC 3600</li>
         </ul>
         <p style="margin: 0; font-size: 0.9rem; color: #333;">
-         We will be demonstrating the basics of networking in video games with a workshop aimed at getting you building your own ASAP!
+          We will implement an HTTP server from scratch and talk about how to write ridiculously fast programs.
         </p>
         <p class="upper">
           DO NOT MISS IT...
