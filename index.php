@@ -34,7 +34,7 @@ new_render_header('IHEARTCOMPUTER');
           <li style="margin: 0.15rem 0;">room: GITC 3600</li>
         </ul>
         <p style="margin: 0; font-size: 0.9rem; color: #333;">
-          We are hosting <a href="https://njitaisafety.org/">SIG AI-Safety</a> to learn about what AI safety is and how we can interact with it.
+          We are hosting SIG AI-Safety to learn about what AI safety is and how we can interact with it.
         </p>
         <p class="upper">
           DO NOT MISS IT...
