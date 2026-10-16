@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Ryan Alport",
+    "url": "https://ryanalport.com",
+    "description": "Ryan's personal site",
+    "tag": "personal"
+  },
+  {
+    "name": "Ryan Alport",
+    "url": "https://ryanhub.org",
+    "description": "Minimal self hosted github",
+    "tag": "project"
+  },
+  {
+    "name": "Ryan Alport",
+    "url": "https://ezcaptain.com",
+    "description": "Google Classroom for the US Coast Guard",
+    "tag": "business"
+  },
+  {
+    "name": "Ryan Alport",
+    "url": "https://whoscooking.live",
+    "description": "Daily Git push leaderboard",
+    "tag": "project"
+  },
+  {
+    "name": "Horse",
+    "url": "https://pictureof.horse",
+    "description": "Horse picture",
+    "tag": "project"
+  },
+  {
+    "name": "Armen Deroian",
+    "url": "https://armenderoian.dev",
+    "description": "Armen's personal site",
+    "tag": "personal"
+  },
+  {
+    "name": "Armen Deroian",
+    "url": "https://articles.armenderoian.dev",
+    "description": "Technical blog and articles",
+    "tag": "project"
+  },
+  {
+    "name": "Armen Deroian",
+    "url": "https://www.gildenkrieg.space/",
+    "description": "Official Gildenkrieg website",
+    "tag": "project"
+  },
+  {
+    "name": "Kyle Butel",
+    "url": "https://kylebeutel.com",
+    "description": "Kyle's personal site",
+    "tag": "personal"
+  },
+  {
+    "name": "Aidan Lowell",
+    "url": "https://decksense.app",
+    "description": "Pokémon TCG deck analysis app for iOS",
+    "tag": "business"
+  }
+]
