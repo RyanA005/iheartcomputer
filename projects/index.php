@@ -155,7 +155,7 @@ function project_tag_class(string $bucket): string
 
 $root = dirname(__DIR__) . '/projects';
 $people = load_people();
-$archive = ['vim-demo', 'iheartcomputer-template'];
+$archive = ['ai-demos', 'vim-demo', 'iheartcomputer-template'];
 $projects = [];
 
 foreach (scandir($root) as $file) {

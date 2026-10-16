@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>baby-lm: visual</title>
+<style>
+  body { margin:0; background:#111; color:#ddd; font:14px/1.4 Georgia, serif; }
+  header { position:sticky; top:0; z-index:10; background:#111; padding:14px 32px; display:flex; gap:24px; align-items:baseline; border-bottom:1px solid #222; }
+  h1 { font-size:16px; font-weight:normal; margin:0; }
+  h1 a { color:inherit; text-decoration:none; }
+  button { background:none; color:#ddd; border:1px solid #555; padding:4px 16px; font:inherit; cursor:pointer; }
+  button:disabled { opacity:.4; cursor:default; }
+  button.active { border-color:#ffbe3c; color:#ffbe3c; }
+  #story { flex:1; font-size:16px; }
+  #story .new { color:#ffbe3c; }
+  html { scrollbar-width:none; }
+  ::-webkit-scrollbar { display:none; }
+  main { max-width:1100px; margin:0 auto; padding:10px 32px 40px; }
+  .pass { border-top:1px solid #222; padding-top:10px; }
+  section { margin:34px 0; position:relative; }
+  .m { color:#888; font-style:italic; margin-bottom:6px; }
+  canvas { image-rendering:pixelated; display:block; }
+  .chips { display:flex; gap:18px; }
+  .chip { text-align:center; font-size:16px; }
+  .chip span { display:block; color:#888; font:12px monospace; }
+  .chip.pad { opacity:.4; }
+  .lookup { position:relative; display:flex; gap:100px; align-items:flex-start; }
+  .w1wrap { position:relative; }
+  .rowmark { position:absolute; left:-4px; right:-4px; height:4px; border:1px solid #fff; transition:opacity .2s; }
+  .fly { position:absolute; transition:all .45s cubic-bezier(.6,.05,.3,1); z-index:5; }
+  .fly canvas, .srow canvas { width:100%; height:100%; }
+  .stack { display:flex; flex-direction:column; gap:8px; padding-top:22px; }
+  .slot, .srow { height:16px; width:512px; position:relative; }
+  .lbl { position:absolute; left:-80px; width:72px; text-align:right; color:#888; top:-1px; }
+  .slot { margin-left:80px; }
+  .srow { margin:6px 0 6px 80px; transition:opacity .3s; }
+  .op { margin-left:80px; color:#888; }
+  .fade { opacity:0; transition:opacity .3s; } .fade.show { opacity:1; }
+  .w2area { display:flex; gap:10px; align-items:flex-start; }
+  .w2wrap { position:relative; flex:1; min-width:0; }
+  .sweep { position:absolute; top:20px; bottom:0; width:1px; background:#fff; left:0; opacity:0; }
+  .logwrap { overflow:hidden; width:0; }
+  .tick { position:absolute; width:1px; background:#fff; }
+  .tick i { position:absolute; left:-30px; width:60px; text-align:center; font:11px monospace; color:#fff; font-style:normal; }
+  .bars .row { display:grid; grid-template-columns:80px 1fr 100px; align-items:center; gap:10px; height:22px; }
+  .bars .w { text-align:right; }
+  .bars .track { position:relative; height:14px; }
+  .bars .bar { position:absolute; top:0; height:100%; left:50%; width:0; transition:all .45s; }
+  .bars .v { font:12px monospace; color:#888; }
+  .phase { font:14px monospace; margin-bottom:10px; min-height:20px; }
+  .roulette { position:relative; height:28px; margin-top:18px; background:#333; }
+  .seg { position:absolute; top:0; height:100%; color:#111; font-size:11px; overflow:hidden; white-space:nowrap; text-indent:3px; line-height:28px; border-right:1px solid #111; box-sizing:border-box; }
+  .seg.won { outline:2px solid #fff; z-index:1; }
+  .needle { position:absolute; top:-10px; bottom:-10px; width:2px; background:#fff; left:0; z-index:2; }
+  .ends { display:flex; justify-content:space-between; color:#666; font-size:12px; margin-top:12px; }
+  .picked { font:14px monospace; margin-top:18px; }
+</style>
+</head>
+<body>
+<header>
+  <h1><a href="../">baby-lm</a></h1>
+  <div id="story"></div>
+  <button id="step" disabled>step</button>
+  <button id="auto" disabled>auto</button>
+</header>
+<main id="main"></main>
+
+<script>
+const $ = s => document.querySelector(s);
+const MODEL = '1mil', CONTEXT = 6, T = 0.7, K = 12;
+let V, H, W1, b1, W2, b2, vocab, wordId, sW1, sW2, w1Img, w2Img;
+let words = ['the', 'cat', 'in', 'the', 'hat'], nNew = 0;
+let pass, ids, F, order, sZ, stage = 0, auto = false, busy = false, looping = false;
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const el = (tag, cls = '', html = '') => { const e = document.createElement(tag); if (cls) e.className = cls; e.innerHTML = html; return e; };
+const ease = t => t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+const tween = (ms, fn) => new Promise(done => {
+  const t0 = performance.now();
+  const tick = now => { const t = Math.min(1, (now - t0) / ms); fn(ease(t)); t < 1 ? requestAnimationFrame(tick) : done(); };
+  requestAnimationFrame(tick);
+});
+
+function color(v, s) {
+  const t = Math.max(-1, Math.min(1, v / s)), a = Math.sqrt(Math.abs(t));
+  const base = [17, 17, 17], c = t > 0 ? [255, 190, 60] : [80, 180, 255];
+  return base.map((b, i) => Math.round(b + (c[i] - b) * a));
+}
+
+function heat(canvas, rows, cols, get, s, w, h) {
+  canvas.width = cols; canvas.height = rows;
+  const ctx = canvas.getContext('2d'), img = ctx.createImageData(cols, rows);
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const [R, G, B] = color(get(r, c), s), o = (r * cols + c) * 4;
+    img.data[o] = R; img.data[o + 1] = G; img.data[o + 2] = B; img.data[o + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  if (w) { canvas.style.width = w + 'px'; canvas.style.height = h + 'px'; }
+  return canvas;
+}
+const vecCanvas = (vec, s) => heat(document.createElement('canvas'), 1, vec.length, (r, c) => vec[c], s);
+
+function blit(canvas, src, w, h) {
+  canvas.width = src.width; canvas.height = src.height;
+  canvas.getContext('2d').drawImage(src, 0, 0);
+  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+}
+
+function absPct(arr, p = 0.99) {
+  const n = Math.min(arr.length, 20000), samp = [];
+  for (let i = 0; i < n; i++) samp.push(Math.abs(arr[Math.floor(Math.random() * arr.length)]));
+  samp.sort((a, b) => a - b); return samp[Math.floor(p * (n - 1))] || 1;
+}
+
+function tokenize(bytes) {
+  const toks = []; let buf = '';
+  for (const ch of bytes) {
+    const up = ch >= 65 && ch <= 90, lo = ch >= 97 && ch <= 122;
+    if (up || lo || ch === 39) buf += String.fromCharCode(up ? ch + 32 : ch);
+    else if (buf) { toks.push(buf); buf = ''; }
+  }
+  return toks;
+}
+
+function forward(ctxIds) {
+  const sum = new Float32Array(H), h = new Float32Array(H), z = new Float32Array(V), p = new Float32Array(V);
+  for (let j = 0; j < H; j++) { let s = b1[j]; for (const t of ctxIds) s += W1[t * H + j]; sum[j] = s; h[j] = Math.tanh(s); }
+  for (let k = 0; k < V; k++) { let s = b2[k]; for (let j = 0; j < H; j++) s += h[j] * W2[j * V + k]; z[k] = s; }
+  let mx = -Infinity; for (let k = 0; k < V; k++) mx = Math.max(mx, z[k] / T);
+  let tot = 0; for (let k = 0; k < V; k++) { p[k] = Math.exp(z[k] / T - mx); tot += p[k]; }
+  for (let k = 0; k < V; k++) p[k] /= tot;
+  return { sum, h, z, p, tot, mx };
+}
+
+function sec(label) {
+  const s = el('section', '', label ? `<div class="m">${label}</div>` : '');
+  pass.append(s); return s;
+}
+const focus = () => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+new ResizeObserver(focus).observe($('#main'));
+const renderStory = () => $('#story').innerHTML = words.map((w, i) => i >= words.length - nNew ? `<span class="new">${w}</span>` : w).join(' ');
+
+async function tokens() {
+  pass = el('div', 'pass'); $('#main').append(pass);
+  ids = words.slice(-CONTEXT).map(w => wordId.get(w) ?? 0);
+  while (ids.length < CONTEXT) ids.unshift(0);
+  F = forward(ids);
+  order = [...F.p.keys()].sort((a, b) => F.p[b] - F.p[a]);
+  sZ = absPct(F.z, 1);
+
+  const s = sec(''), chips = el('div', 'chips'); s.append(chips);
+  focus(s);
+  for (const id of ids) {
+    chips.append(el('div', 'chip' + (id === 0 ? ' pad' : ''), `${vocab[id]}<span>${id}</span>`));
+    await sleep(80);
+  }
+}
+
+async function lookup() {
+  const s = sec('');
+  const lk = el('div', 'lookup'), wrap = el('div', 'w1wrap', `<div class="m">W1 [${V} x ${H}]</div>`), cv = el('canvas'), stack = el('div', 'stack');
+  wrap.append(cv); lk.append(wrap, stack); s.append(lk);
+  blit(cv, w1Img, 384, 500);
+  const slots = ids.map(id => { const sl = el('div', 'slot', `<span class="lbl">${vocab[id]}</span>`); stack.append(sl); return sl; });
+  focus(s); await sleep(300);
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i], box = lk.getBoundingClientRect(), cr = cv.getBoundingClientRect(), wt = wrap.getBoundingClientRect().top;
+    const y = (id + 0.5) / V * cr.height;
+    const m = el('div', 'rowmark'); m.style.top = (y + cr.top - wt - 2) + 'px'; wrap.append(m);
+    await sleep(150);
+    const fl = el('div', 'fly'); fl.append(vecCanvas(W1.subarray(id * H, id * H + H), sW1));
+    Object.assign(fl.style, { left: (cr.left - box.left) + 'px', top: (y + cr.top - box.top - 1) + 'px', width: cr.width + 'px', height: '3px' });
+    lk.append(fl); fl.getBoundingClientRect();
+    const b = lk.getBoundingClientRect(), t = slots[i].getBoundingClientRect();
+    Object.assign(fl.style, { left: (t.left - b.left) + 'px', top: (t.top - b.top) + 'px', width: '512px', height: '16px' });
+    await sleep(330); m.style.opacity = .3;
+  }
+}
+
+async function hidden() {
+  const s = sec('h = tanh( &Sigma; W1[t] + b1 )'), box = el('div'); s.append(box);
+  const addRow = (lbl, vec, sc, op) => {
+    if (op) { const o = el('div', 'op fade', op); box.append(o); requestAnimationFrame(() => o.classList.add('show')); }
+    const r = el('div', 'srow fade', `<span class="lbl">${lbl}</span>`);
+    r.append(vecCanvas(vec, sc)); box.append(r); requestAnimationFrame(() => r.classList.add('show')); return r;
+  };
+  focus(s);
+  const rows = ids.map((id, i) => addRow(vocab[id], W1.subarray(id * H, id * H + H), sW1, i ? '+' : ''));
+  await sleep(300);
+  rows.push(addRow('b1', b1, sW1, '+')); await sleep(350);
+  rows.forEach(r => r.style.opacity = .3);
+  addRow('', F.sum, sW1 * 2.5, '='); await sleep(400);
+  addRow('h', F.h, 1, 'tanh'); await sleep(250);
+}
+
+async function logits() {
+  const s = sec('z = h W2 + b2');
+  const area = el('div', 'w2area'), hw = el('div', '', '<div class="m">h</div>'), hc = el('canvas');
+  const ww2 = el('div', 'w2wrap', `<div class="m">W2 [${H} x ${V}]</div>`), wc = el('canvas'), sw = el('div', 'sweep');
+  hw.append(hc); ww2.append(wc, sw); area.append(hw, ww2);
+  const lo = el('div', '', `<div class="m" style="margin-top:8px">z [${V}]</div>`), lw = el('div', 'logwrap'), lc = el('canvas'), ticks = el('div');
+  ticks.style.cssText = 'position:relative;height:30px'; lw.append(lc); lo.style.marginLeft = '28px'; lo.append(lw, ticks);
+  s.append(area, lo);
+  const ww = ww2.clientWidth;
+  blit(wc, w2Img, ww, 220);
+  heat(hc, H, 1, r => F.h[r], 1, 18, 220);
+  heat(lc, 1, V, (r, c) => F.z[c], sZ, ww, 26);
+  focus(s); await sleep(300);
+  sw.style.opacity = 1; sw.getBoundingClientRect();
+  sw.style.transition = 'left .9s linear'; sw.style.left = ww + 'px';
+  lw.style.transition = 'width .9s linear'; lw.style.width = ww + 'px';
+  await sleep(950); sw.style.opacity = 0;
+  order.slice(0, 5).forEach((k, i) => {
+    const x = (k + 0.5) / V * ww;
+    const t = el('div', 'tick', `<i style="top:${32 + (i % 2) * 13}px">${vocab[k]}</i>`);
+    Object.assign(t.style, { left: x + 'px', top: '-30px', height: '30px' }); ticks.append(t);
+    const t2 = el('div', 'tick'); Object.assign(t2.style, { left: x + 'px', top: '20px', bottom: '0', opacity: .5 }); ww2.append(t2);
+  });
+  await sleep(300);
+}
+
+async function softmax() {
+  const s = sec('p = softmax( z / T )'), phase = el('div', 'phase'), bars = el('div', 'bars'); s.append(phase, bars);
+  const topK = order.slice(0, K);
+  const rows = topK.map(k => {
+    const r = el('div', 'row', `<div class="w">${vocab[k]}</div><div class="track"><div class="bar"></div></div><div class="v"></div>`);
+    bars.append(r); return { k, bar: r.querySelector('.bar'), v: r.querySelector('.v') };
+  });
+  const setBars = (val, centered, fmt, col) => {
+    const mx = Math.max(...topK.map(k => Math.abs(val(k))));
+    rows.forEach(({ k, bar, v }) => {
+      const x = val(k), w = Math.abs(x) / mx * (centered ? 50 : 100);
+      bar.style.left = centered ? (x >= 0 ? '50%' : (50 - w) + '%') : '0%';
+      bar.style.width = w + '%'; bar.style.background = col || (x >= 0 ? '#ffbe3c' : '#50b4ff');
+      v.textContent = fmt(x);
+    });
+  };
+  focus(s);
+  phase.textContent = 'z'; await sleep(50);
+  setBars(k => F.z[k], true, x => x.toFixed(2)); await sleep(700);
+  phase.textContent = `z / ${T}`;
+  setBars(k => F.z[k] / T, true, x => x.toFixed(2)); await sleep(700);
+  phase.textContent = 'exp(z/T - max)';
+  setBars(k => Math.exp(F.z[k] / T - F.mx), false, x => x.toFixed(4), '#ccc'); await sleep(700);
+  phase.textContent = `exp(z/T - max) / ${F.tot.toFixed(3)}`;
+  setBars(k => F.p[k], false, x => (x * 100).toFixed(2) + '%', '#ccc'); await sleep(400);
+}
+
+async function pick() {
+  const s = sec(''), rl = el('div', 'roulette'), nd = el('div', 'needle'), out = el('div', 'picked');
+  const shades = ['#ffbe3c', '#ccc', '#50b4ff', '#888'];
+  let acc = 0;
+  const segs = order.slice(0, K).map((k, i) => {
+    const sg = el('div', 'seg', F.p[k] > 0.03 ? vocab[k] : '');
+    Object.assign(sg.style, { left: acc * 100 + '%', width: F.p[k] * 100 + '%', background: shades[i % shades.length] });
+    acc += F.p[k]; rl.append(sg); return sg;
+  });
+  rl.append(nd); s.append(rl, el('div', 'ends', '<span>0</span><span>1</span>'), out);
+  focus(s); await sleep(250);
+
+  // walk in the same sorted order the segments are drawn so the needle lands on the picked word
+  const r = Math.random(); let c = 0, rank = V - 1;
+  for (let i = 0; i < V; i++) { c += F.p[order[i]]; if (r <= c) { rank = i; break; } }
+  const k = order[rank];
+  await tween(650, t => nd.style.left = (r * t * 100) + '%');
+  if (rank < K) segs[rank].classList.add('won');
+  out.textContent = `r = ${r.toFixed(3)}  ->  ${vocab[k]}  (p = ${F.p[k].toFixed(3)})`;
+  words.push(vocab[k]); nNew++;
+  renderStory();
+}
+
+const stages = [tokens, lookup, hidden, logits, softmax, pick];
+
+async function step() {
+  busy = true; $('#step').disabled = true;
+  try {
+    await stages[stage]();
+    stage = (stage + 1) % stages.length;
+  } finally { busy = false; $('#step').disabled = auto; }
+}
+
+async function toggleAuto() {
+  auto = !auto;
+  $('#auto').classList.toggle('active', auto);
+  $('#step').disabled = auto || busy;
+  if (!auto || looping) return;
+  looping = true;
+  while (busy) await sleep(50);
+  while (auto) { await step(); if (auto) await sleep(250); }
+  looping = false;
+}
+
+(async () => {
+  const bytes = new Uint8Array(await (await fetch('suess.txt')).arrayBuffer());
+  vocab = ['?']; wordId = new Map();
+  for (const t of tokenize(bytes)) if (!wordId.has(t)) { wordId.set(t, vocab.length); vocab.push(t); }
+
+  const buf = await (await fetch(`TRAINED/${MODEL}-model.bin`)).arrayBuffer();
+  const hdr = new Int32Array(buf, 0, 3); V = hdr[1]; H = hdr[2];
+  let o = 12; const take = n => { const a = new Float32Array(buf, o, n); o += n * 4; return a; };
+  W1 = take(V * H); b1 = take(H); W2 = take(H * V); b2 = take(V);
+  sW1 = absPct(W1); sW2 = absPct(W2);
+  w1Img = heat(document.createElement('canvas'), V, H, (r, c) => W1[r * H + c], sW1);
+  w2Img = heat(document.createElement('canvas'), H, V, (r, c) => W2[r * V + c], sW2);
+
+  renderStory();
+  $('#step').onclick = step; $('#auto').onclick = toggleAuto;
+  $('#step').disabled = false; $('#auto').disabled = false;
+})();
+</script>
+</body>
+</html>

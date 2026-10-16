@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>baby-image-gen: math</title>
+<style>
+  html { scrollbar-width:none; }
+  ::-webkit-scrollbar { display:none; }
+  body { margin:0; background:#111; color:#ddd; font:16px/1.4 Georgia, serif; }
+  header { position:sticky; top:0; z-index:10; background:#111; padding:10px 32px; display:flex; gap:24px; align-items:center; border-bottom:1px solid #222; min-height:32px; }
+  h1 { font-size:17px; font-weight:normal; margin:0; white-space:nowrap; }
+  h1 a { color:inherit; text-decoration:none; }
+  button { background:none; color:#ddd; border:1px solid #555; padding:4px 16px; font:inherit; cursor:pointer; }
+  button:disabled { opacity:.4; cursor:default; }
+  button.active { border-color:#ffdf6b; color:#ffdf6b; }
+  #story { flex:1; display:flex; gap:4px; overflow:hidden; }
+  #story canvas { width:28px; height:28px; opacity:.6; }
+  #story canvas.new { opacity:1; outline:1px solid #ffdf6b; }
+  main { max-width:1100px; margin:0 auto; padding:10px 32px 240px; }
+  .pass { border-top:1px solid #222; padding-top:10px; }
+  section { margin:40px 0; }
+  .m { font-size:19px; margin-bottom:14px; }
+  .row { display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  .sym { font-size:24px; color:#aaa; }
+  canvas { image-rendering:pixelated; display:block; }
+  .imgwrap { position:relative; }
+  .box { position:absolute; border:1.5px solid #ffdf6b; }
+  .g { display:inline-grid; align-items:center; row-gap:3px; }
+  .g > div { padding:1px 8px; text-align:right; white-space:nowrap; transition:color .2s, background .2s, opacity .3s; }
+  .g .hd { color:#666; font-size:12px; }
+  .g .mh { color:#999; font-size:15px; padding-bottom:4px; }
+  .g .lb { color:#999; font-style:italic; padding-right:14px; }
+  .g .gap { margin-top:12px; }
+  .g .br { position:relative; pointer-events:none; padding:0; align-self:stretch; }
+  .g .br::before, .g .br::after { content:''; position:absolute; top:-1px; bottom:-1px; width:5px; border:1.5px solid #bbb; }
+  .g .br::before { left:0; border-right:none; }
+  .g .br::after { right:0; border-left:none; }
+  .o { opacity:0; } .o.in { opacity:1; }
+  .dim { color:#555; }
+  .hl { color:#ffdf6b !important; background:rgba(255,223,107,.1); }
+  .flash { animation:fl .45s; }
+  @keyframes fl { from { color:#ffdf6b; } }
+  .x { color:#83C167; } .z { color:#58C4DD; } .s { color:#FC6255; } .y { color:#F0AC5F; }
+  .eq { margin-top:16px; color:#bbb; }
+  svg text { font-family:Georgia, serif; fill:#888; font-size:13px; }
+  .tiles { display:flex; gap:24px; margin-top:18px; }
+  .tile { text-align:center; color:#999; font-size:14px; }
+  .tile canvas { margin-bottom:4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1><a href="../">baby-image-gen</a></h1>
+  <div id="story"></div>
+  <button id="step" disabled>step</button>
+  <button id="auto" disabled>auto</button>
+</header>
+<main id="main"></main>
+
+<script>
+const $ = s => document.querySelector(s);
+const S = 32, N = S * S * 3, L = 512, J = 9, D = 8, KC = 6;
+let W1, b1, W2, b2, emojis, pca, sigma;
+let pass, nPass = 0, idx, x, a, z, s, y, k, py, px, i0, stage = 0, auto = false, busy = false, looping = false;
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const el = (tag, cls = '', html = '') => { const e = document.createElement(tag); if (cls) e.className = cls; e.innerHTML = html; return e; };
+const f = (v, d = 2) => (v < 0 && Math.abs(v).toFixed(d) != 0 ? '-' : '') + Math.abs(v).toFixed(d);
+const reveal = els => els.forEach(e => e.classList.add('in'));
+const hl = (els, on) => els.forEach(e => e.classList.toggle('hl', on));
+const flash = e => { e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash'); };
+const ease = t => t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+const tween = (ms, fn) => new Promise(done => {
+  const t0 = performance.now();
+  const tick = now => { const t = Math.min(1, (now - t0) / ms); fn(ease(t)); t < 1 ? requestAnimationFrame(tick) : done(); };
+  requestAnimationFrame(tick);
+});
+
+const clamp255 = v => Math.max(0, Math.min(255, Math.round(v * 255)));
+function imgCanvas(vec, size) {
+  const c = el('canvas'); c.width = S; c.height = S;
+  const ctx = c.getContext('2d'), img = ctx.createImageData(S, S);
+  for (let i = 0; i < S * S; i++) { img.data[i * 4] = clamp255(vec[i * 3]); img.data[i * 4 + 1] = clamp255(vec[i * 3 + 1]); img.data[i * 4 + 2] = clamp255(vec[i * 3 + 2]); img.data[i * 4 + 3] = 255; }
+  ctx.putImageData(img, 0, 0);
+  c.style.width = c.style.height = size + 'px';
+  return c;
+}
+
+function encode(xv) {
+  const av = Float32Array.from(b1);
+  for (let i = 0; i < N; i++) { const xi = xv[i]; if (!xi) continue; const row = i * L; for (let j = 0; j < L; j++) av[j] += xi * W1[row + j]; }
+  return { a: av, z: av.map(Math.tanh) };
+}
+
+function decode(zv) {
+  const sv = Float32Array.from(b2);
+  for (let j = 0; j < L; j++) { const zj = zv[j]; const row = j * N; for (let i = 0; i < N; i++) sv[i] += zj * W2[row + i]; }
+  return { s: sv, y: sv.map(v => 0.5 * (Math.tanh(v) + 1)) };
+}
+
+// explicit grid placement so brackets can overlay a range of cells
+function grid(cols) {
+  const g = el('div', 'g'); g.style.gridTemplateColumns = `repeat(${cols}, auto)`;
+  const put = (html, r, c, cls = '') => { const d = el('div', cls, String(html)); d.style.gridRow = r + 1; d.style.gridColumn = c + 1; g.append(d); return d; };
+  const bracket = (r0, r1, c0, c1, cls = '') => { const d = el('div', 'br ' + cls); d.style.gridRow = `${r0 + 1} / ${r1 + 2}`; d.style.gridColumn = `${c0 + 1} / ${c1 + 2}`; g.prepend(d); return d; };
+  return { g, put, bracket };
+}
+
+// the 3 neighbouring pixels with the most varied values give the most readable numbers
+function pickWindow(xv) {
+  let best = -1, by = 16, bx = 15;
+  for (let yy = 6; yy < 26; yy++) for (let xx = 4; xx < 26; xx++) {
+    const o = (yy * S + xx) * 3; let m = 0, q = 0;
+    for (let t = 0; t < J; t++) { m += xv[o + t]; q += xv[o + t] ** 2; }
+    const v = q / J - (m / J) ** 2;
+    if (v > best) { best = v; by = yy; bx = xx; }
+  }
+  return [by, bx];
+}
+
+function sec(math) { const e = el('section', '', `<div class="m">${math}</div>`); pass.append(e); return e; }
+const focus = e => e.scrollIntoView({ behavior: 'smooth', block: 'center' });
+const chan = t => 'rgb'[t % 3];
+
+async function pixels() {
+  pass = el('div', 'pass'); $('#main').append(pass);
+  idx = nPass === 0 ? 0 : Math.floor(Math.random() * emojis.length);
+  k = nPass % pca.length;
+  x = emojis[idx]; ({ a, z } = encode(x)); ({ s, y } = decode(z));
+  [py, px] = pickWindow(x); i0 = (py * S + px) * 3;
+
+  const e = sec(`<i class="x">x</i> = flatten( emoji ${idx} ), &nbsp; <i class="x">x</i><sub>3(32 row + col) + channel</sub>`);
+  const wrap = el('div', 'row'); e.append(wrap);
+  const iw = el('div', 'imgwrap'), sz = 160, box = el('div', 'box');
+  iw.append(imgCanvas(x, sz), box);
+  Object.assign(box.style, { left: (px * sz / S - 1) + 'px', top: (py * sz / S - 1) + 'px', width: (3 * sz / S) + 'px', height: (sz / S) + 'px' });
+
+  const pg = grid(4);
+  for (let p = 0; p < 3; p++) pg.put(`(${py}, ${px + p})`, 0, p + 1, 'hd');
+  const pc = [[], [], []];
+  for (let ch = 0; ch < 3; ch++) {
+    pg.put('rgb'[ch], ch + 1, 0, 'lb');
+    for (let p = 0; p < 3; p++) pc[p].push(pg.put(f(x[i0 + p * 3 + ch]), ch + 1, p + 1));
+  }
+  pg.bracket(1, 3, 1, 3);
+
+  const xg = grid(J + 2), xc = [];
+  xg.put('', 0, 0, 'hd');
+  for (let t = 0; t < J; t++) xg.put(`${i0 + t} ${chan(t)}`, 0, t + 1, 'hd');
+  xg.put('...', 1, 0, 'dim');
+  for (let t = 0; t < J; t++) xc.push(xg.put(f(x[i0 + t]), 1, t + 1, 'o x'));
+  xg.put('...', 1, J + 1, 'dim'); xg.bracket(1, 1, 0, J + 1);
+  wrap.append(iw, pg.g, el('div', 'sym', '&rarr;'), xg.g);
+  focus(e); await sleep(250);
+  for (let p = 0; p < 3; p++) {
+    hl(pc[p], true); await sleep(150);
+    for (let ch = 0; ch < 3; ch++) { reveal([xc[p * 3 + ch]]); flash(xc[p * 3 + ch]); }
+    await sleep(220); hl(pc[p], false);
+  }
+}
+
+async function encodeStage() {
+  const e = sec(`<i>a</i> = <i class="x">x</i> <i>W</i><sub>1</sub> + <i>b</i><sub>1</sub>`);
+  const wrap = el('div', 'row'); e.append(wrap);
+
+  const xg = grid(J + 2), xc = [];
+  for (let t = 0; t < J; t++) xg.put(i0 + t, 0, t + 1, 'hd');
+  xg.put('...', 1, 0, 'dim');
+  for (let t = 0; t < J; t++) xc.push(xg.put(f(x[i0 + t]), 1, t + 1, 'x'));
+  xg.put('...', 1, J + 1, 'dim'); xg.bracket(1, 1, 0, J + 1);
+
+  const w = grid(KC + 2), cols = Array.from({ length: KC }, () => []);
+  for (let j = 0; j < KC; j++) w.put(j, 0, j + 1, 'hd');
+  const dotsRow = r => { for (let j = 0; j <= KC; j++) w.put('...', r, j + 1, 'dim'); };
+  dotsRow(1);
+  for (let t = 0; t < J; t++) {
+    w.put(i0 + t, t + 2, 0, 'hd');
+    for (let j = 0; j < KC; j++) cols[j].push(w.put(f(W1[(i0 + t) * L + j], 3), t + 2, j + 1));
+    w.put('...', t + 2, KC + 1, 'dim');
+  }
+  dotsRow(J + 2);
+  w.bracket(1, J + 2, 1, KC + 1);
+  const R = J + 3;
+  const vrow = (r, lbl, cls) => ({
+    e: [w.put(lbl, r, 0, 'lb o ' + cls), w.put('...', r, KC + 1, 'o dim ' + cls), w.bracket(r, r, 1, KC + 1, 'o ' + cls)],
+    c: Array.from({ length: KC }, (_, j) => w.put('', r, j + 1, 'o ' + cls)),
+  });
+  const xw = vrow(R, '<i class="x">x</i><i>W</i><sub>1</sub>', 'gap'), bw = vrow(R + 1, '+ <i>b</i><sub>1</sub>', ''), aw = vrow(R + 2, '= <i>a</i>', '');
+  wrap.append(xg.g, el('div', 'sym', '&times;'), w.g);
+  const eq = el('div', 'eq'); e.append(eq);
+  focus(e); await sleep(250);
+  reveal([...xw.e, ...xw.c]);
+  for (let j = 0; j < KC; j++) {
+    hl([...cols[j], ...xc], true); await sleep(j ? 110 : 250);
+    xw.c[j].textContent = f(a[j] - b1[j]); flash(xw.c[j]);
+    if (j === 0) {
+      const terms = [0, 1, 2].map(t => `(${f(x[i0 + t])})(${f(W1[(i0 + t) * L], 3)})`).join(' + ');
+      eq.innerHTML = `<i>a</i><sub>0</sub> = <i>b</i><sub>1,0</sub> + ... + ${terms} + ... &nbsp; (${N} terms) &nbsp; = ${f(b1[0])} + ${f(a[0] - b1[0])} = ${f(a[0])}`;
+      await sleep(600);
+    } else await sleep(160);
+    hl([...cols[j], ...xc], false);
+  }
+  bw.c.forEach((c, j) => c.textContent = f(b1[j])); reveal([...bw.e, ...bw.c]); await sleep(250);
+  aw.c.forEach((c, j) => c.textContent = f(a[j])); reveal([...aw.e, ...aw.c]);
+}
+
+async function squash() {
+  const e = sec(`<i class="z">z</i> = tanh(<i>a</i>)`);
+  const wrap = el('div', 'row'); e.append(wrap);
+  const W = 360, HH = 220, lim = Math.max(3, ...[...a.slice(0, D)].map(Math.abs)) * 1.05;
+  const X = v => 20 + (Math.max(-lim, Math.min(lim, v)) + lim) / (2 * lim) * (W - 40), Y = v => HH / 2 - v * (HH / 2 - 16);
+  let path = '';
+  for (let i = 0; i <= 160; i++) { const v = -lim + i * 2 * lim / 160; path += (i ? 'L' : 'M') + X(v).toFixed(1) + ' ' + Y(Math.tanh(v)).toFixed(1); }
+  const box = el('div', '', `<svg width="${W}" height="${HH}">
+    <line x1="10" x2="${W - 10}" y1="${Y(0)}" y2="${Y(0)}" stroke="#444"/>
+    <line x1="${X(0)}" x2="${X(0)}" y1="6" y2="${HH - 6}" stroke="#444"/>
+    <line x1="${X(0) - 4}" x2="${X(0) + 4}" y1="${Y(1)}" y2="${Y(1)}" stroke="#666"/>
+    <line x1="${X(0) - 4}" x2="${X(0) + 4}" y1="${Y(-1)}" y2="${Y(-1)}" stroke="#666"/>
+    <text x="${X(0) + 8}" y="${Y(1) + 4}">1</text><text x="${X(0) + 8}" y="${Y(-1) + 4}">-1</text>
+    <text x="${W - 22}" y="${Y(0) - 6}">a</text>
+    <path d="${path}" fill="none" stroke="#ddd" stroke-width="1.5"/></svg>`);
+  const svg = box.firstElementChild, ns = 'http://www.w3.org/2000/svg';
+  const mk = (tag, attrs) => { const n = document.createElementNS(ns, tag); for (const q in attrs) n.setAttribute(q, attrs[q]); svg.append(n); return n; };
+
+  const v = grid(D + 2);
+  for (let j = 0; j < D; j++) v.put(j, 0, j + 1, 'hd');
+  v.put('<i>a</i>', 1, 0, 'lb');
+  const ac = [], zc = [];
+  for (let j = 0; j < D; j++) ac.push(v.put(f(a[j]), 1, j + 1));
+  v.put('...', 1, D + 1, 'dim'); v.bracket(1, 1, 1, D + 1);
+  v.put('<i class="z">z</i>', 2, 0, 'lb z gap');
+  for (let j = 0; j < D; j++) zc.push(v.put('', 2, j + 1, 'z gap'));
+  v.put('...', 2, D + 1, 'dim gap'); v.bracket(2, 2, 1, D + 1, 'gap');
+  wrap.append(box, v.g);
+  focus(e); await sleep(250);
+  for (let j = 0; j < D; j++) {
+    const av = a[j], zv = Math.tanh(av);
+    hl([ac[j]], true);
+    const vl = mk('line', { x1: X(av), x2: X(av), y1: Y(0), y2: Y(0), stroke: '#58C4DD', 'stroke-dasharray': '3 3', opacity: .6 });
+    const hz = mk('line', { x1: X(av), x2: X(av), y1: Y(zv), y2: Y(zv), stroke: '#58C4DD', 'stroke-dasharray': '3 3', opacity: .6 });
+    const dot = mk('circle', { cx: X(av), cy: Y(0), r: 4, fill: '#58C4DD' });
+    await tween(240, t => { dot.setAttribute('cy', Y(zv * t)); vl.setAttribute('y2', Y(zv * t)); });
+    await tween(150, t => hz.setAttribute('x2', X(av) + (X(0) - X(av)) * t));
+    zc[j].textContent = f(z[j]); flash(zc[j]); hl([ac[j]], false);
+    vl.setAttribute('opacity', .2); hz.setAttribute('opacity', .2);
+  }
+}
+
+async function decodeStage() {
+  const e = sec(`<i class="s">s</i> = <i class="z">z</i> <i>W</i><sub>2</sub> + <i>b</i><sub>2</sub>`);
+  const wrap = el('div', 'row'); e.append(wrap);
+  const zg = grid(D + 1), zc = [];
+  for (let j = 0; j < D; j++) { zg.put(j, 0, j, 'hd'); zc.push(zg.put(f(z[j]), 1, j, 'z')); }
+  zg.put('...', 1, D, 'dim'); zg.bracket(1, 1, 0, D);
+
+  const w = grid(KC + 3), cols = Array.from({ length: KC }, () => []);
+  for (let t = 0; t < KC; t++) w.put(`${i0 + t} ${chan(t)}`, 0, t + 2, 'hd');
+  for (let j = 0; j <= D; j++) {
+    w.put(j < D ? j : '', j + 1, 0, 'hd');
+    w.put('...', j + 1, 1, 'dim');
+    for (let t = 0; t < KC; t++) cols[t].push(w.put(j < D ? f(W2[j * N + i0 + t], 3) : '...', j + 1, t + 2, j < D ? '' : 'dim'));
+    w.put('...', j + 1, KC + 2, 'dim');
+  }
+  w.bracket(1, D + 1, 1, KC + 2);
+  const R = D + 2;
+  const vrow = (r, lbl, cls) => ({
+    e: [w.put(lbl, r, 0, 'lb o ' + cls), w.put('...', r, 1, 'o dim ' + cls), w.put('...', r, KC + 2, 'o dim ' + cls), w.bracket(r, r, 1, KC + 2, 'o ' + cls)],
+    c: Array.from({ length: KC }, (_, t) => w.put('', r, t + 2, 'o ' + cls)),
+  });
+  const bw = vrow(R, '+ <i>b</i><sub>2</sub>', 'gap'), sw = vrow(R + 1, '= <i class="s">s</i>', 's');
+  wrap.append(zg.g, el('div', 'sym', '&times;'), w.g);
+  const eq = el('div', 'eq'); e.append(eq);
+  focus(e); await sleep(250);
+  reveal([...bw.e, ...bw.c, ...sw.e, ...sw.c]);
+  for (let t = 0; t < KC; t++) {
+    const i = i0 + t;
+    hl([...cols[t], ...zc], true); await sleep(t ? 110 : 250);
+    bw.c[t].textContent = f(b2[i]); sw.c[t].textContent = f(s[i]); flash(sw.c[t]);
+    if (t === 0) {
+      const terms = [0, 1, 2].map(j => `(${f(z[j])})(${f(W2[j * N + i], 3)})`).join(' + ');
+      eq.innerHTML = `<i class="s">s</i><sub>${i}</sub> = ${f(b2[i])} + ${terms} + ... + (${f(z[L - 1])})(${f(W2[(L - 1) * N + i], 3)}) = <span class="s">${f(s[i])}</span>`;
+      await sleep(600);
+    } else await sleep(160);
+    hl([...cols[t], ...zc], false);
+  }
+}
+
+async function output() {
+  let mse = 0; for (let i = 0; i < N; i++) mse += (y[i] - x[i]) ** 2; mse /= N;
+  const e = sec(`<i class="y">y</i> = ( tanh(<i class="s">s</i>) + 1 ) / 2, &nbsp; MSE = mean( (<i class="y">y</i> - <i class="x">x</i>)<sup>2</sup> )`);
+  const g = grid(6);
+  ['', '<i class="s">s</i>', 'tanh(<i class="s">s</i>)', '<i class="y">y</i>', '<i class="x">x</i>', '(<i class="y">y</i> - <i class="x">x</i>)<sup>2</sup>'].forEach((t, c) => g.put(t, 0, c, 'mh'));
+  const cols = [[], [], [], [], []];
+  for (let t = 0; t < J; t++) {
+    const i = i0 + t;
+    g.put(`${i} ${chan(t)}`, t + 1, 0, 'lb');
+    cols[0].push(g.put(f(s[i]), t + 1, 1, 'o s'));
+    cols[1].push(g.put(f(Math.tanh(s[i]), 3), t + 1, 2, 'o'));
+    cols[2].push(g.put(f(y[i], 3), t + 1, 3, 'o y'));
+    cols[3].push(g.put(f(x[i], 3), t + 1, 4, 'o x'));
+    cols[4].push(g.put((y[i] - x[i]) ** 2 < 1e-4 ? ((y[i] - x[i]) ** 2).toExponential(1) : ((y[i] - x[i]) ** 2).toFixed(4), t + 1, 5, 'o'));
+  }
+  for (let c = 1; c <= 5; c++) cols[c - 1].push(g.put('...', J + 1, c, 'o dim'));
+  g.put('mean', J + 2, 0, 'lb gap');
+  cols[4].push(g.put(mse.toFixed(4), J + 2, 5, 'o gap'));
+  for (let c = 1; c <= 5; c++) g.bracket(1, J + 1, c, c);
+  const tiles = el('div', 'tiles');
+  for (const [vec, cap] of [[x, '<i class="x">x</i>'], [y, '<i class="y">y</i>']]) { const t = el('div', 'tile o'); t.append(imgCanvas(vec, 96), el('div', '', cap)); tiles.append(t); }
+  const wrap = el('div', 'row'); wrap.append(g.g, tiles); e.append(wrap);
+  focus(e); await sleep(250);
+  for (let c = 0; c < 5; c++) { for (const n of cols[c]) { n.classList.add('in'); await sleep(30); } await sleep(150); }
+  reveal([...tiles.children]);
+  $('#story').querySelectorAll('canvas').forEach(c => c.classList.remove('new'));
+  const th = imgCanvas(y, 28); th.classList.add('new'); $('#story').append(th);
+}
+
+async function explore() {
+  const al = 2 * sigma[k], v = pca[k];
+  const e = sec(`<i class="z">z</i>' = <i class="z">z</i> + &alpha; <i>v</i><sub>${k}</sub>, &nbsp; &alpha; = 2&sigma;<sub>${k}</sub> = ${f(al)}`);
+  const zz = z.map((zj, j) => zj + al * v[j]), y2 = decode(zz).y;
+  const g = grid(5);
+  ['', '<i class="z">z</i>', '<i>v</i><sub>' + k + '</sub>', '&alpha; <i>v</i><sub>' + k + '</sub>', '<i class="z">z</i>\''].forEach((t, c) => g.put(t, 0, c, 'mh'));
+  const cols = [[], [], [], []];
+  for (let j = 0; j < D; j++) {
+    g.put(j, j + 1, 0, 'lb');
+    cols[0].push(g.put(f(z[j]), j + 1, 1, 'o z'));
+    cols[1].push(g.put(f(v[j], 3), j + 1, 2, 'o'));
+    cols[2].push(g.put(f(al * v[j]), j + 1, 3, 'o'));
+    cols[3].push(g.put(f(zz[j]), j + 1, 4, 'o z'));
+  }
+  for (let c = 1; c <= 4; c++) { cols[c - 1].push(g.put('...', D + 1, c, 'o dim')); g.bracket(1, D + 1, c, c); }
+  const tiles = el('div', 'tiles');
+  for (const [vec, cap] of [[y, 'decode(<i class="z">z</i>)'], [y2, 'decode(<i class="z">z</i>\')']]) { const t = el('div', 'tile o'); t.append(imgCanvas(vec, 96), el('div', '', cap)); tiles.append(t); }
+  const wrap = el('div', 'row'); wrap.append(g.g, tiles); e.append(wrap);
+  focus(e); await sleep(250);
+  for (let c = 0; c < 4; c++) { for (const n of cols[c]) { n.classList.add('in'); await sleep(30); } await sleep(150); }
+  for (const t of tiles.children) { t.classList.add('in'); await sleep(250); }
+  nPass++;
+}
+
+const stages = [pixels, encodeStage, squash, decodeStage, output, explore];
+
+async function step() {
+  busy = true; $('#step').disabled = true;
+  try {
+    await stages[stage]();
+    stage = (stage + 1) % stages.length;
+  } finally { busy = false; $('#step').disabled = auto; }
+}
+
+async function toggleAuto() {
+  auto = !auto;
+  $('#auto').classList.toggle('active', auto);
+  $('#step').disabled = auto || busy;
+  if (!auto || looping) return;
+  looping = true;
+  while (busy) await sleep(50);
+  while (auto) { await step(); if (auto) await sleep(300); }
+  looping = false;
+}
+
+(async () => {
+  const load = async p => new Float32Array(await (await fetch(p)).arrayBuffer());
+  const [m, em, pc] = await Promise.all([load('model.bin'), load('emojis.bin'), load('pca.bin')]);
+  let o = 0; const take = n => { const t = m.subarray(o, o + n); o += n; return t; };
+  W1 = take(N * L); b1 = take(L); W2 = take(L * N); b2 = take(N);
+  emojis = []; for (let i = 0; i < em.length / N; i++) emojis.push(em.subarray(i * N, (i + 1) * N));
+  pca = []; for (let i = 0; i < pc.length / L; i++) pca.push(pc.subarray(i * L, (i + 1) * L));
+
+  // spread of the dataset along each principal direction sets the step size
+  const lat = emojis.map(e => encode(e).z);
+  sigma = pca.map(v => {
+    const p = lat.map(zz => zz.reduce((acc, zj, j) => acc + zj * v[j], 0)), mu = p.reduce((u, q) => u + q, 0) / p.length;
+    return Math.sqrt(p.reduce((u, q) => u + (q - mu) ** 2, 0) / (p.length - 1));
+  });
+
+  $('#step').onclick = step; $('#auto').onclick = toggleAuto;
+  $('#step').disabled = false; $('#auto').disabled = false;
+})();
+</script>
+</body>
+</html>

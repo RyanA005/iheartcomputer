@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>baby-lm: math</title>
+<style>
+  html { scrollbar-width:none; }
+  ::-webkit-scrollbar { display:none; }
+  body { margin:0; background:#111; color:#ddd; font:16px/1.4 Georgia, serif; }
+  header { position:sticky; top:0; z-index:10; background:#111; padding:14px 32px; display:flex; gap:24px; align-items:baseline; border-bottom:1px solid #222; }
+  h1 { font-size:17px; font-weight:normal; margin:0; }
+  h1 a { color:inherit; text-decoration:none; }
+  button { background:none; color:#ddd; border:1px solid #555; padding:4px 16px; font:inherit; cursor:pointer; }
+  button:disabled { opacity:.4; cursor:default; }
+  button.active { border-color:#ffdf6b; color:#ffdf6b; }
+  #story { flex:1; font-size:17px; }
+  #story .new { color:#ffdf6b; }
+  main { max-width:1100px; margin:0 auto; padding:10px 32px 240px; }
+  .pass { border-top:1px solid #222; padding-top:10px; }
+  section { margin:40px 0; }
+  .m { font-size:19px; margin-bottom:14px; }
+  .row { display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  .sym { font-size:24px; color:#aaa; }
+  .g { display:inline-grid; align-items:center; row-gap:3px; }
+  .g > div { padding:1px 8px; text-align:right; white-space:nowrap; transition:color .2s, background .2s, opacity .3s; }
+  .g .hd { color:#666; font-size:12px; }
+  .g .mh { color:#999; font-size:15px; padding-bottom:4px; }
+  .g .lb { color:#999; font-style:italic; padding-right:14px; }
+  .g .op { color:#888; text-align:center; }
+  .g .gap { margin-top:12px; }
+  .g .br { position:relative; pointer-events:none; padding:0; align-self:stretch; }
+  .g .br::before, .g .br::after { content:''; position:absolute; top:-1px; bottom:-1px; width:5px; border:1.5px solid #bbb; }
+  .g .br::before { left:0; border-right:none; }
+  .g .br::after { right:0; border-left:none; }
+  .g .bar { width:180px; text-align:left; }
+  .g .bar span { display:inline-block; height:12px; width:0; background:#F0AC5F; transition:width .4s; vertical-align:middle; }
+  .o { opacity:0; } .o.in { opacity:1; }
+  .dim { color:#555; }
+  .hl { color:#ffdf6b !important; background:rgba(255,223,107,.1); }
+  .flash { animation:fl .45s; }
+  @keyframes fl { from { color:#ffdf6b; } }
+  .c { color:#83C167; } .h { color:#58C4DD; } .z { color:#FC6255; } .p { color:#F0AC5F; }
+  .eq { margin-top:16px; color:#bbb; }
+  svg text { font-family:Georgia, serif; fill:#888; font-size:13px; }
+  .picked { margin-top:16px; }
+</style>
+</head>
+<body>
+<header>
+  <h1><a href="../">baby-lm</a></h1>
+  <div id="story"></div>
+  <button id="step" disabled>step</button>
+  <button id="auto" disabled>auto</button>
+</header>
+<main id="main"></main>
+
+<script>
+const $ = s => document.querySelector(s);
+const MODEL = '1mil', CONTEXT = 6, T = 0.7, D = 8, K = 6;
+let V, H, W1, b1, W2, b2, vocab, wordId;
+let words = ['the', 'cat', 'in', 'the', 'hat'], nNew = 0;
+let cur, ids, F, order, uniq, count, stage = 0, auto = false, busy = false, looping = false;
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const el = (tag, cls = '', html = '') => { const e = document.createElement(tag); if (cls) e.className = cls; e.innerHTML = html; return e; };
+const f = (x, d = 2) => (x < 0 ? '-' : '') + Math.abs(x).toFixed(d);
+const fe = x => x >= 0.001 ? x.toFixed(3) : x.toExponential(1);
+const reveal = els => els.forEach(e => e.classList.add('in'));
+const hl = (els, on) => els.forEach(e => e.classList.toggle('hl', on));
+const flash = e => { e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash'); };
+const ease = t => t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+const tween = (ms, fn) => new Promise(done => {
+  const t0 = performance.now();
+  const tick = now => { const t = Math.min(1, (now - t0) / ms); fn(ease(t)); t < 1 ? requestAnimationFrame(tick) : done(); };
+  requestAnimationFrame(tick);
+});
+
+function tokenize(bytes) {
+  const toks = []; let buf = '';
+  for (const ch of bytes) {
+    const up = ch >= 65 && ch <= 90, lo = ch >= 97 && ch <= 122;
+    if (up || lo || ch === 39) buf += String.fromCharCode(up ? ch + 32 : ch);
+    else if (buf) { toks.push(buf); buf = ''; }
+  }
+  return toks;
+}
+
+function forward(ctxIds) {
+  const sum = new Float32Array(H), h = new Float32Array(H), z = new Float32Array(V), p = new Float32Array(V);
+  for (let j = 0; j < H; j++) { let s = b1[j]; for (const t of ctxIds) s += W1[t * H + j]; sum[j] = s; h[j] = Math.tanh(s); }
+  for (let k = 0; k < V; k++) { let s = b2[k]; for (let j = 0; j < H; j++) s += h[j] * W2[j * V + k]; z[k] = s; }
+  let mx = -Infinity; for (let k = 0; k < V; k++) mx = Math.max(mx, z[k] / T);
+  let tot = 0; for (let k = 0; k < V; k++) { p[k] = Math.exp(z[k] / T - mx); tot += p[k]; }
+  for (let k = 0; k < V; k++) p[k] /= tot;
+  return { sum, h, z, p, tot, mx };
+}
+
+// explicit grid placement so brackets can overlay a range of cells
+function grid(cols) {
+  const g = el('div', 'g'); g.style.gridTemplateColumns = `repeat(${cols}, auto)`;
+  const put = (html, r, c, cls = '') => { const d = el('div', cls, String(html)); d.style.gridRow = r + 1; d.style.gridColumn = c + 1; g.append(d); return d; };
+  const bracket = (r0, r1, c0, c1, cls = '') => { const d = el('div', 'br ' + cls); d.style.gridRow = `${r0 + 1} / ${r1 + 2}`; d.style.gridColumn = `${c0 + 1} / ${c1 + 2}`; g.prepend(d); return d; };
+  return { g, put, bracket };
+}
+
+// sorted indices -> display slots, null marks a run of hidden entries
+function spec(list, total) {
+  const out = []; let prev = -1;
+  for (const i of list) { if (i > prev + 1) out.push(null); out.push(i); prev = i; }
+  if (prev < total - 1) out.push(null);
+  return out;
+}
+
+function sec(math) {
+  const s = el('section', '', `<div class="m">${math}</div>`);
+  cur.append(s); return s;
+}
+const focus = s => s.scrollIntoView({ behavior: 'smooth', block: 'center' });
+const renderStory = () => $('#story').innerHTML = words.map((w, i) => i >= words.length - nNew ? `<span class="new">${w}</span>` : w).join(' ');
+
+async function onehot() {
+  cur = el('div', 'pass'); $('#main').append(cur);
+  ids = words.slice(-CONTEXT).map(w => wordId.get(w) ?? 0);
+  while (ids.length < CONTEXT) ids.unshift(0);
+  F = forward(ids);
+  order = [...F.p.keys()].sort((a, b) => F.p[b] - F.p[a]);
+  uniq = [...new Set(ids)].sort((a, b) => a - b);
+  count = new Map(); ids.forEach(i => count.set(i, (count.get(i) || 0) + 1));
+
+  const s = sec(`<i class="c">c</i> = ${ids.map((_, i) => `<i>x</i><sub>${i + 1}</sub>`).join(' + ')}`);
+  const cs = spec(uniq, V), n = cs.length, { g, put, bracket } = grid(n + 2);
+  s.append(g);
+  cs.forEach((i, c) => put(i === null ? '' : i, 0, c + 2, 'hd'));
+  const rows = ids.map((id, r) => [
+    put(r ? '+' : '', r + 1, 0, 'op o'),
+    put(vocab[id], r + 1, 1, 'lb o'),
+    ...cs.map((i, c) => put(i === null ? '...' : i === id ? '1' : '0', r + 1, c + 2, i === id ? 'o' : 'o dim')),
+    bracket(r + 1, r + 1, 2, n + 1, 'o'),
+  ]);
+  const R = ids.length + 1;
+  const last = [
+    put('=', R, 0, 'op o gap'), put('c', R, 1, 'lb c o gap'),
+    ...cs.map((i, c) => put(i === null ? '...' : count.get(i), R, c + 2, 'o c gap')),
+    bracket(R, R, 2, n + 1, 'o gap'),
+  ];
+  focus(s);
+  for (const row of rows) { reveal(row); await sleep(100); }
+  await sleep(150); reveal(last);
+}
+
+async function embed() {
+  const s = sec(`<i>a</i> = <i class="c">c</i> <i>W</i><sub>1</sub> + <i>b</i><sub>1</sub>`);
+  const cs = spec(uniq, V), n = cs.length, wrap = el('div', 'row'); s.append(wrap);
+
+  const cv = grid(n);
+  cs.forEach((i, c) => cv.put(i === null ? '' : i, 0, c, 'hd'));
+  const cCells = cs.map((i, c) => cv.put(i === null ? '...' : count.get(i), 1, c, i === null ? 'dim' : 'c'));
+  cv.bracket(1, 1, 0, n - 1);
+
+  const w = grid(D + 2);
+  for (let j = 0; j < D; j++) w.put(j, 0, j + 1, 'hd');
+  const wRows = cs.map((i, r) => {
+    w.put(i === null ? '' : vocab[i], r + 1, 0, 'lb');
+    const cells = [];
+    for (let j = 0; j < D; j++) cells.push(w.put(i === null ? '...' : f(W1[i * H + j]), r + 1, j + 1, i === null ? 'dim' : ''));
+    cells.push(w.put(i === null ? '' : '...', r + 1, D + 1, 'dim'));
+    return cells;
+  });
+  w.bracket(1, cs.length, 1, D + 1);
+  wrap.append(cv.g, el('div', 'sym', '&times;'), w.g);
+
+  const R = cs.length + 2;
+  const vrow = (r, lbl, vals, cls = '') => [
+    w.put(lbl, r, 0, 'lb o ' + cls),
+    ...vals.map((v, j) => w.put(v, r, j + 1, 'o ' + cls)),
+    w.put('...', r, D + 1, 'o dim ' + cls),
+    w.bracket(r, r, 1, D + 1, 'o ' + cls),
+  ];
+  const acc = new Float64Array(D);
+  const res = vrow(R, '<i class="c">c</i><i>W</i><sub>1</sub>', Array(D).fill(f(0)), 'gap');
+  focus(s); await sleep(250); reveal(res);
+
+  for (let r = 0; r < cs.length; r++) {
+    const i = cs[r]; if (i === null) continue;
+    hl([cCells[r], ...wRows[r]], true); await sleep(150);
+    for (let j = 0; j < D; j++) { acc[j] += count.get(i) * W1[i * H + j]; res[j + 1].textContent = f(acc[j]); flash(res[j + 1]); }
+    await sleep(280); hl([cCells[r], ...wRows[r]], false);
+  }
+  await sleep(150);
+  reveal(vrow(R + 1, '+ <i>b</i><sub>1</sub>', [...b1.slice(0, D)].map(v => f(v))));
+  await sleep(300);
+  reveal(vrow(R + 2, '= <i>a</i>', [...F.sum.slice(0, D)].map(v => f(v))));
+}
+
+async function squash() {
+  const s = sec(`<i class="h">h</i> = tanh(<i>a</i>)`);
+  const wrap = el('div', 'row'); s.append(wrap);
+  const W = 360, HH = 220, X = x => 20 + (Math.max(-3, Math.min(3, x)) + 3) / 6 * (W - 40), Y = y => HH / 2 - y * (HH / 2 - 16);
+  let path = '';
+  for (let i = 0; i <= 120; i++) { const x = -3 + i / 20; path += (i ? 'L' : 'M') + X(x).toFixed(1) + ' ' + Y(Math.tanh(x)).toFixed(1); }
+  const box = el('div', '', `<svg width="${W}" height="${HH}">
+    <line x1="10" x2="${W - 10}" y1="${Y(0)}" y2="${Y(0)}" stroke="#444"/>
+    <line x1="${X(0)}" x2="${X(0)}" y1="6" y2="${HH - 6}" stroke="#444"/>
+    <line x1="${X(0) - 4}" x2="${X(0) + 4}" y1="${Y(1)}" y2="${Y(1)}" stroke="#666"/>
+    <line x1="${X(0) - 4}" x2="${X(0) + 4}" y1="${Y(-1)}" y2="${Y(-1)}" stroke="#666"/>
+    <text x="${X(0) + 8}" y="${Y(1) + 4}">1</text><text x="${X(0) + 8}" y="${Y(-1) + 4}">-1</text>
+    <text x="${W - 22}" y="${Y(0) - 6}">a</text>
+    <path d="${path}" fill="none" stroke="#ddd" stroke-width="1.5"/></svg>`);
+  const svg = box.firstElementChild;
+  const ns = 'http://www.w3.org/2000/svg', mk = (tag, attrs) => { const e = document.createElementNS(ns, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); svg.append(e); return e; };
+
+  const v = grid(D + 2);
+  for (let j = 0; j < D; j++) v.put(j, 0, j + 1, 'hd');
+  v.put('<i>a</i>', 1, 0, 'lb');
+  const aCells = [];
+  for (let j = 0; j < D; j++) aCells.push(v.put(f(F.sum[j]), 1, j + 1));
+  v.put('...', 1, D + 1, 'dim'); v.bracket(1, 1, 1, D + 1);
+  v.put('<i class="h">h</i>', 2, 0, 'lb h gap');
+  const hCells = [];
+  for (let j = 0; j < D; j++) hCells.push(v.put('', 2, j + 1, 'h gap'));
+  v.put('...', 2, D + 1, 'dim gap'); v.bracket(2, 2, 1, D + 1, 'gap');
+  wrap.append(box, v.g);
+  focus(s); await sleep(250);
+
+  for (let j = 0; j < D; j++) {
+    const a = F.sum[j], y = Math.tanh(a);
+    hl([aCells[j]], true);
+    const vline = mk('line', { x1: X(a), x2: X(a), y1: Y(0), y2: Y(0), stroke: '#58C4DD', 'stroke-dasharray': '3 3', opacity: .6 });
+    const hline = mk('line', { x1: X(a), x2: X(a), y1: Y(y), y2: Y(y), stroke: '#58C4DD', 'stroke-dasharray': '3 3', opacity: .6 });
+    const dot = mk('circle', { cx: X(a), cy: Y(0), r: 4, fill: '#58C4DD' });
+    await tween(260, t => { dot.setAttribute('cy', Y(y * t)); vline.setAttribute('y2', Y(y * t)); });
+    await tween(160, t => hline.setAttribute('x2', X(a) + (X(0) - X(a)) * t));
+    hCells[j].textContent = f(F.h[j]); flash(hCells[j]); hl([aCells[j]], false);
+    vline.setAttribute('opacity', .2); hline.setAttribute('opacity', .2);
+  }
+}
+
+async function logits() {
+  const s = sec(`<i class="z">z</i> = <i class="h">h</i> <i>W</i><sub>2</sub> + <i>b</i><sub>2</sub>`);
+  const wrap = el('div', 'row'); s.append(wrap);
+  const top = order.slice(0, K);
+
+  const hv = grid(D + 1);
+  const hCells = [];
+  for (let j = 0; j < D; j++) { hv.put(j, 0, j, 'hd'); hCells.push(hv.put(f(F.h[j]), 1, j, 'h')); }
+  hv.put('...', 1, D, 'dim'); hv.bracket(1, 1, 0, D);
+
+  const w = grid(K + 2);
+  top.forEach((k, c) => w.put(vocab[k], 0, c + 1, 'hd'));
+  const cols = top.map(() => []);
+  for (let j = 0; j <= D; j++) {
+    w.put(j < D ? j : '', j + 1, 0, 'hd');
+    top.forEach((k, c) => cols[c].push(w.put(j < D ? f(W2[j * V + k]) : '...', j + 1, c + 1, j < D ? '' : 'dim')));
+    w.put('...', j + 1, K + 1, 'dim');
+  }
+  w.bracket(1, D + 1, 1, K + 1);
+  const R = D + 2;
+  const mkRow = (r, lbl, cls) => {
+    const e = [w.put(lbl, r, 0, 'lb o ' + cls), w.put('...', r, K + 1, 'o dim ' + cls), w.bracket(r, r, 1, K + 1, 'o ' + cls)];
+    return { e, cells: top.map((_, c) => w.put('', r, c + 1, 'o ' + cls)) };
+  };
+  const bRow = mkRow(R, '+ <i>b</i><sub>2</sub>', 'gap'), zRow = mkRow(R + 1, '= <i class="z">z</i>', 'z');
+  wrap.append(hv.g, el('div', 'sym', '&times;'), w.g);
+  const eq = el('div', 'eq'); s.append(eq);
+  focus(s); await sleep(250);
+  reveal([...bRow.e, ...bRow.cells, ...zRow.e, ...zRow.cells]);
+
+  for (let c = 0; c < K; c++) {
+    const k = top[c];
+    hl([...cols[c], ...hCells], true); await sleep(c ? 120 : 250);
+    bRow.cells[c].textContent = f(b2[k]); zRow.cells[c].textContent = f(F.z[k]); flash(zRow.cells[c]);
+    if (c === 0) {
+      const terms = [0, 1, 2].map(j => `(${f(F.h[j])})(${f(W2[j * V + k])})`).join(' + ');
+      eq.innerHTML = `<i class="z">z</i><sub>${vocab[k]}</sub> = ${f(b2[k])} + ${terms} + ... + (${f(F.h[H - 1])})(${f(W2[(H - 1) * V + k])}) = <span class="z">${f(F.z[k])}</span>`;
+      await sleep(700);
+    } else await sleep(200);
+    hl([...cols[c], ...hCells], false);
+  }
+}
+
+async function softmax() {
+  const s = sec(`<i class="p">p</i><sub>k</sub> = e<sup><i>z</i><sub>k</sub>/T - m</sup> / &Sigma;<sub>i</sub> e<sup><i>z</i><sub>i</sub>/T - m</sup>, &nbsp; T = ${T}, &nbsp; m = max(<i>z</i>/T)`);
+  const top = order.slice(0, K), g = grid(6);
+  ['', '<i class="z">z</i>', '<i class="z">z</i>/T', 'e<sup><i>z</i>/T - m</sup>', '<i class="p">p</i>', ''].forEach((t, c) => g.put(t, 0, c, 'mh'));
+  const cols = [[], [], [], [], []];
+  top.forEach((k, r) => {
+    g.put(vocab[k], r + 1, 0, 'lb');
+    cols[0].push(g.put(f(F.z[k]), r + 1, 1, 'o z'));
+    cols[1].push(g.put(f(F.z[k] / T), r + 1, 2, 'o'));
+    cols[2].push(g.put(fe(Math.exp(F.z[k] / T - F.mx)), r + 1, 3, 'o'));
+    cols[3].push(g.put(F.p[k].toFixed(3), r + 1, 4, 'o p'));
+    cols[4].push(g.put('<span></span>', r + 1, 5, 'o bar'));
+  });
+  const R = K + 1;
+  g.put(`${V - K} more`, R, 0, 'lb dim');
+  for (let c = 1; c <= 4; c++) cols[c - 1].push(g.put('...', R, c, 'o dim'));
+  g.put('&Sigma;', R + 1, 0, 'lb gap');
+  cols[2].push(g.put(F.tot.toFixed(3), R + 1, 3, 'o gap'));
+  cols[3].push(g.put('1.000', R + 1, 4, 'o p gap'));
+  for (let c = 1; c <= 4; c++) g.bracket(1, R, c, c);
+  s.append(g.g);
+  focus(s); await sleep(250);
+  for (let c = 0; c < 5; c++) {
+    for (const e of cols[c]) { e.classList.add('in'); await sleep(40); }
+    if (c === 4) top.forEach((k, r) => cols[4][r].firstChild.style.width = (F.p[k] * 100).toFixed(1) + '%');
+    await sleep(200);
+  }
+}
+
+async function pick() {
+  const r = Math.random();
+  let c = 0, k = order[V - 1], rank = V - 1;
+  for (let i = 0; i < V; i++) { c += F.p[order[i]]; if (r <= c) { k = order[i]; rank = i; break; } }
+
+  const s = sec(`<i>r</i> ~ U(0, 1), &nbsp; pick the first word where &Sigma; <i class="p">p</i> &ge; <i>r</i>`);
+  const n = rank < K + 3 ? Math.max(K, rank + 1) : K, g = grid(4);
+  ['', '<i class="p">p</i>', '&Sigma; <i class="p">p</i>', ''].forEach((t, i) => g.put(t, 0, i, 'mh'));
+  let acc = 0;
+  const rows = order.slice(0, n).map((kk, i) => {
+    acc += F.p[kk];
+    return [g.put(vocab[kk], i + 1, 0, 'lb o'), g.put(F.p[kk].toFixed(3), i + 1, 1, 'o p'), g.put(acc.toFixed(3), i + 1, 2, 'o'), g.put('', i + 1, 3, 'o')];
+  });
+  g.put('...', n + 1, 1, 'dim'); g.put('...', n + 1, 2, 'dim');
+  g.bracket(1, n + 1, 1, 1); g.bracket(1, n + 1, 2, 2);
+  const out = el('div', 'picked'); s.append(g.g, out);
+  focus(s); await sleep(250);
+  for (const row of rows) { reveal(row); await sleep(70); }
+  await sleep(400);
+  if (rank < n) { hl(rows[rank].slice(0, 3), true); rows[rank][3].innerHTML = `&ge; ${r.toFixed(3)}`; }
+  out.innerHTML = `<i>r</i> = ${r.toFixed(3)} &nbsp;-&gt;&nbsp; <span class="p">${vocab[k]}</span> &nbsp;(<i class="p">p</i> = ${F.p[k].toFixed(3)})`;
+  words.push(vocab[k]); nNew++;
+  renderStory();
+}
+
+const stages = [onehot, embed, squash, logits, softmax, pick];
+
+async function step() {
+  busy = true; $('#step').disabled = true;
+  try {
+    await stages[stage]();
+    stage = (stage + 1) % stages.length;
+  } finally { busy = false; $('#step').disabled = auto; }
+}
+
+async function toggleAuto() {
+  auto = !auto;
+  $('#auto').classList.toggle('active', auto);
+  $('#step').disabled = auto || busy;
+  if (!auto || looping) return;
+  looping = true;
+  while (busy) await sleep(50);
+  while (auto) { await step(); if (auto) await sleep(300); }
+  looping = false;
+}
+
+(async () => {
+  const bytes = new Uint8Array(await (await fetch('suess.txt')).arrayBuffer());
+  vocab = ['?']; wordId = new Map();
+  for (const t of tokenize(bytes)) if (!wordId.has(t)) { wordId.set(t, vocab.length); vocab.push(t); }
+
+  const buf = await (await fetch(`TRAINED/${MODEL}-model.bin`)).arrayBuffer();
+  const hdr = new Int32Array(buf, 0, 3); V = hdr[1]; H = hdr[2];
+  let o = 12; const take = n => { const a = new Float32Array(buf, o, n); o += n * 4; return a; };
+  W1 = take(V * H); b1 = take(H); W2 = take(H * V); b2 = take(V);
+
+  renderStory();
+  $('#step').onclick = step; $('#auto').onclick = toggleAuto;
+  $('#step').disabled = false; $('#auto').disabled = false;
+})();
+</script>
+</body>
+</html>

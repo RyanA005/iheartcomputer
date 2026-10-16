@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>baby-image-gen: visual</title>
+<style>
+  html { scrollbar-width:none; }
+  ::-webkit-scrollbar { display:none; }
+  body { margin:0; background:#111; color:#ddd; font:14px/1.4 Georgia, serif; }
+  header { position:sticky; top:0; z-index:10; background:#111; padding:10px 32px; display:flex; gap:24px; align-items:center; border-bottom:1px solid #222; min-height:32px; }
+  h1 { font-size:16px; font-weight:normal; margin:0; white-space:nowrap; }
+  h1 a { color:inherit; text-decoration:none; }
+  button { background:none; color:#ddd; border:1px solid #555; padding:4px 16px; font:inherit; cursor:pointer; }
+  button:disabled { opacity:.4; cursor:default; }
+  button.active { border-color:#ffbe3c; color:#ffbe3c; }
+  #story { flex:1; display:flex; gap:4px; overflow:hidden; }
+  #story canvas { width:28px; height:28px; opacity:.6; }
+  #story canvas.new { opacity:1; outline:1px solid #ffbe3c; }
+  main { max-width:1100px; margin:0 auto; padding:10px 32px 40px; }
+  .pass { border-top:1px solid #222; padding-top:10px; }
+  section { margin:34px 0; position:relative; }
+  .m { color:#888; font-style:italic; margin-bottom:6px; }
+  canvas { image-rendering:pixelated; display:block; }
+  .imgwrap { position:relative; display:inline-block; }
+  .scan { position:absolute; left:-4px; right:-4px; height:2px; background:#fff; top:0; opacity:0; }
+  .strip { margin-top:14px; }
+  .reveal { overflow:hidden; width:0; }
+  .area { display:flex; gap:10px; align-items:flex-start; }
+  .mwrap { position:relative; flex:1; min-width:0; }
+  .sweep { position:absolute; top:20px; bottom:0; width:1px; background:#fff; left:0; opacity:0; }
+  .tick { position:absolute; width:1px; background:#fff; top:20px; bottom:0; opacity:.6; }
+  .srow { height:16px; position:relative; margin:6px 0 6px 80px; }
+  .srow canvas { width:100%; height:100%; }
+  .lbl { position:absolute; left:-80px; width:72px; text-align:right; color:#888; top:-1px; }
+  .op { margin-left:80px; color:#888; }
+  .fade { opacity:0; transition:opacity .3s; } .fade.show { opacity:1; }
+  .tiles { display:flex; gap:18px; flex-wrap:wrap; margin-top:16px; }
+  .tile { text-align:center; color:#888; font:12px monospace; }
+  .tile canvas { margin-bottom:4px; }
+  .tile.on canvas { outline:2px solid #ffbe3c; }
+  .big { font:14px monospace; margin-top:14px; }
+</style>
+</head>
+<body>
+<header>
+  <h1><a href="../">baby-image-gen</a></h1>
+  <div id="story"></div>
+  <button id="step" disabled>step</button>
+  <button id="auto" disabled>auto</button>
+</header>
+<main id="main"></main>
+
+<script>
+const $ = s => document.querySelector(s);
+const S = 32, N = S * S * 3, L = 512, NF = 8, NA = 7;
+let W1, b1, W2, b2, emojis, pca, sigma, sW1, sW2, sA, w1Img, w2Img;
+let pass, nPass = 0, idx, x, a, z, s, y, k, stage = 0, auto = false, busy = false, looping = false;
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const el = (tag, cls = '', html = '') => { const e = document.createElement(tag); if (cls) e.className = cls; e.innerHTML = html; return e; };
+const f = (v, d = 2) => (v < 0 && Math.abs(v).toFixed(d) != 0 ? '-' : '') + Math.abs(v).toFixed(d);
+const ease = t => t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+const tween = (ms, fn) => new Promise(done => {
+  const t0 = performance.now();
+  const tick = now => { const t = Math.min(1, (now - t0) / ms); fn(ease(t)); t < 1 ? requestAnimationFrame(tick) : done(); };
+  requestAnimationFrame(tick);
+});
+
+function color(v, sc) {
+  const t = Math.max(-1, Math.min(1, v / sc)), m = Math.sqrt(Math.abs(t));
+  const base = [17, 17, 17], c = t > 0 ? [255, 190, 60] : [80, 180, 255];
+  return base.map((b, i) => Math.round(b + (c[i] - b) * m));
+}
+
+function paint(canvas, rows, cols, rgb, w, h) {
+  canvas.width = cols; canvas.height = rows;
+  const ctx = canvas.getContext('2d'), img = ctx.createImageData(cols, rows);
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const [R, G, B] = rgb(r, c), o = (r * cols + c) * 4;
+    img.data[o] = R; img.data[o + 1] = G; img.data[o + 2] = B; img.data[o + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  if (w) { canvas.style.width = w + 'px'; canvas.style.height = h + 'px'; }
+  return canvas;
+}
+const heat = (canvas, rows, cols, get, sc, w, h) => paint(canvas, rows, cols, (r, c) => color(get(r, c), sc), w, h);
+const clamp255 = v => Math.max(0, Math.min(255, Math.round(v * 255)));
+const imgCanvas = (vec, px) => paint(el('canvas'), S, S, (r, c) => { const o = (r * S + c) * 3; return [clamp255(vec[o]), clamp255(vec[o + 1]), clamp255(vec[o + 2])]; }, px, px);
+// one cell per pixel in flatten order; each cell is an r,g,b triple of x
+const pixelStrip = (vec, vertical, w, h) => {
+  const px = i => [clamp255(vec[3 * i]), clamp255(vec[3 * i + 1]), clamp255(vec[3 * i + 2])];
+  return vertical ? paint(el('canvas'), S * S, 1, r => px(r), w, h) : paint(el('canvas'), 1, S * S, (_, c) => px(c), w, h);
+};
+
+function blit(canvas, src, w, h) {
+  canvas.width = src.width; canvas.height = src.height;
+  canvas.getContext('2d').drawImage(src, 0, 0);
+  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+}
+
+function absPct(arr, p = 0.99) {
+  const n = Math.min(arr.length, 20000), samp = [];
+  for (let i = 0; i < n; i++) samp.push(Math.abs(arr[Math.floor(Math.random() * arr.length)]));
+  samp.sort((u, v) => u - v); return samp[Math.floor(p * (n - 1))] || 1;
+}
+
+function encode(xv) {
+  const av = Float32Array.from(b1);
+  for (let i = 0; i < N; i++) { const xi = xv[i]; if (!xi) continue; const row = i * L; for (let j = 0; j < L; j++) av[j] += xi * W1[row + j]; }
+  return { a: av, z: av.map(Math.tanh) };
+}
+
+function decode(zv) {
+  const sv = Float32Array.from(b2);
+  for (let j = 0; j < L; j++) { const zj = zv[j]; const row = j * N; for (let i = 0; i < N; i++) sv[i] += zj * W2[row + i]; }
+  return { s: sv, y: sv.map(v => 0.5 * (Math.tanh(v) + 1)) };
+}
+
+function sec(label) {
+  const e = el('section', '', label ? `<div class="m">${label}</div>` : '');
+  pass.append(e); return e;
+}
+const focus = () => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+new ResizeObserver(focus).observe($('#main'));
+
+async function input() {
+  pass = el('div', 'pass'); $('#main').append(pass);
+  idx = nPass === 0 ? 0 : Math.floor(Math.random() * emojis.length);
+  k = nPass % pca.length;
+  x = emojis[idx]; ({ a, z } = encode(x)); ({ s, y } = decode(z));
+
+  const e = sec(`x = flatten( emoji ${idx} )  [${N}]`);
+  const wrap = el('div', 'imgwrap'), scan = el('div', 'scan');
+  wrap.append(imgCanvas(x, 256), scan); e.append(wrap);
+  const rv = el('div', 'reveal strip'); e.append(rv);
+  const ww = e.clientWidth;
+  rv.append(pixelStrip(x, false, ww, 28));
+  await sleep(250);
+  scan.style.opacity = 1;
+  await tween(900, t => { scan.style.top = (t * 256) + 'px'; rv.style.width = (t * ww) + 'px'; });
+  scan.style.opacity = 0;
+}
+
+async function encodeStage() {
+  const e = sec('a = x W1 + b1');
+  const area = el('div', 'area'), xw = el('div', '', '<div class="m">x</div>'), mw = el('div', 'mwrap', `<div class="m">W1 [${N} x ${L}]</div>`);
+  const wc = el('canvas'), sw = el('div', 'sweep');
+  xw.append(pixelStrip(x, true, 16, 300)); mw.append(wc, sw); area.append(xw, mw);
+  const lo = el('div', '', `<div class="m" style="margin-top:8px">a [${L}]</div>`), rv = el('div', 'reveal');
+  lo.style.marginLeft = '26px'; lo.append(rv);
+  e.append(area, lo);
+  const ww = mw.clientWidth;
+  blit(wc, w1Img, ww, 300);
+  rv.append(heat(el('canvas'), 1, L, (r, c) => a[c], sA, ww, 24));
+  await sleep(250);
+  sw.style.opacity = 1;
+  await tween(1000, t => { sw.style.left = (t * ww) + 'px'; rv.style.width = (t * ww) + 'px'; });
+  sw.style.opacity = 0;
+
+  // each column of W1 is a 32x32x3 filter; a_j measures how much the image looks like it
+  const top = [...a.keys()].sort((u, v) => Math.abs(a[v] - b1[v]) - Math.abs(a[u] - b1[u])).slice(0, NF);
+  const tiles = el('div', 'tiles'); e.append(el('div', 'm', 'columns of W1 with the largest x &middot; W1[:, j]'), tiles);
+  for (const j of top) {
+    const fc = paint(el('canvas'), S, S, (r, c) => {
+      const o = (r * S + c) * 3;
+      return [0, 1, 2].map(ch => clamp255(0.5 + W1[(o + ch) * L + j] / (2 * sW1)));
+    }, 72, 72);
+    const t = el('div', 'tile'); t.append(fc, el('div', '', `a${j} = ${f(a[j])}`)); tiles.append(t);
+    const tk = el('div', 'tick'); tk.style.left = ((j + 0.5) / L * ww) + 'px'; mw.append(tk);
+    await sleep(140);
+  }
+}
+
+async function squash() {
+  const e = sec('z = tanh( a )'), box = el('div'); e.append(box);
+  const sw = e.clientWidth - 80;
+  const addRow = (lbl, vec, sc, op) => {
+    if (op) { const o = el('div', 'op fade', op); box.append(o); requestAnimationFrame(() => o.classList.add('show')); }
+    const r = el('div', 'srow fade', `<span class="lbl">${lbl}</span>`); r.style.width = sw + 'px';
+    r.append(heat(el('canvas'), 1, vec.length, (_, c) => vec[c], sc)); box.append(r);
+    requestAnimationFrame(() => r.classList.add('show'));
+  };
+  addRow('a', a, sA); await sleep(400);
+  addRow('z', z, 1, 'tanh'); await sleep(300);
+}
+
+async function decodeStage() {
+  const e = sec('s = z W2 + b2');
+  const area = el('div', 'area'), zw = el('div', '', '<div class="m">z</div>'), mw = el('div', 'mwrap', `<div class="m">W2 [${L} x ${N}]</div>`);
+  const wc = el('canvas'), sw = el('div', 'sweep');
+  zw.append(heat(el('canvas'), L, 1, r => z[r], 1, 16, 220)); mw.append(wc, sw); area.append(zw, mw);
+  const lo = el('div', '', `<div class="m" style="margin-top:8px">s [${N}]</div>`), rv = el('div', 'reveal');
+  lo.style.marginLeft = '26px'; lo.append(rv);
+  e.append(area, lo);
+  const ww = mw.clientWidth;
+  blit(wc, w2Img, ww, 220);
+  rv.append(heat(el('canvas'), 1, N, (r, c) => s[c], absPct(s, 1), ww, 24));
+  await sleep(250);
+  sw.style.opacity = 1;
+  await tween(1000, t => { sw.style.left = (t * ww) + 'px'; rv.style.width = (t * ww) + 'px'; });
+  sw.style.opacity = 0;
+
+  // rebuild y from b2 plus the strongest latent terms first
+  const norm = new Float32Array(L);
+  for (let j = 0; j < L; j++) { let q = 0; for (let i = 0; i < N; i++) q += W2[j * N + i] ** 2; norm[j] = Math.abs(z[j]) * Math.sqrt(q); }
+  const ord = [...norm.keys()].sort((u, v) => norm[v] - norm[u]);
+  const tiles = el('div', 'tiles'); e.append(el('div', 'm', 'y = ( tanh( b2 + &Sigma; z<sub>j</sub> W2[j] ) + 1 ) / 2'), tiles);
+  const part = Float32Array.from(b2);
+  let done = 0;
+  for (const n of [0, 4, 16, 64, 256, L]) {
+    for (; done < n; done++) { const j = ord[done], zj = z[j], row = j * N; for (let i = 0; i < N; i++) part[i] += zj * W2[row + i]; }
+    const t = el('div', 'tile');
+    t.append(imgCanvas(part.map(v => 0.5 * (Math.tanh(v) + 1)), 96), el('div', '', n ? `+ ${n} terms` : 'b2'));
+    tiles.append(t); await sleep(260);
+  }
+}
+
+async function compare() {
+  let mse = 0; for (let i = 0; i < N; i++) mse += (y[i] - x[i]) ** 2; mse /= N;
+  const e = sec(`MSE = mean( (y - x)<sup>2</sup> )`), tiles = el('div', 'tiles'); e.append(tiles);
+  const err = new Float32Array(N);
+  for (let i = 0; i < N; i += 3) { const d = Math.min(1, 4 * (Math.abs(y[i] - x[i]) + Math.abs(y[i + 1] - x[i + 1]) + Math.abs(y[i + 2] - x[i + 2])) / 3); err[i] = err[i + 1] = err[i + 2] = d; }
+  for (const [vec, cap] of [[x, 'x'], [y, 'y'], [err, '|y - x| x4']]) {
+    const t = el('div', 'tile'); t.append(imgCanvas(vec, 160), el('div', '', cap)); tiles.append(t); await sleep(220);
+  }
+  e.append(el('div', 'big', `MSE = ${mse.toFixed(4)}`));
+  $('#story').querySelectorAll('canvas').forEach(c => c.classList.remove('new'));
+  const th = imgCanvas(y, 28); th.classList.add('new'); $('#story').append(th);
+}
+
+async function explore() {
+  const e = sec(`decode( z + &alpha; v<sub>${k}</sub> ),  v<sub>${k}</sub> = principal component ${k} of the latents`), tiles = el('div', 'tiles'); e.append(tiles);
+  const v = pca[k], mid = (NA - 1) / 2;
+  for (let i = 0; i < NA; i++) {
+    const al = (i - mid) * sigma[k];
+    const zz = z.map((zj, j) => zj + al * v[j]);
+    const t = el('div', 'tile' + (i === mid ? ' on' : ''));
+    t.append(imgCanvas(decode(zz).y, 112), el('div', '', `&alpha; = ${f(al, 1)}`)); tiles.append(t);
+    await sleep(160);
+  }
+  nPass++;
+}
+
+const stages = [input, encodeStage, squash, decodeStage, compare, explore];
+
+async function step() {
+  busy = true; $('#step').disabled = true;
+  try {
+    await stages[stage]();
+    stage = (stage + 1) % stages.length;
+  } finally { busy = false; $('#step').disabled = auto; }
+}
+
+async function toggleAuto() {
+  auto = !auto;
+  $('#auto').classList.toggle('active', auto);
+  $('#step').disabled = auto || busy;
+  if (!auto || looping) return;
+  looping = true;
+  while (busy) await sleep(50);
+  while (auto) { await step(); if (auto) await sleep(250); }
+  looping = false;
+}
+
+(async () => {
+  const load = async p => new Float32Array(await (await fetch(p)).arrayBuffer());
+  const [m, em, pc] = await Promise.all([load('model.bin'), load('emojis.bin'), load('pca.bin')]);
+  let o = 0; const take = n => { const t = m.subarray(o, o + n); o += n; return t; };
+  W1 = take(N * L); b1 = take(L); W2 = take(L * N); b2 = take(N);
+  emojis = []; for (let i = 0; i < em.length / N; i++) emojis.push(em.subarray(i * N, (i + 1) * N));
+  pca = []; for (let i = 0; i < pc.length / L; i++) pca.push(pc.subarray(i * L, (i + 1) * L));
+
+  // spread of the dataset along each principal direction sets the walk step
+  const enc = emojis.map(encode), lat = enc.map(e => e.z);
+  sigma = pca.map(v => {
+    const p = lat.map(zz => zz.reduce((acc, zj, j) => acc + zj * v[j], 0)), mu = p.reduce((u, q) => u + q, 0) / p.length;
+    return Math.sqrt(p.reduce((u, q) => u + (q - mu) ** 2, 0) / (p.length - 1));
+  });
+  sA = absPct(Float32Array.from(enc.flatMap(e => [...e.a])));
+  sW1 = absPct(W1); sW2 = absPct(W2);
+  w1Img = heat(el('canvas'), N, L, (r, c) => W1[r * L + c], sW1);
+  w2Img = heat(el('canvas'), L, N, (r, c) => W2[r * N + c], sW2);
+
+  $('#step').onclick = step; $('#auto').onclick = toggleAuto;
+  $('#step').disabled = false; $('#auto').disabled = false;
+})();
+</script>
+</body>
+</html>
