@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Personal websites: why make one, what to avoid, how to ship it. I♥COMPUTER club presentation.">
+  <title>Personal Websites - I♥COMPUTER</title>
+  <link rel="icon" type="image/x-icon" href="/assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <a class="brand" href="/">I<span class="heart">&lt;3&thinsp;&thinsp;&thinsp;&thinsp;&thinsp;</span>COMPUTER</a>
+      <nav class="nav" aria-label="primary">
+        <a href="/">home</a>
+        <a href="/projects/">projects</a>
+        <a href="https://discord.gg/JpRw84Ybwg" target="_blank" rel="noopener noreferrer">discord</a>
+      </nav>
+    </header>
+
+    <main>
+      <section id="title" class="panel panel--hero">
+        <h1 class="hero-title">all about personal websites</h1>
+        <div class="hero-shots" aria-label="example personal websites">
+          <a class="shot" href="https://karpathy.ai/" target="_blank" rel="noopener noreferrer">
+            <img src="./screenshots/karpathy.png" alt="Screenshot of karpathy.ai" width="1280" height="853" loading="eager">
+            <span class="shot-label">karpathy.ai</span>
+          </a>
+          <a class="shot" href="https://allaboutfrogs.org/" target="_blank" rel="noopener noreferrer">
+            <img src="./screenshots/allaboutfrogs.png" alt="Screenshot of allaboutfrogs.org" width="1280" height="853" loading="eager">
+            <span class="shot-label">allaboutfrogs.org</span>
+          </a>
+          <a class="shot" href="https://christianoliff.com/" target="_blank" rel="noopener noreferrer">
+            <img src="./screenshots/christianoliff.png" alt="Screenshot of christianoliff.com" width="1280" height="853" loading="eager">
+            <span class="shot-label">christianoliff.com</span>
+          </a>
+          <a class="shot" href="https://dustinbrett.com/" target="_blank" rel="noopener noreferrer">
+            <img src="./screenshots/dustinbrett.png" alt="Screenshot of dustinbrett.com" width="2560" height="1600" loading="eager">
+            <span class="shot-label">dustinbrett.com</span>
+          </a>
+          <a class="shot" href="https://futureboy.us/" target="_blank" rel="noopener noreferrer">
+            <img src="./screenshots/futureboy.png" alt="Screenshot of futureboy.us" width="2560" height="1600" loading="lazy">
+            <span class="shot-label">futureboy.us</span>
+          </a>
+          <a class="shot" href="https://kitlangton.com/" target="_blank" rel="noopener noreferrer">
+            <img src="./screenshots/kitlangton.png" alt="Screenshot of kitlangton.com" width="2560" height="1600" loading="lazy">
+            <span class="shot-label">kitlangton.com</span>
+          </a>
+          <a class="shot" href="https://artlung.com/" target="_blank" rel="noopener noreferrer">
+            <img src="./screenshots/artlung.png" alt="Screenshot of artlung.com" width="2560" height="1600" loading="lazy">
+            <span class="shot-label">artlung.com</span>
+          </a>
+          <a class="shot" href="https://alexanderobenauer.com/" target="_blank" rel="noopener noreferrer">
+            <img src="./screenshots/alexanderobenauer.png" alt="Screenshot of alexanderobenauer.com" width="2560" height="1600" loading="lazy">
+            <span class="shot-label">alexanderobenauer.com</span>
+          </a>
+        </div>
+      </section>
+
+      <section id="hello" class="panel">
+        <header class="sec-head">
+          <span class="sec-num">01</span>
+          <div>
+            <h2>outline:</h2>
+          </div>
+        </header>
+        <ul class="bullets">
+          <li>why would I want a personal website?</li>
+          <li>what is good and bad for my personal website?</li>
+          <li>how should I put my personal website on the internet?</li>
+        </ul>
+      </section>
+
+      <section id="why" class="panel">
+        <header class="sec-head">
+          <span class="sec-num">02</span>
+          <div>
+            <h2>why have a personal website?</h2>
+          </div>
+        </header>
+        <p>a personal website can be an awesome tool!<br>
+           you can use your website to advertise yourself, be creative, host projects, whatever...</p>
+
+        <h3 class="subhead">examples:</h3>
+        <ul class="bullets">
+          <li>portfolio, resume, projects, research</li>
+          <li>blog, journal, thoughts, tutorials</li>
+          <li>photography, artwork, music, hobbies</li>
+          <li>experiments, games, forums</li>
+          <li>whatever</li>
+        </ul>
+
+        <div class="split">
+          <div class="split-box split-box--for">
+            <h3 class="subhead">reasons for</h3>
+            <ul class="bullets">
+              <li>you get to own something</li>
+              <li>you can show off your work</li>
+              <li>you will learn web development</li>
+              <li>you can host useful things</li>
+            </ul>
+          </div>
+          <div class="split-box split-box--against">
+            <h3 class="subhead">reasons against</h3>
+            <ul class="bullets">
+              <li>it takes time to build</li>
+              <li>you need to maintain it</li>
+              <li>your website can be a liability</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="mind" class="panel">
+        <header class="sec-head">
+          <span class="sec-num">03</span>
+          <div>
+            <h2>three principles:</h2>
+          </div>
+        </header>
+
+        <div class="principle">
+          <span class="principle-num">01</span>
+          <div>
+            <h3 class="principle-title">attention to detail:</h3>
+            <p>responsiveness, accessibility, performance, consistency. a simple website done well is better than a complicated website done poorly.</p>
+          </div>
+        </div>
+
+        <div class="principle">
+          <span class="principle-num">02</span>
+          <div>
+            <h3 class="principle-title">depth:</h3>
+            <p>the best websites are super exporable! link to more pages, add pages and rabbit holes for projects, ideas, whatever.</p>
+          </div>
+        </div>
+
+        <div class="principle">
+          <span class="principle-num">03</span>
+          <div>
+            <h3 class="principle-title">personality</h3>
+            <p>save linkedin slop for linkedin, save aura farming for instagram, etc. your personal website should be personal</p>
+          </div>
+        </div>
+        <br>
+        <img src="images/triangle.png">
+      </section>
+
+      <section id="how" class="panel">
+        <header class="sec-head">
+          <span class="sec-num">04</span>
+          <div>
+          </div>
+        </header>
+
+        <h3 class="subhead">what do you need to know?</h3>
+        <ul class="bullets">
+          <li>html, css, javascript</li>
+          <li>understand the very very basics of dns / cdn / internet</li>
+          <li>you can get started with a single html file and let someone else host it, or you can build an entire framework and distribute from your own machines</li>
+        </ul>
+
+        <h3 class="subhead">where to host?</h3>
+        <div class="table-wrap">
+          <table class="host-table">
+            <tbody>
+              <tr>
+                <td>github pages</td>
+                <td>free, super fast and easy static sites</td>
+              </tr>
+              <tr>
+                <td>neocities</td>
+                <td>simple, fun, old-school, huge community</td>
+              </tr>
+              <tr>
+                <td>* proto self hosting *</td>
+                <td>best for learning, lots of control, lots of responsibility, $</td>
+              </tr>
+              <tr>
+                <td>self hosting</td>
+                <td>most control, most responsibility, learning the hardest way...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>you dont need to buy or commit to anything to get started, use whats free and easy to start</p>
+
+        <div style="display: flex; justify-content: center;"><img height="400" src="images/hosting.svg"></div>
+
+      </section>
+
+      <section id="examples" class="panel">
+        <header class="sec-head">
+          <span class="sec-num">05</span>
+          <div>
+            <h2>more examples:</h2>
+          </div>
+        </header>
+        <p class="lede">here are some webrings and compilations I like:</p>
+        <ul class="link-list">
+          <li><a href="https://sitescroll.fun/" target="_blank" rel="noopener noreferrer">sitescroll.fun</a></li>
+          <li><a href="https://webring.bucketfish.me/" target="_blank" rel="noopener noreferrer">webring.bucketfish.me</a></li>
+          <li><a href="https://theuselessweb.com/" target="_blank" rel="noopener noreferrer">theuselessweb.com</a></li>
+          <li><a href="https://lobste.rs/active" target="_blank" rel="noopener noreferrer">lobste.rs/active</a></li>
+          <li><a href="https://homepages-iota.vercel.app/" target="_blank" rel="noopener noreferrer">homepages-iota.vercel.app</a></li>
+          <li><a href="https://wildwild.directory/" target="_blank" rel="noopener noreferrer">wildwild.directory</a></li>
+          <li><a href="https://personalsit.es/" target="_blank" rel="noopener noreferrer">personalsit.es</a></li>
+          <li><a style="background-color: rgb(232, 255, 232);" href="https:/iheartcomputer.club/sites/" target="_blank" rel="noopener noreferrer">wait, computer club's own page??</a></li>
+        </ul>
+      </section>
+
+      <section id="show" class="panel">
+        <header class="sec-head">
+          <span class="sec-num">06</span>
+          <div>
+            <h2>member showcase:</h2>
+          </div>
+        </header>
+        <ul class="bullets">
+          <li>show us your website</li>
+          <li>how did you make it?</li>
+          <li>what's your favorite part?</li>
+          <li>fun facts / anything you learned making it?</li>
+        </ul>
+      </section>
+
+      <section id="end" class="panel panel--hero">
+        <h2>thanks for listening!</h2>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

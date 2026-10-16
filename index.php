@@ -31,7 +31,7 @@ new_render_header('IHEARTCOMPUTER');
         </div>
         <ul class="upper" style="list-style: none; margin: 0; padding: 0; font-size: 0.85rem;">
           <li style="margin: 0.15rem 0;">date/time: 10/21 - 2:30pm</li>
-          <li style="margin: 0.15rem 0;">room: GITC 3200</li>
+          <li style="margin: 0.15rem 0;">room: TBD</li>
         </ul>
         <p style="margin: 0; font-size: 0.9rem; color: #333;">
           Talking dos, donts, and how to, all things personal websites. We will also reserve some time for anyone to bring up their personal website and tell us about it! Reach out ASAP on discord if you have something and you want to show it off.

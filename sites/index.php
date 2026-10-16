@@ -33,7 +33,7 @@ foreach ($sites as $site) {
     $grouped[$key]['sites'][] = $site;
 }
 
-$preferred = ['personal', 'project', 'business'];
+$preferred = ['personal', 'project', 'business', 'organization'];
 $ordered = [];
 
 foreach ($preferred as $key) {

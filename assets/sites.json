@@ -54,9 +54,33 @@
     "tag": "personal"
   },
   {
+    "name": "Gabriele Muratori",
+    "url": "https://gabm.io/",
+    "description": "Gabe's personal site",
+    "tag": "personal"
+  },
+  {
+    "name": "Gabriele Muratori",
+    "url": "https://ugcroster.com",
+    "description": "Automated creator marketing for e-commerce brands",
+    "tag": "business"
+  },
+  {
     "name": "Aidan Lowell",
     "url": "https://decksense.app",
     "description": "Pokémon TCG deck analysis app for iOS",
     "tag": "business"
+  },
+  {
+    "name": "NJIT AI Safety",
+    "url": "https://njitaisafety.org",
+    "description": "Offcial NJIT AI Safety website",
+    "tag": "organization"
+  },
+  {
+    "name": "NJIT ACM",
+    "url": "https://acm.njit.edu",
+    "description": "Offcial NJIT ACM website",
+    "tag": "organization"
   }
 ]
