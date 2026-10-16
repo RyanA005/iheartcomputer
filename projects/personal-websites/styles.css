@@ -127,6 +127,23 @@ body::before {
   background: var(--paper);
   border: var(--border);
   box-shadow: var(--shadow);
+  overflow-x: clip;
+}
+
+.figure {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0 0;
+  max-width: 100%;
+}
+
+.figure-img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
 }
 
 .panel:nth-child(odd) {
@@ -470,6 +487,11 @@ code {
 
   .host-table td:first-child {
     white-space: normal;
+  }
+
+  .figure-img {
+    max-height: none;
+    width: 100%;
   }
 }
 
