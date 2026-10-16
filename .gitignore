@@ -1,2 +1,4 @@
 *.env
 *.log
+*:Zone.Identifier
+ctf-model-lock/
