@@ -48,28 +48,70 @@ function project_thumbnail_src(string $slug, ?array $meta): string
     return '/projects/' . $slug . '/' . $thumbnail;
 }
 
-function resolve_author(?string $authorId, array $people): ?array
+function is_http_url(string $url): bool
 {
-    if (!$authorId) {
+    return (bool) preg_match('#^https?://#i', $url);
+}
+
+function resolve_author(string|array|null $author, array $people): ?array
+{
+    if ($author === null || $author === '') {
         return null;
     }
 
-    if ($authorId === 'everyone') {
+    if (is_array($author)) {
+        $name = is_string($author['name'] ?? null) ? trim($author['name']) : '';
+        if ($name === '') {
+            return null;
+        }
+
+        $url = is_string($author['url'] ?? null) ? trim($author['url']) : '';
+        if ($url !== '' && !is_http_url($url)) {
+            $url = '';
+        }
+
+        return [
+            'id' => null,
+            'name' => $name,
+            'profile_url' => $url !== '' ? $url : null,
+            'external' => $url !== '',
+        ];
+    }
+
+    if ($author === 'everyone') {
         return [
             'id' => 'everyone',
             'name' => 'everyone',
             'profile_url' => '/about/#',
+            'external' => false,
         ];
     }
 
-    if (!isset($people[$authorId])) {
+    if (!isset($people[$author])) {
         return null;
     }
 
     return [
-        'id' => $authorId,
-        'name' => $people[$authorId]['name'],
-        'profile_url' => '/about/#' . $authorId,
+        'id' => $author,
+        'name' => $people[$author]['name'],
+        'profile_url' => '/about/#' . $author,
+        'external' => false,
+    ];
+}
+
+function resolve_project_url(string $slug, ?array $meta): array
+{
+    $url = is_string($meta['url'] ?? null) ? trim($meta['url']) : '';
+    if ($url !== '' && is_http_url($url)) {
+        return [
+            'href' => $url,
+            'external' => true,
+        ];
+    }
+
+    return [
+        'href' => '/projects/' . $slug . '/',
+        'external' => false,
     ];
 }
 
@@ -130,9 +172,13 @@ foreach (scandir($root) as $file) {
         continue;
     }
 
-    $authorId = is_string($meta['author'] ?? null) ? $meta['author'] : null;
+    $authorMeta = $meta['author'] ?? null;
+    if (!is_string($authorMeta) && !is_array($authorMeta)) {
+        $authorMeta = null;
+    }
     $topics = $meta['topics'] ?? [];
     $bucket = project_bucket($topics);
+    $link = resolve_project_url($file, $meta);
 
     $projects[] = [
         'slug' => $file,
@@ -142,10 +188,12 @@ foreach (scandir($root) as $file) {
         'bucket' => $bucket,
         'tag' => project_tag_label($topics),
         'tag_class' => project_tag_class($bucket),
-        'author' => resolve_author($authorId, $people),
+        'author' => resolve_author($authorMeta, $people),
         'date' => $meta['date'] ?? null,
         'thumbnail' => project_thumbnail_src($file, $meta),
         'video' => $meta['video'] ?? null,
+        'href' => $link['href'],
+        'external' => $link['external'],
     ];
 }
 
@@ -188,9 +236,18 @@ new_render_header('Projects - IHEARTCOMPUTER', 'IHEARTCOMPUTER - Public Projects
           <?php
             $num = str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT);
           ?>
+          <?php
+            $projectAttrs = $project['external']
+              ? ' target="_blank" rel="noopener noreferrer"'
+              : '';
+            $authorUrl = $project['author']['profile_url'] ?? null;
+            $authorAttrs = !empty($project['author']['external'])
+              ? ' target="_blank" rel="noopener noreferrer"'
+              : '';
+          ?>
           <li data-bucket="<?= htmlspecialchars($project['bucket'], ENT_QUOTES, 'UTF-8') ?>">
             <div class="list-row">
-              <a href="/projects/<?= htmlspecialchars($project['slug'], ENT_QUOTES, 'UTF-8') ?>/">
+              <a href="<?= htmlspecialchars($project['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $projectAttrs ?>>
                 <img
                   src="<?= htmlspecialchars($project['thumbnail'], ENT_QUOTES, 'UTF-8') ?>"
                   alt=""
@@ -201,7 +258,7 @@ new_render_header('Projects - IHEARTCOMPUTER', 'IHEARTCOMPUTER - Public Projects
               </a>
               <span class="list-num upper" style="font-size: 1.35rem;"><?= htmlspecialchars($num, ENT_QUOTES, 'UTF-8') ?></span>
               <strong class="list-title upper" style="display: block; font-size: 1.15rem; line-height: 1.25;">
-                <a href="/projects/<?= htmlspecialchars($project['slug'], ENT_QUOTES, 'UTF-8') ?>/" style="color: inherit; text-decoration: none;">
+                <a href="<?= htmlspecialchars($project['href'], ENT_QUOTES, 'UTF-8') ?>" style="color: inherit; text-decoration: none;"<?= $projectAttrs ?>>
                   <?= htmlspecialchars($project['title'], ENT_QUOTES, 'UTF-8') ?>
                 </a>
               </strong>
@@ -213,9 +270,13 @@ new_render_header('Projects - IHEARTCOMPUTER', 'IHEARTCOMPUTER - Public Projects
                 <?php endif; ?>
                 <span class="muted" style="display: block; margin-top: 0.35rem; font-size: 0.88rem;">
                   <?php if (!empty($project['author']['name'])): ?>
-                    <a href="<?= htmlspecialchars($project['author']['profile_url'], ENT_QUOTES, 'UTF-8') ?>">
+                    <?php if ($authorUrl): ?>
+                      <a href="<?= htmlspecialchars($authorUrl, ENT_QUOTES, 'UTF-8') ?>"<?= $authorAttrs ?>>
+                        <?= htmlspecialchars($project['author']['name'], ENT_QUOTES, 'UTF-8') ?>
+                      </a>
+                    <?php else: ?>
                       <?= htmlspecialchars($project['author']['name'], ENT_QUOTES, 'UTF-8') ?>
-                    </a>
+                    <?php endif; ?>
                   <?php endif; ?>
                   <?php if ($project['date']): ?>
                     <?= !empty($project['author']['name']) ? ' · ' : '' ?>

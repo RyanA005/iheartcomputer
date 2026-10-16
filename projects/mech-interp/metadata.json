@@ -1,0 +1,12 @@
+{
+  "title": "Mind-reading LLMs with Mechanistic Interpretability",
+  "subtitle": "how mechanistic interpretability tries to reverse-engineer what LLMs are doing inside",
+  "topics": ["AI", "Interpretability", "Safety"],
+  "author": {
+    "name": "NJIT AI Safety",
+    "url": "https://njitaisafety.org/"
+  },
+  "date": "2026-10-14",
+  "thumbnail": "image.png",
+  "url": "https://njitaisafety.org/mech-interp-presentation/opening/title"
+}
