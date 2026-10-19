@@ -82,5 +82,17 @@
     "url": "https://acm.njit.edu",
     "description": "Offcial NJIT ACM website",
     "tag": "organization"
+  },
+  {
+    "name": "Dan Emerle",
+    "url": "https://deeroot.dev/",
+    "description": "Dan's personal site",
+    "tag": "personal"
+  },
+  {
+    "name": "Brandon Howe",
+    "url": "https://brandonhowe.me/",
+    "description": "Brandon's personal site",
+    "tag": "personal"
   }
 ]
