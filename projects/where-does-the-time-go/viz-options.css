@@ -1,0 +1,79 @@
+.viz-page {
+  max-width: 1100px;
+}
+
+.viz-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 18px 0;
+  margin: 0 0 8px;
+  border-bottom: 1px solid var(--rule);
+  font: 500 0.85rem/1.3 var(--mono);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 2;
+}
+
+.viz-jump a {
+  color: var(--ink);
+  text-decoration: none;
+}
+.viz-jump a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.viz-opt h2 {
+  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+}
+
+.viz-why {
+  max-width: 52rem;
+  color: var(--mute);
+  font: 400 0.95rem/1.5 var(--sans);
+}
+
+.viz-frame {
+  margin: 16px 0 0;
+  padding: 12px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  overflow-x: auto;
+}
+
+.viz-frame svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-width: 720px;
+}
+
+.viz-frame .err {
+  margin: 0;
+  padding: 16px;
+  font: 400 0.9rem/1.5 var(--mono);
+  color: #a51d2a;
+}
+
+.viz-frame table.stack-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 0.85rem/1.4 var(--mono);
+}
+.viz-frame table.stack-table th,
+.viz-frame table.stack-table td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--rule);
+}
+.viz-frame table.stack-table th:last-child,
+.viz-frame table.stack-table td:last-child {
+  text-align: right;
+}
+
+.note {
+  color: var(--mute);
+  font: 400 0.9rem/1.5 var(--mono);
+}

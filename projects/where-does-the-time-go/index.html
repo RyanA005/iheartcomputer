@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="where does the time go? why software is slow, then a who's cooking teardown - IHEARTCOMPUTER">
+  <title>where does the time go? - IHEARTCOMPUTER</title>
+  <link rel="icon" type="image/x-icon" href="/assets/logo.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="page">
+
+  <header class="bar">
+    <a href="/" style="text-decoration: none;"><strong>I<span class="heart">♥</span>COMPUTER</strong></a>
+    <nav>
+      <a href="/projects/">projects</a>
+      <a href="/about/">about</a>
+      <a href="https://discord.gg/JpRw84Ybwg">discord</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <h1>where does the time go?</h1>
+    <p class="sub">why software is slow; diagnosing and fixing a real site.</p>
+    <figure class="hero-fig">
+      <img src="images/language-benchmarks-interpreted-all.png" alt="benchmark chart comparing interpreted language runtimes" loading="eager">
+    </figure>
+    <p class="by">by <a href="https://ryanalport.com">Ryan Alport</a></p>
+  </div>
+
+  <section id="why">
+    <h2>why is software slow?</h2>
+    <p>there are some constants when it comes to the speed of software, mostly determined by hardware and simple physics, speed of light, clock speed, i/o speed, etc.</p>
+    <p>still, we can make better decisions in code and infrastructure that mean we simply pay those constant costs less times.</p>
+  </section>
+
+  <section id="why-instructions">
+    <h2>instructions and memory</h2>
+    <p>everyone should understand the basic unit of computer execution, the instruction.</p>
+    <p>an instruction does a simple operation like load or store a value from memory, do arithmetic on loaded values, make system calls, etc. this is as close as we programmers go to the transistor.</p>
+    <figure class="photo">
+      <img src="images/cpu-die.jpg" alt="close up of a silicon CPU die" loading="lazy">
+    </figure>
+    <p>instruction speed can vary, we measure in clock cycles, depending on memory access, the instruction itself, scheduling, a single instruction can take a few clock cycles to a few hundred. still nanoseconds.</p>
+    <p>any program you write must either be compiled into ready to use instructions or it uses an interpreter to translate as it runs.</p>
+    <p>in different programming languages, code will turn into different instructions with varying complexity.</p>
+    <figure>
+      <img src="images/python-mutable-type.jpg" alt="diagram of a Python list of ints as object ids pointing at separate typed heap objects" loading="lazy">
+      <figcaption>
+        <a href="https://www.teach.cs.toronto.edu/~csc148h/notes/_images/Mutable-type-crop.jpg">U of T CSC148 notes</a>
+      </figcaption>
+    </figure>
+    <p>all python values are heap objects with ids and types, reached through multiple levels of pointers and checks.</p>
+    <p>compare to c where values are binary numbers in memory. python hides this complexity for us at a cost.</p>
+  </section>
+
+  <section id="why-network">
+    <h2>the network</h2>
+    <p>once you leave your own process, you enter the network. packets go through your kernel, your nic, switches, routers, fiber optic cables, another computer's stack, then back again.</p>
+    <p>light in fiber optic cables goes 200 km per millisecond. a round trips across regions are measured in milliseconds.</p>
+    <figure class="photo">
+      <img src="images/opte-internet.jpg" alt="Opte Project visualization of the internet as a colored network graph" loading="lazy">
+      <figcaption>
+        <a href="https://en.wikipedia.org/wiki/Opte_Project">Opte Project</a>
+        (Matt Britt, CC BY 2.5)
+      </figcaption>
+    </figure>
+    <p>an L1 cache hit is sub-nanosecond. a packet from china to europe is 150 milliseconds.</p>
+  </section>
+
+  <section id="why-io">
+    <h2>input/output</h2>
+    <p>io is when your program asks the kernel to do something. the process may or may not need to wait for it.</p>
+    <figure>
+      <img src="images/blocking-io.png" alt="diagram of blocking recvfrom where the process waits in the kernel" loading="lazy">
+      <figcaption>
+        blocking recvfrom(): the process sleeps until datagram is ready.
+        (UNIX Network Programming)
+      </figcaption>
+    </figure>
+    <p>in the browser you can see this idea present, we must wait on the previous thing whether we need it or not.</p>
+    <figure>
+      <img src="images/wpt-waterfall.png" alt="WebPageTest waterfall view of a Google page load" loading="lazy">
+      <figcaption>
+        webpagetest waterfall: dns, connect, tls, one at a time.
+        <a href="https://stackoverflow.com/questions/53596212/understanding-colors-in-webpagetest-waterfall-view">stack overflow / webpagetest</a>
+      </figcaption>
+    </figure>
+    <p>good io shape looks like less round trips. batch reads, overlap waits, work with what you've got first.</p>
+  </section>
+
+  <section id="why-algorithms">
+    <h2>algorithms</h2>
+    <p>this is the part we have the most control of. the algorithms we write determine how often we need to pay fixed costs as input grows.</p>
+    <p>algorithms should try to avoid doing work twice, swap expensive operations for cheap aproximations, and generally try to do the minimum ammount of work.</p>
+    <figure>
+      <img src="images/big-o-cheatsheet.png" alt="big-O cheatsheet of common data structure and algorithm complexities" loading="lazy">
+      <figcaption>
+        <a href="https://www.bigocheatsheet.com">bigocheatsheet.com</a>
+      </figcaption>
+    </figure>
+  </section>
+
+  <section id="why-summary">
+    <h2>why is software slow?</h2>
+    <ol>
+      <li>software does too much unnecessary work.</li>
+      <li>software does expensive work it doesn't have to.</li>
+      <li>software spends too much time waiting.</li>
+    </ol>
+  </section>
+
+  <section id="patient">
+    <h2>whoscooking.live case study</h2>
+    <figure>
+      <img src="images/whoscooking.png" loading="eager">
+    </figure>
+    <p><a href="https://whoscooking.live">whoscooking.live</a> is a simple service that counts lines of code per user per day.</p>
+  </section>
+
+  <section id="bench-v0">
+    <h2>benchmarks</h2>
+    <p>despite the seeming simplicity, whoscooking is profoundly slow...</p>
+    <p>warm TTFB p50 from production iad1:</p>
+    <table>
+      <tr><th>page</th><th></th><th>TTFB</th></tr>
+      <tr><td><code>/</code></td><td>leaderboard & badges. fed by multiple rows</td><td>671 ms</td></tr>
+      <tr><td><code>/records</code></td><td>all time records. contents of one table</td><td>197 ms</td></tr>
+      <tr><td><code>/docs</code></td><td>docs. static page</td><td>87 ms</td></tr>
+    </table>
+  </section>
+
+  <section id="trace">
+    <h2>follow one GET /</h2>
+    <p class="note">diagram WIP: compare styles on <a href="/projects/where-does-the-time-go/viz-options.html">viz-options</a>.</p>
+    <p>homepage data path, instrumented as <code>/api/trace?mode=full</code> so the same board and badge work runs without the HTML shell:</p>
+    <pre>const board = await getDailyLeaderboard()
+const badges = await getLeaderboardBadgePinsByGithubIds(...)</pre>
+    <p>machines on this capture (warm, 2026-10-26T17:28:04Z):</p>
+    <ul>
+      <li><strong>client</strong>: WSL laptop, curl measuring <code>time_namelookup</code>, <code>time_connect</code>, <code>time_starttransfer</code>, <code>time_total</code></li>
+      <li><strong>app</strong>: Next.js on <code>127.0.0.1:3000</code> (Node). our TypeScript in <code>lib/leaderboard.ts</code> and <code>lib/userBadges.ts</code>, wrapped by <code>lib/traceFetch.ts</code></li>
+      <li><strong>database path</strong>: app HTTPS to cloud Supabase PostgREST, then Postgres. not local</li>
+    </ul>
+    <p>client to app on this run is loopback (no TLS). client to production Vercel would add DNS+TCP+TLS and edge admit; those are not in this SVG. function bars are aligned so the function wall ends at client TTFB. each Supabase bar is wait (headers: network + PostgREST/Postgres) then body (bytes into Node). gray wait is the measured floor (min wait across calls, 31.73 ms); pink is wait above that floor.</p>
+    <figure class="timeline">
+      <object type="image/svg+xml" data="images/request-timeline.svg" aria-label="Request timeline SVG">
+        <img src="images/request-timeline.svg" alt="Request timeline for GET /api/trace mode=full">
+      </object>
+      <figcaption>
+        source: <code>data/trace-one-request.json</code>.
+        capture: <code>node scripts/trace-one-request.mjs</code> in whoscooking.
+        SVG: <code>python3 scripts/build-request-timeline-svg.py</code> here.
+        hover bars for method, path, and ms.
+      </figcaption>
+    </figure>
+    <p>layer totals from that capture:</p>
+    <table>
+      <tr><th>layer</th><th>machine</th><th>code / stack</th><th>ms</th><th>notes</th></tr>
+      <tr><td>client connect</td><td>laptop</td><td>OS network</td><td>0.19</td><td>DNS+TCP (no TLS; loopback)</td></tr>
+      <tr><td>client TTFB</td><td>laptop to app</td><td>curl</td><td>448.91</td><td>first response byte</td></tr>
+      <tr><td>client download</td><td>laptop</td><td>curl</td><td>0.49</td><td>5229 body bytes</td></tr>
+      <tr><td>host overhead</td><td>app host</td><td>runtime / return path</td><td>26.57</td><td>estimated: TTFB minus function</td></tr>
+      <tr><td>function</td><td>app host Node</td><td>our route handler</td><td>422.34</td><td>measured with performance.now()</td></tr>
+      <tr><td>board phase</td><td>app host</td><td><code>getDailyLeaderboard</code></td><td>174.44</td><td>4 HTTP calls (some parallel)</td></tr>
+      <tr><td>badges phase</td><td>app host</td><td><code>getLeaderboardBadgePinsByGithubIds</code></td><td>247.77</td><td>7 HTTP calls; starts after board</td></tr>
+      <tr><td>app CPU</td><td>app host</td><td>our TS between awaits</td><td>95.69</td><td>function minus supabase wall</td></tr>
+      <tr><td>supabase wall</td><td>app to Supabase</td><td>PostgREST + Postgres</td><td>326.65</td><td>merged busy time of 11 calls</td></tr>
+      <tr><td>supabase wait sum</td><td>Supabase path</td><td>11 fetches</td><td>592.66</td><td>sum of waits; exceeds wall when parallel</td></tr>
+      <tr><td>supabase body sum</td><td>app host</td><td>JSON into Node</td><td>28.24</td><td>sum of body reads</td></tr>
+      <tr><td>min supabase wait</td><td>Supabase path</td><td>cheapest call</td><td>31.73</td><td>wait floor drawn on each span</td></tr>
+    </table>
+  </section>
+
+  <section id="crimes">
+    <h2>what we found</h2>
+    <dl>
+      <div><dt>too many trips</dt><dd>load the board, then for badge pins fetch history per user, then fetch boards for a pile of dates. N+1 with extra steps. network times N.</dd></div>
+      <div><dt>no cache</dt><dd><code>force-dynamic</code>. every request rebuilt the board from scratch. <code>x-vercel-cache: MISS</code> on every warm sample.</dd></div>
+      <div><dt>too much cloud</dt><dd>Vercel serverless plus Supabase REST in front of Postgres, for a leaderboard that would fit in a file.</dd></div>
+    </dl>
+    <p>sort by wall clock. fix in that order. rules for the rest:</p>
+    <pre>1. change one thing
+2. deploy it
+3. bench the same way as before
+4. look at the number
+5. keep the win, do the next one</pre>
+    <p>we do not rewrite the whole thing in C yet. if you start there, you never learn which problem was actually expensive.</p>
+  </section>
+
+  <section id="fix-fanout">
+    <h2>fix 1: stop calling Supabase in a loop</h2>
+    <p>the badge path was doing one history fetch per user on the board. with fifty people that is ugly. even with five it is silly.</p>
+    <p>so we batch. one (or a few) <code>.in(github_id, ...)</code> queries instead of one per user. we also <code>Promise.all</code> the board pieces that do not depend on each other.</p>
+    <p>still Next. still Vercel. still Supabase. just fewer trips, and less waiting in a line.</p>
+    <p class="note">shipped. the uncached path gets cheaper. warm hits still rebuild everything until the next fix.</p>
+  </section>
+
+  <section id="fix-cache">
+    <h2>fix 2: remember the answer for a bit</h2>
+    <p>a public leaderboard does not need to be rebuilt on every request. if it is thirty seconds behind a webhook, nobody cares.</p>
+    <p>so we put a 30s cache on the board data and stopped forcing the page dynamic.</p>
+    <figure>
+      <img src="images/wc-homepage-10x.png" alt="bar chart showing homepage warm TTFB dropping from 671 ms to 70 ms" loading="lazy">
+      <figcaption>
+        warm <code>/</code> p50: 671 ms → 70 ms. measured on production after batch + cache.
+        <code>race/results/summary.json</code>
+      </figcaption>
+    </figure>
+    <p>about 10x on warm TTFB. most of that is "stop doing the work twice." regenerations still show up in p95. that is honest.</p>
+    <p>today a warm hit often comes back as <code>x-vercel-cache: STALE</code> or a short age header instead of a full rebuild. that is the point.</p>
+  </section>
+
+  <section id="fix-rest">
+    <h2>fix 3: stop talking to our own DB over HTTP</h2>
+    <p>Supabase is nice. dashboards, auth, hosted Postgres. for the public board read path though, we are the only client. we do not really need PostgREST in the middle.</p>
+    <p>the race harness answers one question: same <code>GET /board</code>, same golden JSON, how expensive is the wire?</p>
+    <figure>
+      <img src="images/wc-race-board.png" alt="horizontal bar chart of race harness p50 for supabase vs sqlite vs c" loading="lazy">
+      <figcaption>
+        <code>whoscooking/race/</code> - laptop numbers, Oct 20 2026.
+        REST ~50 ms. local sqlite ~1.4 ms. C in the same ballpark as Node once the network is gone.
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="images/sqlite-faster-fs.jpg" alt="bar chart comparing SQLite read time vs reading files on several OSes" loading="lazy">
+      <figcaption>
+        SQLite's own bench: reading via SQL can beat reading equivalent files.
+        <a href="https://www.sqlite.org/fasterthanfs.html">sqlite.org/fasterthanfs</a>
+      </figcaption>
+    </figure>
+    <p class="note">not production yet. the live site still goes through Supabase. deploy a direct read path, then put that number here.</p>
+  </section>
+
+  <section id="fix-serverless">
+    <h2>fix 4: stop paying for serverless we do not use</h2>
+    <p>who's cooking is not black friday. traffic is a trickle. renting request-scoped compute is convenient, but it is also a tax.</p>
+    <p>from the same race: spawning the tiny C server and waiting for the first byte is about 13 ms (v3 cold). once it is already up, the same request is about 1.6 ms. that is the cold start story without the marketing.</p>
+    <p class="note">also not "left Vercel" yet. same rule: deploy, then put the number on the slide.</p>
+  </section>
+
+  <section id="c-rewrite">
+    <h2>then, and only then: rewrite it in C</h2>
+    <p>once the network nonsense and the redo-work are gone, we can ask a more honest question: does the language matter?</p>
+    <p>look back at the race chart. C does not beat Node on nine rows. after you delete the network and the repeated work, the language is mostly noise.</p>
+    <p>that is kind of the whole point of waiting until the end to do the C rewrite.</p>
+  </section>
+
+  <section id="closing">
+    <h2>so where did the time go?</h2>
+    <p>software is slow when it does unnecessary work, expensive work it does not need, or waits too much.</p>
+    <p>who's cooking had all of those. we fixed the fan-out and the cache on the real site and got about 10x. the rest is still in progress: get off PostgREST for reads, get off serverless, then play with C.</p>
+    <p>do not start with the language. start with the stopwatch.</p>
+  </section>
+
+  <section id="run-of-show">
+    <h2>running order</h2>
+    <table>
+      <tr><th>section</th><th>time</th></tr>
+      <tr><td>why software is slow (instructions, network, algorithms, io)</td><td>10 min</td></tr>
+      <tr><td>bench + trace who's cooking</td><td>8 min</td></tr>
+      <tr><td>fix 1 and 2 (batch, cache) with live numbers</td><td>6 min</td></tr>
+      <tr><td>fix 3 and 4 (REST, serverless) once deployed</td><td>8 min</td></tr>
+      <tr><td>C rewrite scoreboard</td><td>6 min</td></tr>
+      <tr><td>close</td><td>2 min</td></tr>
+    </table>
+  </section>
+
+  <section id="todo-for-real">
+    <h2>homework before we present</h2>
+    <dl class="wide">
+      <div><dt>done</dt><dd>baseline benches, the trace story, batch + cache on prod, local race with C numbers</dd></div>
+      <div><dt>todo</dt><dd>deploy a read path that is not PostgREST and bench it in public</dd></div>
+      <div><dt>todo</dt><dd>deploy a persistent board process and bench cold vs warm</dd></div>
+      <div><dt>todo</dt><dd>put those deploy numbers on fix 3 and 4 instead of only the laptop race</dd></div>
+    </dl>
+  </section>
+
+  <section id="end">
+    <h2>thanks</h2>
+    <p>questions: <a href="mailto:Ralport2005@gmail.com">Ralport2005@gmail.com</a></p>
+    <ul class="links">
+      <li><a href="https://whoscooking.live">whoscooking.live</a></li>
+      <li><code>whoscooking/race/</code></li>
+      <li><a href="/projects/web-server/">high performance web servers</a></li>
+    </ul>
+  </section>
+
+</div>
+</body>
+</html>

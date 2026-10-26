@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>trace viz options - where does the time go?</title>
+  <link rel="icon" type="image/x-icon" href="/assets/logo.png">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="viz-options.css">
+</head>
+<body>
+<div class="page viz-page">
+
+  <header class="bar">
+    <a href="/projects/where-does-the-time-go/" style="text-decoration: none;"><strong>I<span class="heart">♥</span>COMPUTER</strong></a>
+    <nav>
+      <a href="/projects/where-does-the-time-go/">talk draft</a>
+      <a href="/projects/where-does-the-time-go/data/trace-one-request.json">raw JSON</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <h1>trace viz options</h1>
+    <p class="sub">same capture, several diagram types. pick what reads clearest for the talk.</p>
+    <p class="by">data: <code>data/trace-one-request.json</code> · warm local · 2026-10-26</p>
+  </div>
+
+  <section id="refs">
+    <h2>what people use</h2>
+    <p>for one request, the common answers are variants of a waterfall (time on X, one row per span). references:</p>
+    <ul>
+      <li><a href="https://developer.chrome.com/docs/devtools/network/reference">Chrome DevTools Network waterfall</a>: flat request list; bar segments for queue / connect / wait / download</li>
+      <li><a href="https://www.debugbear.com/docs/waterfall">DebugBear request waterfall</a>: same idea with filmstrip context</li>
+      <li><a href="https://grafana.com/docs/learning-paths/read-a-trace/read-the-waterfall/">Grafana span waterfall</a>: nested parent/child tree; optional critical-path shading</li>
+      <li><a href="https://docs.honeycomb.io/reference/honeycomb-ui/query/trace-waterfall">Honeycomb trace waterfall</a>: summary strip + full tree</li>
+      <li><a href="https://www.appsignal.design/latest/patterns/trace-timeline/structure-SOQrM3hb">AppSignal trace timeline</a>: tree gutter + duration column</li>
+      <li>Middleware and similar APM UIs also ship a flame chart (time on X, depth on Y) beside the waterfall</li>
+    </ul>
+    <p>below: six renderings of our capture. none are punchlines; all are candidates for the talk figure.</p>
+  </section>
+
+  <nav class="viz-jump" aria-label="diagram options">
+    <a href="#opt-chrome">1 chrome-style</a>
+    <a href="#opt-nested">2 nested spans</a>
+    <a href="#opt-swim">3 swimlanes</a>
+    <a href="#opt-flame">4 flame chart</a>
+    <a href="#opt-stack">5 composition</a>
+    <a href="#opt-gantt">6 critical path</a>
+  </nav>
+
+  <section id="opt-chrome" class="viz-opt">
+    <h2>1. Chrome / DebugBear-style waterfall</h2>
+    <p class="viz-why">flat list, start-time order. each bar is wait (light) + body (dark). good for “what ran in parallel?”. weak on parent/child.</p>
+    <div class="viz-frame" data-viz="chrome"></div>
+  </section>
+
+  <section id="opt-nested" class="viz-opt">
+    <h2>2. Nested span waterfall (Jaeger / Grafana / Honeycomb)</h2>
+    <p class="viz-why">indent shows call tree: client, function, board|badges, HTTP. industry default for APM. denser left gutter.</p>
+    <div class="viz-frame" data-viz="nested"></div>
+  </section>
+
+  <section id="opt-swim" class="viz-opt">
+    <h2>3. Machine swimlanes</h2>
+    <p class="viz-why">one lane per machine (laptop / app Node / Supabase). answers “whose metal?” first. parallel spans share a lane.</p>
+    <div class="viz-frame" data-viz="swim"></div>
+  </section>
+
+  <section id="opt-flame" class="viz-opt">
+    <h2>4. Flame chart (icicle)</h2>
+    <p class="viz-why">time on X, nest depth on Y. width = duration. compact overview; harder to label every HTTP call.</p>
+    <div class="viz-frame" data-viz="flame"></div>
+  </section>
+
+  <section id="opt-stack" class="viz-opt">
+    <h2>5. Time composition (stacked bars)</h2>
+    <p class="viz-why">not a timeline: where the ms went as exclusive buckets. honest about estimates; loses overlap/order.</p>
+    <div class="viz-frame" data-viz="stack"></div>
+  </section>
+
+  <section id="opt-gantt" class="viz-opt">
+    <h2>6. Critical-path Gantt</h2>
+    <p class="viz-why">Grafana-style: full span bars in mute, critical path (serial chain that sets TTFB) in ink. shows what you could shorten.</p>
+    <div class="viz-frame" data-viz="gantt"></div>
+  </section>
+
+  <section id="notes">
+    <h2>how to use this page</h2>
+    <p>open locally (same origin as the JSON). mark favorites in chat. we will promote one (or a pair) into <code>index.html</code> and drop the rest.</p>
+    <p class="note">estimates called out in-diagram: host overhead = TTFB − function; wait floor = min Supabase wait.</p>
+  </section>
+
+</div>
+<script src="viz-options.js" type="module"></script>
+</body>
+</html>

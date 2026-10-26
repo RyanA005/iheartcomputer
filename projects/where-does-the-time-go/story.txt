@@ -1,0 +1,23 @@
+why software is slow (each its own section + image)
+  instructions (cpu)
+  network (fiber / RTT)
+  doing work twice (cache / N+1)
+  wrong tools (oversized platform)
+  bad shape (serial awaits, force-dynamic)
+
+who's cooking case study
+  bench /, /records, /docs
+  follow one GET /
+  find: many supabase calls, no cache, too much cloud
+
+fix in order of cost, deploy, bench each time
+  1 batch + overlap supabase calls
+  2 30s cache (~670ms -> ~70ms warm, shipped)
+  3 leave PostgREST on the read path (deploy still todo)
+  4 leave serverless for a quiet board (deploy still todo)
+
+only then rewrite in C
+  race harness GET /board
+  C does not beat Node on nine rows
+
+close: start with the stopwatch, not the language

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 596" width="100%" role="img" aria-labelledby="title desc">
+<title id="title">Request timeline for whoscooking GET /api/trace?mode=full</title>
+<desc id="desc">Client curl timings and server-side function and Supabase HTTP spans from a warm local measurement on 2026-10-26.</desc>
+<style>
+  .t { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .title { font-size: 14px; font-weight: 600; fill: #171717; }
+  .sub { font-size: 10.5px; fill: #5c5c5c; }
+  .lbl { font-size: 10px; fill: #171717; }
+  .meta { font-size: 9px; fill: #5c5c5c; }
+  .tick { font-size: 9px; fill: #5c5c5c; }
+  .onbar { font-size: 9px; fill: #fff; }
+</style>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text class="t title" x="20" y="24">Request timeline - GET /api/trace?mode=full</text>
+<text class="t sub" x="20" y="42">2026-10-26T17:28:04Z · client: WSL curl · app: Next.js 127.0.0.1:3000 · db: Supabase cloud</text>
+<text class="t sub" x="20" y="56">result: 5 leaderboard entries, 5 badge users, date 2026-10-26</text>
+<text class="t meta" x="20" y="78">legend:</text>
+<rect x="72" y="69" width="10" height="10" fill="#495057"/>
+<text class="t meta" x="85" y="78">connect</text>
+<rect x="144.2" y="69" width="10" height="10" fill="#dee2e6"/>
+<text class="t meta" x="157.2" y="78">client wait</text>
+<rect x="238.79999999999998" y="69" width="10" height="10" fill="#adb5bd"/>
+<text class="t meta" x="251.79999999999998" y="78">host overhead est.</text>
+<rect x="372.6" y="69" width="10" height="10" fill="#0b57d0"/>
+<text class="t meta" x="385.6" y="78">function</text>
+<rect x="450.40000000000003" y="69" width="10" height="10" fill="#4c6ef5"/>
+<text class="t meta" x="463.40000000000003" y="78">board phase</text>
+<rect x="545.0" y="69" width="10" height="10" fill="#e8590c"/>
+<text class="t meta" x="558.0" y="78">badges phase</text>
+<rect x="645.2" y="69" width="10" height="10" fill="#868e96"/>
+<text class="t meta" x="658.2" y="78">wait ≤ 32ms floor</text>
+<rect x="773.4000000000001" y="69" width="10" height="10" fill="#c2255c"/>
+<text class="t meta" x="786.4000000000001" y="78">wait above floor</text>
+<rect x="896.0000000000001" y="69" width="10" height="10" fill="#12b886"/>
+<text class="t meta" x="909.0000000000001" y="78">body read</text>
+<line x1="240" y1="108" x2="880" y2="108" stroke="#171717" stroke-width="1"/>
+<line x1="240.0" y1="108" x2="240.0" y2="111" stroke="#5c5c5c"/>
+<text class="t tick" x="240.0" y="121" text-anchor="middle">0</text>
+<line x1="311.20605251446375" y1="108" x2="311.20605251446375" y2="111" stroke="#5c5c5c"/>
+<text class="t tick" x="311.20605251446375" y="121" text-anchor="middle">50</text>
+<line x1="382.4121050289275" y1="108" x2="382.4121050289275" y2="111" stroke="#5c5c5c"/>
+<text class="t tick" x="382.4121050289275" y="121" text-anchor="middle">100</text>
+<line x1="453.6181575433912" y1="108" x2="453.6181575433912" y2="111" stroke="#5c5c5c"/>
+<text class="t tick" x="453.6181575433912" y="121" text-anchor="middle">150</text>
+<line x1="524.824210057855" y1="108" x2="524.824210057855" y2="111" stroke="#5c5c5c"/>
+<text class="t tick" x="524.824210057855" y="121" text-anchor="middle">200</text>
+<line x1="596.0302625723186" y1="108" x2="596.0302625723186" y2="111" stroke="#5c5c5c"/>
+<text class="t tick" x="596.0302625723186" y="121" text-anchor="middle">250</text>
+<line x1="667.2363150867824" y1="108" x2="667.2363150867824" y2="111" stroke="#5c5c5c"/>
+<text class="t tick" x="667.2363150867824" y="121" text-anchor="middle">300</text>
+<line x1="738.4423676012461" y1="108" x2="738.4423676012461" y2="111" stroke="#5c5c5c"/>
+<text class="t tick" x="738.4423676012461" y="121" text-anchor="middle">350</text>
+<line x1="809.6484201157099" y1="108" x2="809.6484201157099" y2="111" stroke="#5c5c5c"/>
+<text class="t tick" x="809.6484201157099" y="121" text-anchor="middle">400</text>
+<text class="t tick" x="886" y="121">ms from client start</text>
+<text class="t lbl" x="230" y="143" text-anchor="end">client connect + TTFB + download</text>
+<rect x="240.00" y="130.00" width="1.20" height="17" fill="#495057"><title>DNS+TCP+TLS 0.194 ms</title></rect>
+<rect x="240.28" y="130.00" width="639.03" height="17" fill="#dee2e6"><title>wait to first byte 448.72 ms</title></rect>
+<rect x="879.30" y="130.00" width="1.20" height="17" fill="#12b886"><title>download 0.49 ms, 5229 bytes</title></rect>
+<text class="t meta" x="886.0" y="143">TTFB 448.91 · total 449.40</text>
+<line x1="240" y1="148.5" x2="880" y2="148.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t lbl" x="230" y="163" text-anchor="end">host overhead (est. residual)</text>
+<rect x="841.46" y="150.00" width="37.84" height="17" fill="#adb5bd"><title>host overhead estimate 26.57 ms = (TTFB after connect) - function_ms; includes admit and return path, not separated</title></rect>
+<text class="t meta" x="886.0" y="163">26.57 ms est.</text>
+<line x1="240" y1="168.5" x2="880" y2="168.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t lbl" x="230" y="183" text-anchor="end">function wall (Node / our code)</text>
+<rect x="277.84" y="170.00" width="601.46" height="17" fill="#0b57d0"><title>function wall 422.34 ms; app_cpu 95.69; supabase_wall 326.65</title></rect>
+<text class="t onbar" x="283.8388963061861" y="183">fn 422.3 · cpu 95.7 · sb_wall 326.6</text>
+<text class="t meta" x="886.0" y="183">422.34 ms</text>
+<line x1="240" y1="188.5" x2="880" y2="188.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t lbl" x="230" y="203" text-anchor="end">phases: board then badges</text>
+<rect x="277.84" y="190.00" width="248.42" height="17" fill="#4c6ef5"><title>getDailyLeaderboard 174.44 ms</title></rect>
+<rect x="526.26" y="190.00" width="352.85" height="17" fill="#e8590c"><title>getLeaderboardBadgePinsByGithubIds 247.77 ms</title></rect>
+<text class="t onbar" x="283.8388963061861" y="203">board 174</text>
+<text class="t onbar" x="532.2625723186472" y="203">badges 248</text>
+<line x1="240" y1="208.5" x2="880" y2="208.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t lbl" x="230" y="223" text-anchor="end">Supabase HTTP calls</text>
+<text class="t meta" x="244" y="223">wait = headers (network + PostgREST/Postgres); body = bytes copied into Node; floor = min wait across calls (31.73 ms)</text>
+<line x1="240" y1="228.5" x2="880" y2="228.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t lbl" x="230" y="243" text-anchor="end">01  board · daily_stats</text>
+<rect x="279.65" y="230.00" width="45.19" height="17" fill="#868e96"><title>GET /rest/v1/daily_stats?select=github_id%2Cusername%2Cadditions%2Cdeletions%2Cnet_lines%2Ccommits&amp;date=eq.2026-10-26&amp;order=net_lines.desc%2Cadditions.desc&amp;limit=50
+wait floor 31.73 ms</title></rect>
+<rect x="324.83" y="230.00" width="31.47" height="17" fill="#c2255c"><title>wait above floor 22.10 ms</title></rect>
+<rect x="356.31" y="230.00" width="3.22" height="17" fill="#12b886"><title>body 2.26 ms · 571 bytes</title></rect>
+<text class="t meta" x="886" y="243">w 53.8 · b 2.3 · 571B</text>
+<line x1="240" y1="248.5" x2="880" y2="248.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t lbl" x="230" y="263" text-anchor="end">02  board · daily_stats</text>
+<rect x="364.61" y="250.00" width="45.19" height="17" fill="#868e96"><title>GET /rest/v1/daily_stats?select=github_id&amp;date=eq.2026-10-25&amp;order=net_lines.desc%2Cadditions.desc%2Cgithub_id.asc&amp;offset=0&amp;limit=1000
+wait floor 31.73 ms</title></rect>
+<rect x="409.80" y="250.00" width="18.96" height="17" fill="#c2255c"><title>wait above floor 13.31 ms</title></rect>
+<rect x="428.75" y="250.00" width="4.00" height="17" fill="#12b886"><title>body 2.81 ms · 167 bytes</title></rect>
+<text class="t meta" x="886" y="263">w 45.0 · b 2.8 · 167B</text>
+<line x1="240" y1="268.5" x2="880" y2="268.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t lbl" x="230" y="283" text-anchor="end">03  board · users</text>
+<rect x="363.51" y="270.00" width="45.19" height="17" fill="#868e96"><title>GET /rest/v1/users?select=github_id%2Cavatar_url%2Cgithub_url%2Cblog_url%2Ctwitter_username&amp;github_id=in.%2855052791%2C37720624%2C55803884%2C209825114%2C41898282%29
+wait floor 31.73 ms</title></rect>
+<rect x="408.70" y="270.00" width="16.78" height="17" fill="#c2255c"><title>wait above floor 11.78 ms</title></rect>
+<rect x="425.48" y="270.00" width="8.46" height="17" fill="#12b886"><title>body 5.94 ms · 930 bytes</title></rect>
+<text class="t meta" x="886" y="283">w 43.5 · b 5.9 · 930B</text>
+<line x1="240" y1="288.5" x2="880" y2="288.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t lbl" x="230" y="303" text-anchor="end">04  board · rpc get_daily_top_repos</text>
+<rect x="362.28" y="290.00" width="45.19" height="17" fill="#868e96"><title>POST /rest/v1/rpc/get_daily_top_repos
+wait floor 31.73 ms</title></rect>
+<rect x="407.46" y="290.00" width="115.20" height="17" fill="#c2255c"><title>wait above floor 80.89 ms</title></rect>
+<rect x="522.66" y="290.00" width="2.55" height="17" fill="#12b886"><title>body 1.79 ms · 707 bytes</title></rect>
+<text class="t meta" x="886" y="303">w 112.6 · b 1.8 · 707B</text>
+<line x1="240" y1="308.5" x2="880" y2="308.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t lbl" x="230" y="323" text-anchor="end">05  badges · daily_stats</text>
+<rect x="530.19" y="310.00" width="45.19" height="17" fill="#868e96"><title>GET /rest/v1/daily_stats?select=date&amp;order=date.asc&amp;limit=1
+wait floor 31.73 ms</title></rect>
+<rect x="575.38" y="310.00" width="2.22" height="17" fill="#12b886"><title>body 1.56 ms · 23 bytes</title></rect>
+<text class="t meta" x="886" y="323">w 31.7 · b 1.6 · 23B</text>
+<line x1="240" y1="328.5" x2="880" y2="328.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t lbl" x="230" y="343" text-anchor="end">06  badges · daily_stats</text>
+<rect x="531.19" y="330.00" width="45.19" height="17" fill="#868e96"><title>GET /rest/v1/daily_stats?select=github_id%2Cusername%2Cdate%2Cadditions%2Cdeletions%2Cnet_lines%2Ccommits&amp;github_id=in.%2855052791%2C37720624%2C55803884%2C209825114%2C41898282%29&amp;order=date.asc%2Cgithub_i
+wait floor 31.73 ms</title></rect>
+<rect x="576.38" y="330.00" width="10.61" height="17" fill="#c2255c"><title>wait above floor 7.45 ms</title></rect>
+<rect x="586.99" y="330.00" width="5.04" height="17" fill="#12b886"><title>body 3.54 ms · 36543 bytes</title></rect>
+<text class="t meta" x="886" y="343">w 39.2 · b 3.5 · 36543B</text>
+<line x1="240" y1="348.5" x2="880" y2="348.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t lbl" x="230" y="363" text-anchor="end">07  badges · daily_stats</text>
+<rect x="581.56" y="350.00" width="45.19" height="17" fill="#868e96"><title>GET /rest/v1/daily_stats?select=github_id%2Cusername%2Cadditions%2Cdeletions%2Cnet_lines%2Ccommits&amp;date=eq.2026-04-03&amp;order=net_lines.desc%2Cadditions.desc&amp;limit=25
+wait floor 31.73 ms</title></rect>
+<rect x="626.75" y="350.00" width="23.71" height="17" fill="#c2255c"><title>wait above floor 16.65 ms</title></rect>
+<rect x="650.46" y="350.00" width="2.08" height="17" fill="#12b886"><title>body 1.46 ms · 107 bytes</title></rect>
+<text class="t meta" x="886" y="363">w 48.4 · b 1.5 · 107B</text>
+<line x1="240" y1="368.5" x2="880" y2="368.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t lbl" x="230" y="383" text-anchor="end">08  badges · daily_stats</text>
+<rect x="655.81" y="370.00" width="45.19" height="17" fill="#868e96"><title>GET /rest/v1/daily_stats?select=github_id%2Cusername%2Cdate%2Cadditions%2Cdeletions%2Cnet_lines%2Ccommits&amp;date=in.%282026-06-19%2C2026-06-25%2C2026-06-27%2C2026-07-11%2C2026-08-12%2C2026-08-16%2C2026-08-1
+wait floor 31.73 ms</title></rect>
+<rect x="701.00" y="370.00" width="14.78" height="17" fill="#c2255c"><title>wait above floor 10.38 ms</title></rect>
+<rect x="715.78" y="370.00" width="3.86" height="17" fill="#12b886"><title>body 2.71 ms · 24754 bytes</title></rect>
+<text class="t meta" x="886" y="383">w 42.1 · b 2.7 · 24754B</text>
+<line x1="240" y1="388.5" x2="880" y2="388.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t lbl" x="230" y="403" text-anchor="end">09  badges · daily_stats</text>
+<rect x="656.74" y="390.00" width="45.19" height="17" fill="#868e96"><title>GET /rest/v1/daily_stats?select=github_id%2Cusername%2Cdate%2Cadditions%2Cdeletions%2Cnet_lines%2Ccommits&amp;date=in.%282026-07-30%2C2026-07-31%2C2026-08-08%2C2026-08-13%2C2026-08-23%2C2026-04-06%2C2026-04-0
+wait floor 31.73 ms</title></rect>
+<rect x="701.93" y="390.00" width="24.84" height="17" fill="#c2255c"><title>wait above floor 17.44 ms</title></rect>
+<rect x="726.76" y="390.00" width="2.91" height="17" fill="#12b886"><title>body 2.04 ms · 9256 bytes</title></rect>
+<text class="t meta" x="886" y="403">w 49.2 · b 2.0 · 9256B</text>
+<line x1="240" y1="408.5" x2="880" y2="408.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t lbl" x="230" y="423" text-anchor="end">10  badges · daily_stats</text>
+<rect x="656.33" y="410.00" width="45.19" height="17" fill="#868e96"><title>GET /rest/v1/daily_stats?select=github_id%2Cusername%2Cdate%2Cadditions%2Cdeletions%2Cnet_lines%2Ccommits&amp;date=in.%282026-09-25%2C2026-09-26%2C2026-09-27%2C2026-09-28%2C2026-09-29%2C2026-09-30%2C2026-10-0
+wait floor 31.73 ms</title></rect>
+<rect x="701.51" y="410.00" width="38.72" height="17" fill="#c2255c"><title>wait above floor 27.19 ms</title></rect>
+<rect x="740.24" y="410.00" width="2.89" height="17" fill="#12b886"><title>body 2.03 ms · 23001 bytes</title></rect>
+<text class="t meta" x="886" y="423">w 58.9 · b 2.0 · 23001B</text>
+<line x1="240" y1="428.5" x2="880" y2="428.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t lbl" x="230" y="443" text-anchor="end">11  badges · daily_stats</text>
+<rect x="655.05" y="430.00" width="45.19" height="17" fill="#868e96"><title>GET /rest/v1/daily_stats?select=github_id%2Cusername%2Cdate%2Cadditions%2Cdeletions%2Cnet_lines%2Ccommits&amp;date=in.%282026-10-26%2C2026-10-25%2C2026-10-24%2C2026-10-23%2C2026-10-22%2C2026-10-21%2C2026-10-2
+wait floor 31.73 ms</title></rect>
+<rect x="700.23" y="430.00" width="51.89" height="17" fill="#c2255c"><title>wait above floor 36.44 ms</title></rect>
+<rect x="752.13" y="430.00" width="2.99" height="17" fill="#12b886"><title>body 2.10 ms · 25548 bytes</title></rect>
+<text class="t meta" x="886" y="443">w 68.2 · b 2.1 · 25548B</text>
+<line x1="240" y1="448.5" x2="880" y2="448.5" stroke="#e5e5e5" stroke-width="0.5"/>
+<text class="t meta" x="20" y="468">Alignment: function bar ends at client TTFB. Span start times are offset by (TTFB − function_ms).</text>
+<text class="t meta" x="20" y="481">Measured: curl time_namelookup/connect/appconnect/starttransfer/total; handler performance.now(); each fetch wait + body length.</text>
+<text class="t meta" x="20" y="494">Estimated: host overhead = (TTFB after connect) − function_ms; “above floor” = call wait − min(wait). RTT floor is not a pure network measurement.</text>
+<text class="t meta" x="20" y="507">Code paths: board = lib/leaderboard.ts getDailyLeaderboard; badges = lib/userBadges.ts getLeaderboardBadgePinsByGithubIds.</text>
+<text class="t meta" x="20" y="520">Network path for spans: app host -&gt; Supabase HTTPS (PostgREST) -&gt; Postgres. Client&lt;-&gt;app on this run is loopback (no TLS).</text>
+<text class="t meta" x="20" y="533">Source JSON: data/trace-one-request.json · URL http://127.0.0.1:3000/api/trace?mode=full</text>
+</svg>
