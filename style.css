@@ -297,3 +297,74 @@ hr {
 @media (prefers-reduced-motion: reduce) {
   .badge { animation: none; }
 }
+
+.faq > details {
+  border-bottom: 1px solid #ddd;
+}
+.faq > details:last-child { border-bottom: none; }
+.faq > details > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem;
+  font-size: 1.05rem;
+  line-height: 1.25;
+  color: #111;
+}
+.faq > details > summary::-webkit-details-marker { display: none; }
+.faq > details > summary::after {
+  content: "+";
+  flex: none;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #777;
+  line-height: 1;
+}
+.faq > details[open] > summary::after { content: "–"; }
+.faq > details > summary:hover { background: #fff; }
+.faq > details > p {
+  margin: 0;
+  padding: 0 1.15rem 1.15rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+.format-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.format-tile {
+  min-width: 0;
+  border: 1px solid #ddd;
+  border-left: 4px solid #111;
+  background: #fafafa;
+  padding: 0.85rem 0.9rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.format-tile strong {
+  font-size: 0.9rem;
+  line-height: 1.2;
+  color: #111;
+}
+.format-tile span {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #555;
+}
+
+@media (max-width: 760px) {
+  .format-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

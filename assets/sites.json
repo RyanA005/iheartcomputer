@@ -84,6 +84,18 @@
     "tag": "organization"
   },
   {
+    "name": "Brandon Cannizzaro",
+    "url": "https://bcann.dev/",
+    "description": "Brandon's personal site",
+    "tag": "personal"
+  },
+  {
+    "name": "Duru Birinci",
+    "url": "https://www.durubirinci.tech/",
+    "description": "Duru's personal site",
+    "tag": "personal"
+  },
+  {
     "name": "Dan Emerle",
     "url": "https://deeroot.dev/",
     "description": "Dan's personal site",
