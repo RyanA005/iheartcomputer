@@ -40,28 +40,28 @@ new_render_header(
         </div>
         <ul class="list" style="margin-bottom: 1.5rem;">
           <li>
-            <div class="list-row" style="grid-template-columns: 8.5rem minmax(0, 1fr); grid-template-areas: 'num title' 'num body';">
+            <div class="list-row list-row-timeline">
               <span class="list-num upper" style="font-size: 0.95rem;">now</span>
               <strong class="list-title upper" style="display: block; font-size: 1.05rem; line-height: 1.25;">Applications open</strong>
               <span class="list-body" style="font-size: 0.95rem; color: #333;">Submit the presenter form anytime</span>
             </div>
           </li>
           <li>
-            <div class="list-row" style="grid-template-columns: 8.5rem minmax(0, 1fr); grid-template-areas: 'num title' 'num body';">
+            <div class="list-row list-row-timeline">
               <span class="list-num upper red" style="font-size: 0.95rem;">Nov 11</span>
               <strong class="list-title upper" style="display: block; font-size: 1.05rem; line-height: 1.25;">Apply to present</strong>
               <span class="list-body" style="font-size: 0.95rem; color: #333;">Deadline to apply for a speaking / demo slot</span>
             </div>
           </li>
           <li>
-            <div class="list-row" style="grid-template-columns: 8.5rem minmax(0, 1fr); grid-template-areas: 'num title' 'num body';">
+            <div class="list-row list-row-timeline">
               <span class="list-num upper" style="font-size: 0.95rem;">Nov 14</span>
               <strong class="list-title upper" style="display: block; font-size: 1.05rem; line-height: 1.25;">Speakers confirmed</strong>
               <span class="list-body" style="font-size: 0.95rem; color: #333;">Selected presenters notified and schedule locked</span>
             </div>
           </li>
           <li>
-            <div class="list-row" style="grid-template-columns: 8.5rem minmax(0, 1fr); grid-template-areas: 'num title' 'num body';">
+            <div class="list-row list-row-timeline">
               <span class="list-num upper" style="font-size: 0.95rem;">Nov 18</span>
               <strong class="list-title upper" style="display: block; font-size: 1.05rem; line-height: 1.25;">Showcase day</strong>
               <span class="list-body" style="font-size: 0.95rem; color: #333;">2:30–6:00 PM · Location TBA</span>
@@ -76,35 +76,35 @@ new_render_header(
         </div>
         <ul class="list">
           <li>
-            <div class="list-row" style="grid-template-columns: 8.5rem minmax(0, 1fr); grid-template-areas: 'num title' 'num body';">
+            <div class="list-row list-row-timeline">
               <span class="list-num upper" style="font-size: 0.95rem;">2:30</span>
               <strong class="list-title upper" style="display: block; font-size: 1.05rem; line-height: 1.25;">Arrival &amp; check-in</strong>
               <span class="list-body" style="font-size: 0.95rem; color: #333;">Arrival, check-in, and quick setup (until 2:45)</span>
             </div>
           </li>
           <li>
-            <div class="list-row" style="grid-template-columns: 8.5rem minmax(0, 1fr); grid-template-areas: 'num title' 'num body';">
+            <div class="list-row list-row-timeline">
               <span class="list-num upper" style="font-size: 0.95rem;">2:45</span>
               <strong class="list-title upper" style="display: block; font-size: 1.05rem; line-height: 1.25;">Welcome</strong>
               <span class="list-body" style="font-size: 0.95rem; color: #333;">Intro from IHC (until 3:00)</span>
             </div>
           </li>
           <li>
-            <div class="list-row" style="grid-template-columns: 8.5rem minmax(0, 1fr); grid-template-areas: 'num title' 'num body';">
+            <div class="list-row list-row-timeline">
               <span class="list-num upper" style="font-size: 0.95rem;">3:00</span>
               <strong class="list-title upper" style="display: block; font-size: 1.05rem; line-height: 1.25;">Presentations</strong>
               <span class="list-body" style="font-size: 0.95rem; color: #333;">Scheduled student talks and demos, with short changeovers (until 5:00)</span>
             </div>
           </li>
           <li>
-            <div class="list-row" style="grid-template-columns: 8.5rem minmax(0, 1fr); grid-template-areas: 'num title' 'num body';">
+            <div class="list-row list-row-timeline">
               <span class="list-num upper" style="font-size: 0.95rem;">5:00</span>
               <strong class="list-title upper" style="display: block; font-size: 1.05rem; line-height: 1.25;">Hang out!</strong>
               <span class="list-body" style="font-size: 0.95rem; color: #333;">Informal project talk, questions, networking (until 5:30)</span>
             </div>
           </li>
           <li>
-            <div class="list-row" style="grid-template-columns: 8.5rem minmax(0, 1fr); grid-template-areas: 'num title' 'num body';">
+            <div class="list-row list-row-timeline">
               <span class="list-num upper" style="font-size: 0.95rem;">5:30</span>
               <strong class="list-title upper" style="display: block; font-size: 1.05rem; line-height: 1.25;">Closing</strong>
               <span class="list-body" style="font-size: 0.95rem; color: #333;">Follow-ups and wrap (until 6:00)</span>

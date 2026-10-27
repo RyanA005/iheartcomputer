@@ -154,6 +154,13 @@ a:hover { text-decoration: underline; }
   height: 6.5rem;
 }
 
+.list-row-timeline {
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  grid-template-areas:
+    "num title"
+    "num body";
+}
+
 .split-aside {
   border-left: 1px solid #ccc;
   padding-left: 2rem;
@@ -234,6 +241,20 @@ a:hover { text-decoration: underline; }
     width: 4.5rem;
     height: 4.5rem;
   }
+
+  .list-row-timeline {
+    grid-template-columns: 4.75rem minmax(0, 1fr);
+    grid-template-areas:
+      "num title"
+      "num body";
+    gap: 0.35rem 0.75rem;
+  }
+  .list-row-timeline .list-num {
+    display: block;
+    align-self: center;
+  }
+  .list-row-timeline .list-title { align-self: end; }
+  .list-row-timeline .list-body { align-self: start; }
 }
 
 .h1 {
