@@ -1,0 +1,27 @@
+why software is slow (each its own section + image)
+  instructions (cpu)
+  network (fiber / RTT)
+  doing work twice (cache / N+1)
+  wrong tools (oversized platform)
+  bad shape (serial awaits, force-dynamic)
+
+who's cooking case study
+  bench /, /records, /docs
+  follow one GET /
+  find: many supabase calls, no cache, too much cloud
+
+fix in order of cost, deploy, bench each time
+  1 batch + overlap supabase calls (measured local: ~690ms serial -> ~331ms overlapped; warm still rebuilds)
+  2 30s cache (local miss~497ms -> hit~16ms; prod warm ~670->~70ms, shipped)
+  3 make the wait feel shorter (same 900ms, better UI)
+      blank → blank+spinner → skeleton → skeleton+spinner → stream → progressive
+      nielsen 0.1 / 1 / 10 s; viget (skeletons not always win);
+      feedback combos (spinner+skeleton often helps)
+      shipped: stats-first paint, username+repo skeleton until enrich, then badges
+  4 remove the cloud (convenience vs control; vercel/supabase overhead)
+  5 own hardware / same GET /board, same synthetic internet RTT on both ends
+      vercel+supabase vs own+sqlite (execution gap = remote rest vs embedded db)
+      cold spawn p50 ~13ms (~8x vs warm); vercel cold start is the same idea
+      c rewrite did not beat warm node+sqlite on this laptop
+
+close: start with the stopwatch, not the language; when it stalls, make the wait honest

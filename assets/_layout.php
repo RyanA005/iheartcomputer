@@ -1,6 +1,6 @@
 <?php
 
-function new_render_header(string $title, string $description = 'IHEARTCOMPUTER - an unofficial computer club at NJIT'): void
+function new_render_header(string $title, string $description = 'IHEARTCOMPUTER - computer club at NJIT'): void
 {
     ?>
 <!DOCTYPE html>

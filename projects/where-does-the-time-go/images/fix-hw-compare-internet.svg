@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 996 442" width="100%" role="img">
+<title>Same internet RTT: vercel+supabase vs own+sqlite</title>
+<style>
+  .lbl { font: 500 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #171717; }
+  .meta { font: 400 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #5c5c5c; }
+</style>
+<defs>
+  <pattern id="hatch-wait" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+    <rect width="8" height="8" fill="#adb5bd"/>
+    <line x1="0" y1="0" x2="0" y2="8" stroke="#495057" stroke-width="3"/>
+  </pattern>
+  <pattern id="hatch-code" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(-45)">
+    <rect width="8" height="8" fill="#ffd8a8"/>
+    <line x1="0" y1="0" x2="0" y2="8" stroke="#e8590c" stroke-width="3"/>
+  </pattern>
+</defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text class="lbl" x="12" y="18">vercel + supabase rest  158 ms</text>
+<rect x="12.00" y="32.00" width="12.00" height="10" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>network wait</title></rect>
+<text class="meta" x="28" y="41">network wait</text>
+<rect x="132.00" y="32.00" width="12.00" height="10" fill="url(#hatch-code)" stroke="#e8590c" stroke-width="0.75"><title>code wait</title></rect>
+<text class="meta" x="148" y="41">code wait</text>
+<rect x="242.00" y="32.00" width="12.00" height="10" fill="#0b57d0"><title>work</title></rect>
+<text class="meta" x="258" y="41">work</text>
+<rect x="180" y="54" width="760" height="34" fill="#e9ecef" opacity="0.55"/>
+<text class="lbl" x="172" y="78" text-anchor="end">your browser</text>
+<rect x="180.00" y="54.00" width="6.00" height="34" fill="#0b57d0"><title>work 0.30 ms</title></rect>
+<rect x="186.00" y="54.00" width="250.48" height="34" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>to 55.00 ms</title></rect>
+<rect x="436.48" y="54.00" width="308.13" height="34" fill="url(#hatch-code)" stroke="#e8590c" stroke-width="0.75"><title>app 67.66 ms</title></rect>
+<rect x="744.61" y="54.00" width="160.76" height="34" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>back 35.30 ms</title></rect>
+<rect x="905.37" y="54.00" width="25.73" height="34" fill="#0b57d0"><title>work 5.65 ms</title></rect>
+<path d="M 436.47608432774734 88 V 99 H 744.607209157118 V 88" fill="none" stroke="#5c5c5c" stroke-width="1.2"/>
+<path d="M 590.5416467424327 99 V 110" fill="none" stroke="#5c5c5c" stroke-width="1.2"/>
+<rect x="436.47608432774734" y="88" width="308.1311248293706" height="60" fill="#0b57d0" opacity="0.05"/>
+<line x1="436.47608432774734" y1="88" x2="436.47608432774734" y2="148" stroke="#171717" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="744.607209157118" y1="88" x2="744.607209157118" y2="148" stroke="#171717" stroke-width="1" stroke-dasharray="3 3"/>
+<text class="lbl" x="172" y="134" text-anchor="end">vercel function</text>
+<rect x="436.48" y="110.00" width="6.00" height="34" fill="#0b57d0"><title>js 0.03 ms</title></rect>
+<rect x="442.48" y="110.00" width="302.13" height="34" fill="url(#hatch-code)" stroke="#e8590c" stroke-width="0.75"><title>supabase 67.64 ms</title></rect>
+<path d="M 442.47608432774734 144 V 154 H 744.607209157118 V 144" fill="none" stroke="#5c5c5c" stroke-width="1.2"/>
+<path d="M 593.5416467424327 154 V 164" fill="none" stroke="#5c5c5c" stroke-width="1.2"/>
+<rect x="442.47608432774734" y="144" width="302.1311248293706" height="42" fill="#0b57d0" opacity="0.05"/>
+<line x1="442.47608432774734" y1="144" x2="442.47608432774734" y2="186" stroke="#171717" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="744.607209157118" y1="144" x2="744.607209157118" y2="186" stroke="#171717" stroke-width="1" stroke-dasharray="3 3"/>
+<text class="lbl" x="172" y="170" text-anchor="end">supabase call</text>
+<rect x="442.47608432774734" y="164" width="302.13112482937066" height="16" fill="#e9ecef"/>
+<rect x="442.48" y="164.00" width="67.20" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>to 15.00 ms</title></rect>
+<rect x="509.68" y="164.00" width="167.73" height="16" fill="#0b57d0"><title>work 37.44 ms</title></rect>
+<rect x="677.40" y="164.00" width="67.20" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>back 15.00 ms</title></rect>
+<text class="lbl" x="12" y="222">own hardware + embedded sqlite  91 ms</text>
+<rect x="180" y="236" width="760" height="34" fill="#e9ecef" opacity="0.55"/>
+<text class="lbl" x="172" y="260" text-anchor="end">your browser</text>
+<rect x="180.00" y="236.00" width="6.00" height="34" fill="#0b57d0"><title>work 0.30 ms</title></rect>
+<rect x="186.00" y="236.00" width="250.48" height="34" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>to 55.00 ms</title></rect>
+<rect x="436.48" y="236.00" width="6.00" height="34" fill="url(#hatch-code)" stroke="#e8590c" stroke-width="0.75"><title>app 0.51 ms</title></rect>
+<rect x="442.48" y="236.00" width="160.76" height="34" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>back 35.30 ms</title></rect>
+<rect x="603.24" y="236.00" width="25.73" height="34" fill="#0b57d0"><title>work 5.65 ms</title></rect>
+<path d="M 436.47608432774734 270 V 281 H 442.47608432774734 V 270" fill="none" stroke="#5c5c5c" stroke-width="1.2"/>
+<path d="M 439.47608432774734 281 V 292" fill="none" stroke="#5c5c5c" stroke-width="1.2"/>
+<rect x="436.47608432774734" y="270" width="6" height="60" fill="#0b57d0" opacity="0.05"/>
+<line x1="436.47608432774734" y1="270" x2="436.47608432774734" y2="330" stroke="#171717" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="442.47608432774734" y1="270" x2="442.47608432774734" y2="330" stroke="#171717" stroke-width="1" stroke-dasharray="3 3"/>
+<text class="lbl" x="172" y="316" text-anchor="end">always-on process</text>
+<rect x="436.48" y="292.00" width="6.00" height="34" fill="#0b57d0"><title>js 0.18 ms</title></rect>
+<rect x="442.48" y="292.00" width="6.00" height="34" fill="url(#hatch-code)" stroke="#e8590c" stroke-width="0.75"><title>sqlite 0.34 ms</title></rect>
+<path d="M 442.47608432774734 326 V 336 H 448.47608432774734 V 326" fill="none" stroke="#5c5c5c" stroke-width="1.2"/>
+<path d="M 445.47608432774734 336 V 346" fill="none" stroke="#5c5c5c" stroke-width="1.2"/>
+<rect x="442.47608432774734" y="326" width="6" height="42" fill="#0b57d0" opacity="0.05"/>
+<line x1="442.47608432774734" y1="326" x2="442.47608432774734" y2="368" stroke="#171717" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="448.47608432774734" y1="326" x2="448.47608432774734" y2="368" stroke="#171717" stroke-width="1" stroke-dasharray="3 3"/>
+<text class="lbl" x="172" y="352" text-anchor="end">sqlite query</text>
+<rect x="442.47608432774734" y="346" width="6" height="16" fill="#e9ecef"/>
+<rect x="442.48" y="346.00" width="6.00" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>to 0.01 ms</title></rect>
+<rect x="448.48" y="346.00" width="6.00" height="16" fill="#0b57d0"><title>work 0.30 ms</title></rect>
+<rect x="454.48" y="346.00" width="6.00" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>back 0.01 ms</title></rect>
+<text class="meta" x="12" y="392">same synthetic internet on both ends: ~70 ms RTT + 12 ms TLS (to/back identical)</text>
+<text class="meta" x="12" y="406">execution: vercel+supabase function 68 ms (almost all remote rest) vs own+sqlite 0.51 ms</text>
+<text class="meta" x="12" y="420">ttfb 158 ms -&gt; 91 ms (~1.7x); gap is server work, not the browser hop</text>
+</svg>

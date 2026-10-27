@@ -1,0 +1,22 @@
+{
+  "measured_at": "2026-10-27T01:30:42.050Z",
+  "date": "2026-09-29",
+  "limit": 50,
+  "note": "Same golden board JSON shape. Always-on Node process unless cold-spawn. POSTGRES_URL was redacted locally so direct pg was skipped.",
+  "supabase": {
+    "ttfb_ms": 69.606,
+    "function_ms": 67.66,
+    "db_wall_ms": 67.64
+  },
+  "postgres": null,
+  "sqlite": {
+    "ttfb_ms": 1.602,
+    "function_ms": 0.51,
+    "db_wall_ms": 0.34
+  },
+  "cold_spawn": {
+    "p50_ms": 12.69,
+    "p95_ms": 15.833,
+    "note": "from race/results/v3-c-sqlite-cold.json"
+  }
+}

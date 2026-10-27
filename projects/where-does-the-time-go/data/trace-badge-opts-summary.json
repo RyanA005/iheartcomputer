@@ -1,0 +1,14 @@
+{
+  "measured_at": "2026-10-26T21:10:00Z",
+  "note": "After hardcoding day-1 goat + overlapping rolling board fetch with user history + parallel history id chunks. Still PostgREST.",
+  "api_perf_warm_p50_ms": {
+    "board": 109,
+    "badges": 202,
+    "total": 316
+  },
+  "trace_spans": {
+    "before_cache_miss": 12,
+    "after": 11
+  },
+  "pg": "POSTGRES_URL empty in Vercel prod and local .env.local \u2014 cannot measure direct pg until URI is set"
+}

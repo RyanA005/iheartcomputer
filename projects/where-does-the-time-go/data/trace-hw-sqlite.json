@@ -1,0 +1,85 @@
+{
+  "base": "http://127.0.0.1",
+  "label": "node-sqlite",
+  "measured_at": "2026-10-27T01:30:42.050Z",
+  "full": {
+    "url": "http://127.0.0.1:7202/board",
+    "client": {
+      "http_code": 200,
+      "time_namelookup": 0.031,
+      "time_connect": 0.215,
+      "time_appconnect": 0,
+      "time_pretransfer": 0.259,
+      "time_starttransfer": 1.6019999999999999,
+      "time_total": 1.803,
+      "size_download": 1294
+    },
+    "server": {
+      "ok": true,
+      "mode": "board",
+      "shape": "node-sqlite",
+      "measured_at": "2026-10-27T01:30:42.050Z",
+      "region_hint": "local",
+      "payload": {
+        "date": "2026-09-29",
+        "limit": 50
+      },
+      "server": {
+        "function_ms": 0.51,
+        "phases": [
+          {
+            "label": "board",
+            "ms": 0.51,
+            "at": 0.51
+          }
+        ],
+        "supabase": {
+          "calls": 1,
+          "wait_ms_sum": 0.32,
+          "body_ms_sum": 0.02,
+          "total_ms_sum": 0.34,
+          "wall_ms": 0.34,
+          "min_wait_ms": 0.02,
+          "estimated_work_above_rtt_sum_ms": 0.3,
+          "note": "race board single-query cascade"
+        },
+        "app_cpu_ms": 0.18,
+        "spans": [
+          {
+            "name": "sqlite:daily_stats",
+            "method": "QUERY",
+            "status": 200,
+            "started_at_ms": 0,
+            "wait_ms": 0.3152949999998782,
+            "body_ms": 0.02,
+            "total_ms": 0.3352949999998782,
+            "bytes": 1001,
+            "url_path": "sqlite://daily_stats?date=2026-09-29&limit=50",
+            "estimated_network_floor_ms": 0.02,
+            "estimated_supabase_work_ms": 0.2952949999998782
+          }
+        ]
+      }
+    },
+    "derived": {
+      "client_ms": {
+        "dns": 0.031,
+        "tcp": 0.184,
+        "tls": 0,
+        "wait_after_tls": 1.3869999999999998,
+        "ttfb": 1.6019999999999999,
+        "download_body": 0.20100000000000007,
+        "total": 1.803
+      },
+      "split_ms": {
+        "1_computer_to_vercel_tcp_tls": 0.215,
+        "2_edge_queue_and_return_path_estimate": 0.8769999999999998,
+        "3_function_runtime": 0.51,
+        "4_supabase_http_wall": 0.34,
+        "4b_supabase_http_sum_parallel": 0.34,
+        "5_app_cpu_between_awaits": 0.18,
+        "note": "2 ≈ (TTFB after TLS) - function_ms. Localhost: mostly return path / scheduling."
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "measured_at": "2026-10-26T20:15:02.497Z",
+  "base": "http://127.0.0.1:3000",
+  "serial": {
+    "ttfb_ms": 690.39,
+    "function_ms": 676.7,
+    "supabase_wall_ms": 582.68,
+    "supabase_calls": 12
+  },
+  "batched": {
+    "ttfb_ms": 330.9,
+    "function_ms": 312.89,
+    "supabase_wall_ms": 245.35,
+    "supabase_calls": 12
+  }
+}

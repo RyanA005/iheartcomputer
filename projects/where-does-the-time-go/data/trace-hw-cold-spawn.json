@@ -1,0 +1,10 @@
+{
+  "name": "cold-spawn-c-sqlite",
+  "iters": 12,
+  "p50_ms": 12.69,
+  "p95_ms": 15.833,
+  "min_ms": 10.77,
+  "max_ms": 17.034,
+  "note": "exec boardd-sqlite + first successful /board (from race/results; process bring-up tax)",
+  "source": "/home/ralpo/code/whoscooking/race/results/v3-c-sqlite-cold.json"
+}

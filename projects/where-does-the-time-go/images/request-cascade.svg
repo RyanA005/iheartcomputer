@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 976 342" width="100%" role="img">
+<title>Serial request cascade (no overlapping supabase calls)</title>
+<style>
+  .lbl { font: 500 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #171717; }
+  .meta { font: 400 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #5c5c5c; }
+</style>
+<defs>
+  <pattern id="hatch-wait" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+    <rect width="8" height="8" fill="#adb5bd"/>
+    <line x1="0" y1="0" x2="0" y2="8" stroke="#495057" stroke-width="3"/>
+  </pattern>
+  <pattern id="hatch-code" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(-45)">
+    <rect width="8" height="8" fill="#ffd8a8"/>
+    <line x1="0" y1="0" x2="0" y2="8" stroke="#e8590c" stroke-width="3"/>
+  </pattern>
+</defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<rect x="12.00" y="18.00" width="12.00" height="10" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>network wait</title></rect>
+<text class="meta" x="28" y="27">network wait</text>
+<rect x="132.00" y="18.00" width="12.00" height="10" fill="url(#hatch-code)" stroke="#e8590c" stroke-width="0.75"><title>code wait</title></rect>
+<text class="meta" x="148" y="27">code wait</text>
+<rect x="242.00" y="18.00" width="12.00" height="10" fill="#0b57d0"><title>work</title></rect>
+<text class="meta" x="258" y="27">work</text>
+<rect x="160" y="40" width="760" height="34" fill="#e9ecef" opacity="0.55"/>
+<text class="lbl" x="152" y="64" text-anchor="end">your browser</text>
+<rect x="160.00" y="40.00" width="6.00" height="34" fill="#0b57d0"><title>work 0.03 ms</title></rect>
+<rect x="166.00" y="40.00" width="6.00" height="34" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>to 0.22 ms</title></rect>
+<rect x="172.00" y="40.00" width="744.32" height="34" fill="url(#hatch-code)" stroke="#e8590c" stroke-width="0.75"><title>app 676.70 ms</title></rect>
+<rect x="916.32" y="40.00" width="15.06" height="34" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>back 13.69 ms</title></rect>
+<rect x="931.37" y="40.00" width="6.00" height="34" fill="#0b57d0"><title>work 0.57 ms</title></rect>
+<path d="M 172 74 V 85 H 916.3151557253677 V 74" fill="none" stroke="#5c5c5c" stroke-width="1.2"/>
+<path d="M 544.1575778626839 85 V 96" fill="none" stroke="#5c5c5c" stroke-width="1.2"/>
+<rect x="172" y="74" width="744.3151557253677" height="60" fill="#0b57d0" opacity="0.05"/>
+<line x1="172" y1="74" x2="172" y2="134" stroke="#171717" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="916.3151557253677" y1="74" x2="916.3151557253677" y2="134" stroke="#171717" stroke-width="1" stroke-dasharray="3 3"/>
+<text class="lbl" x="152" y="120" text-anchor="end">vercel function</text>
+<rect x="172.00" y="96.00" width="103.41" height="34" fill="#0b57d0"><title>js 94.02 ms</title></rect>
+<rect x="275.41" y="96.00" width="640.90" height="34" fill="url(#hatch-code)" stroke="#e8590c" stroke-width="0.75"><title>supabase 582.68 ms</title></rect>
+<path d="M 275.41437999305316 130 V 140 H 916.3151557253677 V 130" fill="none" stroke="#5c5c5c" stroke-width="1.2"/>
+<path d="M 595.8647678592105 140 V 150" fill="none" stroke="#5c5c5c" stroke-width="1.2"/>
+<rect x="275.41437999305316" y="130" width="640.9007757323145" height="204" fill="#0b57d0" opacity="0.05"/>
+<line x1="275.41437999305316" y1="130" x2="275.41437999305316" y2="334" stroke="#171717" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="916.3151557253677" y1="130" x2="916.3151557253677" y2="334" stroke="#171717" stroke-width="1" stroke-dasharray="3 3"/>
+<text class="lbl" x="152" y="156" text-anchor="end">supabase call</text>
+<rect x="275.41437999305316" y="150" width="640.9007757323145" height="16" fill="#e9ecef"/>
+<rect x="275.41" y="150.00" width="18.60" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>to 15.89 ms</title></rect>
+<rect x="294.02" y="150.00" width="6.00" height="16" fill="#0b57d0"><title>work 3.14 ms</title></rect>
+<rect x="300.02" y="150.00" width="18.60" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>back 15.89 ms</title></rect>
+<text class="lbl" x="152" y="174" text-anchor="end">supabase call</text>
+<rect x="275.41437999305316" y="168" width="640.9007757323145" height="16" fill="#e9ecef"/>
+<rect x="320.77" y="168.00" width="19.66" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>to 15.89 ms</title></rect>
+<rect x="340.43" y="168.00" width="23.38" height="16" fill="#0b57d0"><title>work 18.90 ms</title></rect>
+<rect x="363.81" y="168.00" width="19.66" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>back 15.89 ms</title></rect>
+<text class="lbl" x="152" y="192" text-anchor="end">supabase call</text>
+<rect x="275.41437999305316" y="186" width="640.9007757323145" height="16" fill="#e9ecef"/>
+<rect x="386.99" y="186.00" width="19.66" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>to 15.89 ms</title></rect>
+<rect x="406.65" y="186.00" width="20.20" height="16" fill="#0b57d0"><title>work 16.33 ms</title></rect>
+<rect x="426.85" y="186.00" width="19.66" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>back 15.89 ms</title></rect>
+<text class="lbl" x="152" y="210" text-anchor="end">supabase call</text>
+<rect x="275.41437999305316" y="204" width="640.9007757323145" height="16" fill="#e9ecef"/>
+<rect x="449.89" y="204.00" width="19.66" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>to 15.89 ms</title></rect>
+<rect x="469.54" y="204.00" width="19.66" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>back 15.89 ms</title></rect>
+<text class="lbl" x="152" y="228" text-anchor="end">supabase call</text>
+<rect x="275.41437999305316" y="222" width="640.9007757323145" height="16" fill="#e9ecef"/>
+<rect x="492.70" y="222.00" width="17.01" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>to 15.89 ms</title></rect>
+<rect x="509.71" y="222.00" width="6.00" height="16" fill="#0b57d0"><title>work 0.56 ms</title></rect>
+<rect x="515.71" y="222.00" width="17.01" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>back 15.89 ms</title></rect>
+<text class="lbl" x="152" y="246" text-anchor="end">supabase call</text>
+<rect x="275.41437999305316" y="240" width="640.9007757323145" height="16" fill="#e9ecef"/>
+<rect x="535.78" y="240.00" width="19.66" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>to 15.89 ms</title></rect>
+<rect x="555.44" y="240.00" width="21.79" height="16" fill="#0b57d0"><title>work 17.62 ms</title></rect>
+<rect x="577.24" y="240.00" width="19.66" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>back 15.89 ms</title></rect>
+<text class="lbl" x="152" y="264" text-anchor="end">supabase call</text>
+<rect x="275.41437999305316" y="258" width="640.9007757323145" height="16" fill="#e9ecef"/>
+<rect x="600.88" y="258.00" width="19.66" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>to 15.89 ms</title></rect>
+<rect x="620.54" y="258.00" width="103.57" height="16" fill="#0b57d0"><title>work 83.74 ms</title></rect>
+<rect x="724.11" y="258.00" width="19.66" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>back 15.89 ms</title></rect>
+<text class="lbl" x="152" y="282" text-anchor="end">supabase call</text>
+<rect x="275.41437999305316" y="276" width="640.9007757323145" height="16" fill="#e9ecef"/>
+<rect x="751.70" y="276.00" width="19.03" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>to 15.89 ms</title></rect>
+<rect x="770.74" y="276.00" width="6.00" height="16" fill="#0b57d0"><title>work 3.84 ms</title></rect>
+<rect x="776.74" y="276.00" width="19.03" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>back 15.89 ms</title></rect>
+<text class="lbl" x="152" y="300" text-anchor="end">supabase call</text>
+<rect x="275.41437999305316" y="294" width="640.9007757323145" height="16" fill="#e9ecef"/>
+<rect x="799.66" y="294.00" width="19.66" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>to 15.89 ms</title></rect>
+<rect x="819.31" y="294.00" width="6.09" height="16" fill="#0b57d0"><title>work 4.92 ms</title></rect>
+<rect x="825.40" y="294.00" width="19.66" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>back 15.89 ms</title></rect>
+<text class="lbl" x="152" y="318" text-anchor="end">supabase call</text>
+<rect x="275.41437999305316" y="312" width="640.9007757323145" height="16" fill="#e9ecef"/>
+<rect x="849.08" y="312.00" width="19.66" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>to 15.89 ms</title></rect>
+<rect x="868.74" y="312.00" width="27.92" height="16" fill="#0b57d0"><title>work 22.57 ms</title></rect>
+<rect x="896.66" y="312.00" width="19.66" height="16" fill="url(#hatch-wait)" stroke="#495057" stroke-width="0.75"><title>back 15.89 ms</title></rect>
+</svg>

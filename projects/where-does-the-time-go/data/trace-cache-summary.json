@@ -1,0 +1,14 @@
+{
+  "measured_at": "2026-10-26T20:25:56.085Z",
+  "base": "http://127.0.0.1:3000",
+  "miss": {
+    "ttfb_ms": 496.55,
+    "function_ms": 432.22,
+    "supabase_calls": 12
+  },
+  "hit": {
+    "ttfb_ms": 16.4,
+    "function_ms": 0.28,
+    "supabase_calls": 0
+  }
+}

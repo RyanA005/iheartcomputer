@@ -1,0 +1,94 @@
+{
+  "base": "localhost+vercel-ping-p50",
+  "label": "own-sqlite+vercel-ping",
+  "measured_at": "2026-10-27T02:08:59.687Z",
+  "methodology": "sqlite function p50-representative; client turnarounds = vercel ping p50 from same suite",
+  "ping_paint": {
+    "connect_p50": 68.75,
+    "edge_p50": 42.22,
+    "dns_p50": 16.81,
+    "tls_p50": 41.48,
+    "tcp_p50": 7.78
+  },
+  "full": {
+    "url": "http://127.0.0.1/board",
+    "client": {
+      "http_code": 200,
+      "time_namelookup": 16.81,
+      "time_connect": 24.59,
+      "time_appconnect": 68.75,
+      "time_pretransfer": 69.05,
+      "time_starttransfer": 111.58957500000135,
+      "time_total": 112.98957500000135,
+      "size_download": 1405
+    },
+    "server": {
+      "ok": true,
+      "mode": "board",
+      "shape": "own-sqlite+vercel-ping",
+      "measured_at": "2026-10-27T02:08:59.172Z",
+      "region_hint": "localhost+vercel-ping",
+      "payload": {
+        "date": "2026-09-29",
+        "limit": 50,
+        "entries": 9
+      },
+      "server": {
+        "function_ms": 0.32,
+        "phases": [
+          {
+            "label": "board",
+            "ms": 0.32,
+            "at": 0.32
+          }
+        ],
+        "supabase": {
+          "calls": 1,
+          "wait_ms_sum": 0.32,
+          "body_ms_sum": 0.02,
+          "total_ms_sum": 0.34,
+          "wall_ms": 0.34,
+          "min_wait_ms": 0.02,
+          "estimated_work_above_rtt_sum_ms": 0.3,
+          "note": "embedded sqlite"
+        },
+        "app_cpu_ms": 0,
+        "spans": [
+          {
+            "name": "sqlite:daily_stats",
+            "method": "QUERY",
+            "status": 200,
+            "started_at_ms": 0,
+            "wait_ms": 0.3171010000005481,
+            "body_ms": 0.02,
+            "total_ms": 0.3371010000005481,
+            "bytes": 1001,
+            "url_path": "sqlite://daily_stats?date=2026-09-29&limit=50",
+            "estimated_network_floor_ms": 0.02,
+            "estimated_supabase_work_ms": 0.29710100000054807
+          }
+        ]
+      }
+    },
+    "derived": {
+      "client_ms": {
+        "dns": 16.81,
+        "tcp": 7.78,
+        "tls": 44.16,
+        "wait_after_tls": 42.839575000001346,
+        "ttfb": 111.58957500000135,
+        "download_body": 1.4000000000000057,
+        "total": 112.98957500000135
+      },
+      "split_ms": {
+        "1_computer_to_vercel_tcp_tls": 68.75,
+        "2_edge_queue_and_return_path_estimate": 42.22,
+        "3_function_runtime": 0.3195750000013504,
+        "4_supabase_http_wall": 0.34,
+        "4b_supabase_http_sum_parallel": 0.34,
+        "5_app_cpu_between_awaits": 0,
+        "note": "same-suite vercel ping p50 painted on both ends"
+      }
+    }
+  }
+}

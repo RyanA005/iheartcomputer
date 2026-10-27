@@ -27,14 +27,14 @@ new_render_header('IHEARTCOMPUTER');
       <a class="panel band" href="https://discord.gg/JpRw84Ybwg" style="padding: 1.1rem 1.1rem 1.1rem 1.25rem; margin-bottom: 2rem;">
         <div>
           <span class="upper red" style="display: block; font-size: 0.75rem; margin-bottom: 0.35rem;">next meeting</span>
-          <strong class="upper" style="display: block; font-size: 1.35rem; line-height: 1.15;">Personal Websites</strong>
+          <strong class="upper" style="display: block; font-size: 1.35rem; line-height: 1.15;">Optimizing whoscooking.live</strong>
         </div>
         <ul class="upper" style="list-style: none; margin: 0; padding: 0; font-size: 0.85rem;">
-          <li style="margin: 0.15rem 0;">date/time: 10/21 - 2:30pm</li>
+          <li style="margin: 0.15rem 0;">date/time: 10/28 - 2:30pm</li>
           <li style="margin: 0.15rem 0;">room: TBD</li>
         </ul>
         <p style="margin: 0; font-size: 0.9rem; color: #333;">
-          Talking dos, donts, and how to, all things personal websites. We will also reserve some time for anyone to bring up their personal website and tell us about it! Reach out ASAP on discord if you have something and you want to show it off.
+          looking at where software spends most of its time + how to make it faster with an interesting live case study
         </p>
         <p class="upper">
           DO NOT MISS IT...

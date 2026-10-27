@@ -1,0 +1,14 @@
+{
+  "base": "https://whoscooking.live",
+  "measured_at": "2026-10-27T02:08:08.041Z",
+  "n": 15,
+  "summary": {
+    "n": 15,
+    "ttfb_p50": 112.16,
+    "connect_p50": 68.75,
+    "edge_and_return_p50": 42.22,
+    "tls_p50": 41.48,
+    "tcp_p50": 7.78,
+    "dns_p50": 16.81
+  }
+}

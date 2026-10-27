@@ -1,0 +1,14 @@
+{
+  "measured_at": "2026-10-27T02:08:08.041Z",
+  "base": "https://whoscooking.live",
+  "n": 15,
+  "miss": {
+    "ttfb_ms": 468.75,
+    "function_ms": 307.71,
+    "note": "shared with batched"
+  },
+  "hit": {
+    "ttfb_ms": 130.88,
+    "function_ms": 3.89
+  }
+}

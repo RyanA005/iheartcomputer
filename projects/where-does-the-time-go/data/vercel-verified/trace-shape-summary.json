@@ -1,0 +1,15 @@
+{
+  "measured_at": "2026-10-27T02:08:08.041Z",
+  "base": "https://whoscooking.live",
+  "n": 15,
+  "serial": {
+    "ttfb_ms": 670.02,
+    "function_ms": 546.18,
+    "supabase_wall_ms": 466.13
+  },
+  "batched": {
+    "ttfb_ms": 468.75,
+    "function_ms": 307.71,
+    "supabase_wall_ms": 222.67
+  }
+}

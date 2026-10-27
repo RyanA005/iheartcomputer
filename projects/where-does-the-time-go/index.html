@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="where does the time go? why software is slow, then a who's cooking teardown - IHEARTCOMPUTER">
+  <title>where does the time go? - IHEARTCOMPUTER</title>
+  <link rel="icon" type="image/x-icon" href="/assets/logo.png">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="page">
+
+  <header class="bar">
+    <a href="/" style="text-decoration: none;"><strong>I<span class="heart">♥</span>COMPUTER</strong></a>
+    <nav>
+      <a href="/projects/">projects</a>
+      <a href="/about/">about</a>
+      <a href="https://discord.gg/JpRw84Ybwg">discord</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <h1>where does the time go?</h1>
+    <p class="sub">why software is slow; diagnosing and fixing a real site.</p>
+    <figure class="hero-fig">
+      <img src="images/language-benchmarks-interpreted-all.png" alt="benchmark chart comparing interpreted language runtimes" loading="eager">
+    </figure>
+    <p class="by">by <a href="https://ryanalport.com">Ryan Alport</a></p>
+  </div>
+
+  <section id="why">
+    <h2>why is software slow?</h2>
+    <p>there are some constants when it comes to the speed of software, mostly determined by hardware and simple physics, speed of light, clock speed, i/o speed, etc.</p>
+    <p>still, we can make better decisions in code and infrastructure that mean we simply pay those constant costs fewer times.</p>
+  </section>
+
+  <section id="why-instructions">
+    <h2>instructions and memory</h2>
+    <p>everyone should understand the basic unit of computer execution, the instruction.</p>
+    <p>an instruction does a simple operation like load or store a value from memory, do arithmetic on loaded values, make system calls, etc. this is as close as we programmers go to the transistor.</p>
+    <figure class="photo">
+      <img src="images/cpu-die.jpg" alt="close up of a silicon CPU die" loading="lazy">
+    </figure>
+    <p>instruction speed can vary, we measure in clock cycles, depending on memory access, the instruction itself, scheduling, a single instruction can take a few clock cycles to a few hundred. still nanoseconds.</p>
+    <p>any program you write must either be compiled into ready to use instructions or it uses an interpreter to translate as it runs.</p>
+    <p>in different programming languages, code will turn into different instructions with varying complexity.</p>
+    <figure>
+      <img src="images/python-mutable-type.jpg" alt="diagram of a Python list of ints as object ids pointing at separate typed heap objects" loading="lazy">
+      <figcaption>
+        <a href="https://www.teach.cs.toronto.edu/~csc148h/notes/_images/Mutable-type-crop.jpg">U of T CSC148 notes</a>
+      </figcaption>
+    </figure>
+    <p>all python values are heap objects with ids and types, reached through multiple levels of pointers and checks.</p>
+    <p>compare to c where values are binary numbers in memory. python hides this complexity for us at a cost.</p>
+  </section>
+
+  <section id="why-network">
+    <h2>the network</h2>
+    <p>once you leave your own process, you enter the network. packets go through your kernel, your nic, switches, routers, fiber optic cables, another computer's stack, then back again.</p>
+    <p>light in fiber optic cables goes 200 km per millisecond. round trips across regions are measured in milliseconds.</p>
+    <figure class="photo">
+      <img src="images/opte-internet.jpg" alt="Opte Project visualization of the internet as a colored network graph" loading="lazy">
+      <figcaption>
+        <a href="https://en.wikipedia.org/wiki/Opte_Project">Opte Project</a>
+        (Matt Britt, CC BY 2.5)
+      </figcaption>
+    </figure>
+    <p>an L1 cache hit is sub-nanosecond. a packet from china to europe is 150 milliseconds.</p>
+  </section>
+
+  <section id="why-io">
+    <h2>input/output</h2>
+    <p>io is when your program asks the kernel to do something. the process may or may not need to wait for it.</p>
+    <figure>
+      <img src="images/blocking-io.png" alt="diagram of blocking recvfrom where the process waits in the kernel" loading="lazy">
+      <figcaption>
+        blocking recvfrom(): the process sleeps until datagram is ready.
+        (UNIX Network Programming)
+      </figcaption>
+    </figure>
+    <p>in the browser you can see this idea present, we must wait on the previous thing whether we need it or not.</p>
+    <figure>
+      <img src="images/wpt-waterfall.png" alt="WebPageTest waterfall view of a Google page load" loading="lazy">
+      <figcaption>
+        webpagetest waterfall: dns, connect, tls, one at a time.
+        <a href="https://stackoverflow.com/questions/53596212/understanding-colors-in-webpagetest-waterfall-view">stack overflow / webpagetest</a>
+      </figcaption>
+    </figure>
+    <p>good io shape looks like less round trips. batch reads, overlap waits, work with what you've got first.</p>
+  </section>
+
+  <section id="why-algorithms">
+    <h2>algorithms</h2>
+    <p>this is the part we have the most control of. the algorithms we write determine how often we need to pay fixed costs as input grows.</p>
+    <p>algorithms should try to avoid doing work twice, swap expensive operations for cheap approximations, and generally try to do the minimum amount of work.</p>
+    <figure>
+      <img src="images/big-o-cheatsheet.png" alt="big-O cheatsheet of common data structure and algorithm complexities" loading="lazy">
+      <figcaption>
+        <a href="https://www.bigocheatsheet.com">bigocheatsheet.com</a>
+      </figcaption>
+    </figure>
+  </section>
+
+  <section id="why-summary">
+    <h2>why is software slow?</h2>
+    <ol>
+      <li>software does too much unnecessary work.</li>
+      <li>software does expensive work it doesn't have to.</li>
+      <li>software spends too much time waiting.</li>
+    </ol>
+  </section>
+
+  <section id="patient">
+    <h2>whoscooking.live case study</h2>
+    <figure>
+      <img src="images/whoscooking.png" loading="eager">
+    </figure>
+    <p><a href="https://whoscooking.live">whoscooking.live</a> is a simple service that counts lines of code per user per day.</p>
+  </section>
+
+  <section id="bench-v0">
+    <h2>benchmarks</h2>
+    <p>despite the seeming simplicity, whoscooking is profoundly slow...</p>
+    <p>warm TTFB p50 from production iad1:</p>
+    <table>
+      <tr><th>page</th><th></th><th>TTFB</th></tr>
+      <tr><td><code>/</code></td><td>leaderboard & badges. fed by multiple rows</td><td>671 ms</td></tr>
+      <tr><td><code>/records</code></td><td>all time records. contents of one table</td><td>197 ms</td></tr>
+      <tr><td><code>/docs</code></td><td>docs. static page</td><td>87 ms</td></tr>
+    </table>
+  </section>
+
+  <section id="trace">
+    <h2>follow a request</h2>
+    <p>breakdown of where we spend our time in a typical homepage hit:</p>
+    <figure class="timeline">
+      <object type="image/svg+xml" data="images/request-cascade-vercel-verified.svg" aria-label="Vercel-verified serial request cascade">
+        <img src="images/request-cascade-vercel-verified.svg" alt="Serial cascade from production Vercel measure">
+      </object>
+    </figure>
+    <p>the browser does almost no work, just waiting. similarly the vercel app itself mostly waits on supabase, supabase spends almost half its time waiting on the network!</p>
+    <p>we also notice that supabase calls wait for the previous one to complete, but is that necessary??</p>
+  </section>
+
+  <section id="fix-fanout">
+    <h2>fix 1: stop calling supabase in a loop</h2>
+    <p>the app is doing one blocking history fetch per user on the board. this scales terribly and it is silly...</p>
+    <p>we can <code>promise.all</code> the board pieces that do not depend on each other.</p>
+    <p>we should also try to batch queries instead of sending one at a time per user.</p>
+    <figure class="timeline">
+      <object type="image/svg+xml" data="images/fix-fanout-cascade-vercel-verified.svg" aria-label="Vercel-verified fanout cascade">
+        <img src="images/fix-fanout-cascade-vercel-verified.svg" alt="Serial versus batched measured on production Vercel">
+      </object>
+    </figure>
+  </section>
+
+  <section id="fix-cache">
+    <h2>fix 2: stop recomputing</h2>
+    <p>the leaderboard actually doesn't change very often. it's also not important that it is perfectly up to date all the time.</p>
+    <p>yet, the app does all the work over again for everyone that visits!</p>
+    <p>why don't we save the results in a cache for a small duration so that the majority of requests can just reuse the already built leaderboard?</p>
+    <figure class="timeline">
+      <object type="image/svg+xml" data="images/fix-cache-cascade-vercel-verified.svg" aria-label="Vercel-verified cache cascade">
+        <img src="images/fix-cache-cascade-vercel-verified.svg" alt="Cache miss versus hit measured on production Vercel">
+      </object>
+    </figure>
+    <p>this is a super super easy win but there are some downsides...</p>
+    <p>some users will still miss the cache and all the speed gains. users will also need to wait 30s to see the leaderboard update.</p>
+    <p>for our app, these downsides are super worth it if the average user gets a big speedup on the work that remains after the network hop.</p>
+  </section>
+
+  <section id="fix-feel">
+    <h2>fix 3: make the wait feel shorter</h2>
+    <p>a lot of what makes a site feel fast is actually about perception.</p>
+    <p>there are a number of ways to make load times feel shorter and lots of interesting research on the topic.</p>
+
+    <div class="feel-demo" data-feel-demo>
+      <div class="feel-toolbar">
+        <div class="feel-modes" role="group" aria-label="fix 3 perceived latency modes">
+          <button type="button" data-mode="blank">blank</button>
+          <button type="button" data-mode="blank-spinner">blank + spinner</button>
+          <button type="button" data-mode="skeleton">skeleton</button>
+          <button type="button" data-mode="skeleton-spinner">skeleton + spinner</button>
+          <button type="button" data-mode="stream">stream</button>
+          <button type="button" data-mode="progressive">progressive</button>
+        </div>
+      </div>
+      <div class="feel-stage" data-feel-stage></div>
+    </div>
+    <p>research is very mixed so this is one you should play with and see what feels right.</p>
+  </section>
+
+  <section id="fix-cloud">
+    <h2>fix 4: remove the cloud</h2>
+    <p>cloud tools, serverless functions, managed databases are awesome but they have major downsides.</p>
+    <figure class="timeline">
+      <img src="images/aws.jpg" alt="list of managed AWS services">
+      <figcaption>
+        list of managed aws services
+      </figcaption>
+    </figure>
+    <p>in general, cloud services trade convenience for control.</p>
+    <p>vercel, supabase, one click deployments, automatically managed databases, etc. are super cool and useful but they introduce latency and overhead.</p>
+    <figure class="timeline">
+      <img src="images/vibe.webp" alt="vibe coder stack meme">
+      <figcaption>
+        vibe coder stack
+      </figcaption>
+    </figure>
+    <p>it is far harder to host our own app, manage the database, handle security, build ci/cd, etc. but if the only goal is fast, it can be very worth doing...</p>
+  </section>
+
+  <section id="fix-hardware">
+    <h2>fix 5: move to our own hardware</h2>
+    <p>moving to even very low end hardware that we own can end up being a benefit to our apps.</p>
+    <p>owning the process, bundling the database, and configuring how we want can avoid lots of slowness that the cloud typically imposes.</p>
+    <figure class="timeline">
+      <object type="image/svg+xml" data="images/fix-hw-compare-internet-vercel-verified.svg" aria-label="Vercel homepage versus own hardware plus sqlite">
+        <img src="images/fix-hw-compare-internet-vercel-verified.svg" alt="Same batched homepage as fix 1 and 2 versus localhost sqlite with vercel ping paint">
+      </object>
+    </figure>
+    <p>sqlite finishes in ~0.3ms and the always running js process ~0.4ms total. effectively the entire cost is now in unskippable network overhead.</p>
+    <p>no way we can get faster than that right?</p>
+  </section>
+
+  <section id="fix-cdn">
+    <h2>fix 6: the cdn</h2>
+    <p>we could optimize the microseconds or do something dumb like rewrite in c but the slowest part about our app right now is just getting to it.</p>
+    <p>you may think that there is nothing we can do about that but that's not totally true...</p>
+    <figure class="timeline">
+      <img src="images/fastly-cdn.png" alt="World map of CDN points of presence dotted across continents" loading="lazy">
+    </figure>
+    <p>content delivery networks are basically caches all around the world that allow us to put pages physically closer to end users.</p>
+    <p>the cdn introduces more issues with staleness, however we could expect anywhere from a 2x to 20x network speedup depending on how close we can get an edge cache to an end user.</p>
+  </section>
+
+  <section id="joke">
+    <h2>finally the c rewrite</h2>
+    <figure class="timeline">
+      <img src="images/langs.png" alt="chart comparing programming language performance" loading="lazy">
+    </figure>
+    <p>kidding! our app is plenty fast already, a c rewrite could gain us a few milliseconds but the added complexity and fewer tools make it an awful idea and i refuse this week :)</p>
+  </section>
+
+  <section id="closing">
+    <h2>conclusion</h2>
+    <p>software is slow when it does unnecessary work, expensive work it does not need, or waits unnecessarily.</p>
+    <p>measure software and go for easy wins first, the language has an effect but there are often a lot of things to do before a rewrite.</p>
+    <p>understanding of web technologies, tools, and simple physics will take you far and you won't have to write any c.</p>
+  </section>
+
+  <section id="end">
+    <h2>thank you!</h2>
+    <ul class="links">
+      <li><a href="https://whoscooking.live">whoscooking.live</a></li>
+    </ul>
+  </section>
+
+  <section id="resources">
+    <h2>resources</h2>
+    <p>videos:</p>
+    <ul class="links">
+      <li><a href="https://www.youtube.com/watch?v=W4EwfEU8CGA">Handling a Million Requests Per Second</a></li>
+      <li><a href="https://www.youtube.com/watch?v=QGWKCaglSBI">I Asked Expert Programmers to Max Out a $12 Server</a></li>
+      <li><a href="https://www.youtube.com/watch?v=nZfNehCzGdw">Blazing Performance with Flame Graphs</a> (Brendan Gregg, LISA13)</li>
+      <li><a href="https://www.youtube.com/watch?v=FqR5vESuKe0">Latency Numbers Programmer Should Know</a></li>
+    </ul>
+    <p>reading / toys:</p>
+    <ul class="links">
+      <li><a href="https://hpbn.co/primer-on-latency-and-bandwidth/">High Performance Browser Networking: latency &amp; bandwidth</a></li>
+      <li><a href="https://colin-scott.github.io/personal_website/research/interactive_latency.html">Interactive latency numbers</a> (Jeff Dean table, year slider)</li>
+      <li><a href="https://www.brendangregg.com/HeatMaps/latency.html">Brendan Gregg: latency heat maps</a></li>
+      <li><a href="https://www.cs.cornell.edu/projects/ladis2009/talks/dean-keynote-ladis2009.pdf">Jeff Dean LADIS 2009</a> (original "numbers everyone should know")</li>
+    </ul>
+  </section>
+
+</div>
+<script src="feel-demo.js" defer></script>
+</body>
+</html>

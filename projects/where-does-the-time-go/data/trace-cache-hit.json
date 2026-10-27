@@ -1,0 +1,87 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "label": "cache hit",
+  "measured_at": "2026-10-26T20:25:54.909Z",
+  "ping": null,
+  "rtt": null,
+  "full": {
+    "url": "http://127.0.0.1:3000/api/trace?mode=full&cache=1",
+    "client": {
+      "http_code": 200,
+      "time_namelookup": 0.024,
+      "time_connect": 0.15,
+      "time_appconnect": 0,
+      "time_pretransfer": 0.196,
+      "time_starttransfer": 16.396,
+      "time_total": 18.046,
+      "size_download": 1029
+    },
+    "server": {
+      "ok": true,
+      "mode": "full",
+      "shape": "cached",
+      "cache": true,
+      "measured_at": "2026-10-26T20:25:54.901Z",
+      "region_hint": "local",
+      "payload": {
+        "entries": 7,
+        "badgeUsers": 7,
+        "rankDeltas": 7,
+        "leaderboardDate": "2026-10-26"
+      },
+      "server": {
+        "function_ms": 0.28,
+        "phases": [
+          {
+            "label": "cached_board",
+            "ms": 0.24,
+            "at": 0.27
+          },
+          {
+            "label": "serialize_prep",
+            "ms": 0,
+            "at": 0.28
+          }
+        ],
+        "supabase": {
+          "calls": 0,
+          "wait_ms_sum": 0,
+          "body_ms_sum": 0,
+          "total_ms_sum": 0,
+          "wall_ms": 0,
+          "min_wait_ms": null,
+          "estimated_work_above_rtt_sum_ms": 0,
+          "note": "sum can exceed wall_ms when calls run in parallel (Promise.all). wait ≈ network + PostgREST/Postgres + headers. body ≈ reading JSON. work_above_rtt = wait - min_wait."
+        },
+        "app_cpu_ms": 0.28,
+        "spans": [],
+        "how_to_read": {
+          "function_ms": "wall clock inside the serverless handler",
+          "supabase_wall_ms": "merged busy time of outbound Supabase HTTP",
+          "app_cpu_ms": "function_ms - supabase_wall_ms (JS between/around awaits)",
+          "client_ttfb_minus_function": "from curl: (time_starttransfer - time_appconnect) - function_ms ≈ edge admit + return path to first byte"
+        }
+      }
+    },
+    "derived": {
+      "client_ms": {
+        "dns": 0.024,
+        "tcp": 0.126,
+        "tls": 0,
+        "wait_after_tls": 16.4,
+        "ttfb": 16.4,
+        "download_body": 1.65,
+        "total": 18.05
+      },
+      "split_ms": {
+        "1_computer_to_vercel_tcp_tls": 0.15,
+        "2_edge_queue_and_return_path_estimate": 16.12,
+        "3_function_runtime": 0.28,
+        "4_supabase_http_wall": 0,
+        "4b_supabase_http_sum_parallel": 0,
+        "5_app_cpu_between_awaits": 0.28,
+        "note": "2 ≈ (TTFB after TLS) - function_ms."
+      }
+    }
+  }
+}

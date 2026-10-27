@@ -1,0 +1,222 @@
+{
+  "base": "https://whoscooking.live",
+  "label": "serial",
+  "measured_at": "2026-10-27T02:08:59.682Z",
+  "methodology": "representative sample nearest p50 ttfb from averaged suite",
+  "full": {
+    "url": "https://whoscooking.live/api/trace?mode=full&shape=serial",
+    "client": {
+      "http_code": 200,
+      "time_namelookup": 14.043999999999999,
+      "time_connect": 23.994,
+      "time_appconnect": 61.617,
+      "time_pretransfer": 61.806,
+      "time_starttransfer": 670.024,
+      "time_total": 672.004,
+      "size_download": 5035
+    },
+    "server": {
+      "ok": true,
+      "mode": "full",
+      "shape": "serial",
+      "cache": false,
+      "measured_at": "2026-10-27T02:08:18.347Z",
+      "region_hint": "iad1",
+      "payload": {
+        "entries": 7,
+        "badgeUsers": 7,
+        "rankDeltas": 7,
+        "leaderboardDate": "2026-10-26"
+      },
+      "server": {
+        "function_ms": 557.04,
+        "phases": [
+          {
+            "label": "board",
+            "ms": 224.84,
+            "at": 224.86
+          },
+          {
+            "label": "badges",
+            "ms": 332.16,
+            "at": 557.02
+          },
+          {
+            "label": "serialize_prep",
+            "ms": 0,
+            "at": 557.03
+          }
+        ],
+        "supabase": {
+          "calls": 10,
+          "wait_ms_sum": 467.6,
+          "body_ms_sum": 5.97,
+          "total_ms_sum": 473.56,
+          "wall_ms": 473.56,
+          "min_wait_ms": 35.37,
+          "estimated_work_above_rtt_sum_ms": 113.9,
+          "note": "sum can exceed wall_ms when calls run in parallel (Promise.all). wait ≈ network + PostgREST/Postgres + headers. body ≈ reading JSON. work_above_rtt = wait - min_wait."
+        },
+        "app_cpu_ms": 83.48,
+        "spans": [
+          {
+            "name": "table:daily_stats",
+            "method": "GET",
+            "status": 200,
+            "started_at_ms": 0.65,
+            "wait_ms": 50.44,
+            "body_ms": 0.56,
+            "total_ms": 51,
+            "bytes": 812,
+            "url_path": "/rest/v1/daily_stats?select=github_id%2Cusername%2Cadditions%2Cdeletions%2Cnet_lines%2Ccommits&date=eq.2026-10-26&order=net_lines.desc%2Cadditions.desc&limit=50",
+            "estimated_network_floor_ms": 35.37,
+            "estimated_supabase_work_ms": 15.07
+          },
+          {
+            "name": "table:users",
+            "method": "GET",
+            "status": 200,
+            "started_at_ms": 52.19,
+            "wait_ms": 76.03,
+            "body_ms": 0.52,
+            "total_ms": 76.55,
+            "bytes": 1344,
+            "url_path": "/rest/v1/users?select=github_id%2Cavatar_url%2Cgithub_url%2Cblog_url%2Ctwitter_username&github_id=in.%2855052791%2C41021402%2C37720624%2C55803884%2C209825114%2C70728940%2C41898282%29",
+            "estimated_network_floor_ms": 35.37,
+            "estimated_supabase_work_ms": 40.66
+          },
+          {
+            "name": "rpc:get_daily_top_repos",
+            "method": "POST",
+            "status": 200,
+            "started_at_ms": 128.96,
+            "wait_ms": 52.6,
+            "body_ms": 0.54,
+            "total_ms": 53.14,
+            "bytes": 1015,
+            "url_path": "/rest/v1/rpc/get_daily_top_repos",
+            "estimated_network_floor_ms": 35.37,
+            "estimated_supabase_work_ms": 17.23
+          },
+          {
+            "name": "table:daily_stats",
+            "method": "GET",
+            "status": 200,
+            "started_at_ms": 182.62,
+            "wait_ms": 41.57,
+            "body_ms": 0.51,
+            "total_ms": 42.07,
+            "bytes": 167,
+            "url_path": "/rest/v1/daily_stats?select=github_id&date=eq.2026-10-25&order=net_lines.desc%2Cadditions.desc%2Cgithub_id.asc&offset=0&limit=1000",
+            "estimated_network_floor_ms": 35.37,
+            "estimated_supabase_work_ms": 6.2
+          },
+          {
+            "name": "table:daily_stats",
+            "method": "GET",
+            "status": 200,
+            "started_at_ms": 225.63,
+            "wait_ms": 37.12,
+            "body_ms": 0.99,
+            "total_ms": 38.11,
+            "bytes": 66867,
+            "url_path": "/rest/v1/daily_stats?select=github_id%2Cusername%2Cdate%2Cadditions%2Cdeletions%2Cnet_lines%2Ccommits&github_id=in.%2855052791%2C41021402%2C37720624%2C55803884%2C209825114%2C70728940%2C41898282%29&ord",
+            "estimated_network_floor_ms": 35.37,
+            "estimated_supabase_work_ms": 1.75
+          },
+          {
+            "name": "table:daily_stats",
+            "method": "GET",
+            "status": 200,
+            "started_at_ms": 265.08,
+            "wait_ms": 43.53,
+            "body_ms": 0.58,
+            "total_ms": 44.11,
+            "bytes": 25829,
+            "url_path": "/rest/v1/daily_stats?select=github_id%2Cusername%2Cdate%2Cadditions%2Cdeletions%2Cnet_lines%2Ccommits&date=in.%282026-10-26%2C2026-10-25%2C2026-10-24%2C2026-10-23%2C2026-10-22%2C2026-10-21%2C2026-10-2",
+            "estimated_network_floor_ms": 35.37,
+            "estimated_supabase_work_ms": 8.16
+          },
+          {
+            "name": "table:daily_stats",
+            "method": "GET",
+            "status": 200,
+            "started_at_ms": 309.75,
+            "wait_ms": 52.46,
+            "body_ms": 0.6,
+            "total_ms": 53.06,
+            "bytes": 24754,
+            "url_path": "/rest/v1/daily_stats?select=github_id%2Cusername%2Cdate%2Cadditions%2Cdeletions%2Cnet_lines%2Ccommits&date=in.%282026-06-19%2C2026-06-25%2C2026-06-27%2C2026-07-11%2C2026-08-12%2C2026-08-16%2C2026-08-1",
+            "estimated_network_floor_ms": 35.37,
+            "estimated_supabase_work_ms": 17.09
+          },
+          {
+            "name": "table:daily_stats",
+            "method": "GET",
+            "status": 200,
+            "started_at_ms": 363.39,
+            "wait_ms": 35.37,
+            "body_ms": 0.58,
+            "total_ms": 35.95,
+            "bytes": 22924,
+            "url_path": "/rest/v1/daily_stats?select=github_id%2Cusername%2Cdate%2Cadditions%2Cdeletions%2Cnet_lines%2Ccommits&date=in.%282026-09-25%2C2026-09-26%2C2026-09-27%2C2026-09-28%2C2026-09-29%2C2026-09-30%2C2026-10-0",
+            "estimated_network_floor_ms": 35.37,
+            "estimated_supabase_work_ms": 0
+          },
+          {
+            "name": "table:daily_stats",
+            "method": "GET",
+            "status": 200,
+            "started_at_ms": 399.88,
+            "wait_ms": 39.89,
+            "body_ms": 0.58,
+            "total_ms": 40.47,
+            "bytes": 15031,
+            "url_path": "/rest/v1/daily_stats?select=github_id%2Cusername%2Cdate%2Cadditions%2Cdeletions%2Cnet_lines%2Ccommits&date=in.%282026-07-10%2C2026-07-13%2C2026-07-14%2C2026-07-15%2C2026-07-16%2C2026-07-17%2C2026-07-1",
+            "estimated_network_floor_ms": 35.37,
+            "estimated_supabase_work_ms": 4.52
+          },
+          {
+            "name": "table:daily_stats",
+            "method": "GET",
+            "status": 200,
+            "started_at_ms": 440.93,
+            "wait_ms": 38.59,
+            "body_ms": 0.51,
+            "total_ms": 39.1,
+            "bytes": 9382,
+            "url_path": "/rest/v1/daily_stats?select=github_id%2Cusername%2Cdate%2Cadditions%2Cdeletions%2Cnet_lines%2Ccommits&date=in.%282026-05-18%2C2026-06-28%2C2026-07-07%2C2026-07-26%2C2026-07-30%2C2026-04-06%2C2026-04-1",
+            "estimated_network_floor_ms": 35.37,
+            "estimated_supabase_work_ms": 3.22
+          }
+        ],
+        "how_to_read": {
+          "function_ms": "wall clock inside the serverless handler",
+          "supabase_wall_ms": "merged busy time of outbound Supabase HTTP",
+          "app_cpu_ms": "function_ms - supabase_wall_ms (JS between/around awaits)",
+          "client_ttfb_minus_function": "from curl: (time_starttransfer - time_appconnect) - function_ms ≈ edge admit + return path to first byte"
+        }
+      }
+    },
+    "derived": {
+      "client_ms": {
+        "dns": 14.043999999999999,
+        "tcp": 9.950000000000001,
+        "tls": 37.623,
+        "wait_after_tls": 608.407,
+        "ttfb": 670.024,
+        "download_body": 1.9800000000000182,
+        "total": 672.004
+      },
+      "split_ms": {
+        "1_computer_to_vercel_tcp_tls": 61.617,
+        "2_edge_queue_and_return_path_estimate": 51.367000000000075,
+        "3_function_runtime": 557.04,
+        "4_supabase_http_wall": 473.56,
+        "4b_supabase_http_sum_parallel": 473.56,
+        "5_app_cpu_between_awaits": 83.48,
+        "note": "averaged-suite representative nearest p50"
+      }
+    }
+  }
+}

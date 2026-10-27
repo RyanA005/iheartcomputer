@@ -1,0 +1,87 @@
+{
+  "base": "https://whoscooking.live",
+  "label": "vercel-board",
+  "measured_at": "2026-10-27T02:08:59.682Z",
+  "methodology": "representative sample nearest p50 ttfb from averaged suite",
+  "full": {
+    "url": "https://whoscooking.live/api/trace?mode=board&date=2026-09-29&limit=50",
+    "client": {
+      "http_code": 200,
+      "time_namelookup": 13.125,
+      "time_connect": 18.627000000000002,
+      "time_appconnect": 70.952,
+      "time_pretransfer": 71.412,
+      "time_starttransfer": 179.094,
+      "time_total": 179.741,
+      "size_download": 862
+    },
+    "server": {
+      "ok": true,
+      "mode": "board",
+      "shape": "vercel-board",
+      "measured_at": "2026-10-27T02:08:51.756Z",
+      "region_hint": "iad1",
+      "payload": {
+        "date": "2026-09-29",
+        "limit": 50,
+        "entries": 9
+      },
+      "server": {
+        "function_ms": 72.1,
+        "phases": [
+          {
+            "label": "board",
+            "ms": 71.9,
+            "at": 72.1
+          }
+        ],
+        "supabase": {
+          "calls": 1,
+          "wait_ms_sum": 71.01,
+          "body_ms_sum": 0.61,
+          "total_ms_sum": 71.62,
+          "wall_ms": 71.62,
+          "min_wait_ms": 71.01,
+          "estimated_work_above_rtt_sum_ms": 0,
+          "note": "race-shaped single daily_stats query from Vercel region"
+        },
+        "app_cpu_ms": 0.48,
+        "spans": [
+          {
+            "name": "table:daily_stats",
+            "method": "GET",
+            "status": 200,
+            "started_at_ms": 0.35,
+            "wait_ms": 71.01,
+            "body_ms": 0.61,
+            "total_ms": 71.62,
+            "bytes": 1025,
+            "url_path": "/rest/v1/daily_stats?select=github_id%2Cusername%2Cadditions%2Cdeletions%2Cnet_lines%2Ccommits&date=eq.2026-09-29&order=net_lines.desc%2Cadditions.desc&limit=50",
+            "estimated_network_floor_ms": 71.01,
+            "estimated_supabase_work_ms": 0
+          }
+        ]
+      }
+    },
+    "derived": {
+      "client_ms": {
+        "dns": 13.125,
+        "tcp": 5.5020000000000024,
+        "tls": 52.324999999999996,
+        "wait_after_tls": 108.142,
+        "ttfb": 179.094,
+        "download_body": 0.6470000000000198,
+        "total": 179.741
+      },
+      "split_ms": {
+        "1_computer_to_vercel_tcp_tls": 70.952,
+        "2_edge_queue_and_return_path_estimate": 36.042,
+        "3_function_runtime": 72.1,
+        "4_supabase_http_wall": 71.62,
+        "4b_supabase_http_sum_parallel": 71.62,
+        "5_app_cpu_between_awaits": 0.48,
+        "note": "averaged-suite representative nearest p50"
+      }
+    }
+  }
+}

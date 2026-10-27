@@ -1,0 +1,86 @@
+{
+  "base": "https://whoscooking.live",
+  "label": "cached",
+  "measured_at": "2026-10-27T02:08:59.682Z",
+  "methodology": "representative sample nearest p50 ttfb from averaged suite",
+  "full": {
+    "url": "https://whoscooking.live/api/trace?mode=full&cache=1",
+    "client": {
+      "http_code": 200,
+      "time_namelookup": 14.315,
+      "time_connect": 19.709,
+      "time_appconnect": 67.676,
+      "time_pretransfer": 67.949,
+      "time_starttransfer": 130.883,
+      "time_total": 131.462,
+      "size_download": 1028
+    },
+    "server": {
+      "ok": true,
+      "mode": "full",
+      "shape": "cached",
+      "cache": true,
+      "measured_at": "2026-10-27T02:08:47.184Z",
+      "region_hint": "iad1",
+      "payload": {
+        "entries": 7,
+        "badgeUsers": 7,
+        "rankDeltas": 7,
+        "leaderboardDate": "2026-10-26"
+      },
+      "server": {
+        "function_ms": 3.45,
+        "phases": [
+          {
+            "label": "cached_board",
+            "ms": 3.43,
+            "at": 3.44
+          },
+          {
+            "label": "serialize_prep",
+            "ms": 0,
+            "at": 3.45
+          }
+        ],
+        "supabase": {
+          "calls": 0,
+          "wait_ms_sum": 0,
+          "body_ms_sum": 0,
+          "total_ms_sum": 0,
+          "wall_ms": 0,
+          "min_wait_ms": null,
+          "estimated_work_above_rtt_sum_ms": 0,
+          "note": "sum can exceed wall_ms when calls run in parallel (Promise.all). wait ≈ network + PostgREST/Postgres + headers. body ≈ reading JSON. work_above_rtt = wait - min_wait."
+        },
+        "app_cpu_ms": 3.45,
+        "spans": [],
+        "how_to_read": {
+          "function_ms": "wall clock inside the serverless handler",
+          "supabase_wall_ms": "merged busy time of outbound Supabase HTTP",
+          "app_cpu_ms": "function_ms - supabase_wall_ms (JS between/around awaits)",
+          "client_ttfb_minus_function": "from curl: (time_starttransfer - time_appconnect) - function_ms ≈ edge admit + return path to first byte"
+        }
+      }
+    },
+    "derived": {
+      "client_ms": {
+        "dns": 14.315,
+        "tcp": 5.394,
+        "tls": 47.967,
+        "wait_after_tls": 63.20700000000001,
+        "ttfb": 130.883,
+        "download_body": 0.5789999999999793,
+        "total": 131.462
+      },
+      "split_ms": {
+        "1_computer_to_vercel_tcp_tls": 67.676,
+        "2_edge_queue_and_return_path_estimate": 59.757000000000005,
+        "3_function_runtime": 3.45,
+        "4_supabase_http_wall": 0,
+        "4b_supabase_http_sum_parallel": 0,
+        "5_app_cpu_between_awaits": 3.45,
+        "note": "averaged-suite representative nearest p50"
+      }
+    }
+  }
+}

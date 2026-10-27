@@ -1,0 +1,52 @@
+{
+  "measured_at": "2026-10-27T02:08:08.041Z",
+  "methodology": {
+    "n": 15,
+    "vercel": "production whoscooking.live, p50 over N hits, cascade = sample nearest p50 ttfb",
+    "shared_baseline": "fix1 batched === fix2 cache_miss",
+    "off_vercel": "localhost sqlite function p50 + same-suite vercel ping p50 on both ends"
+  },
+  "summary": {
+    "measured_at": "2026-10-27T02:08:08.041Z",
+    "base": "https://whoscooking.live",
+    "n": 15,
+    "warmup": 3,
+    "shared_baseline": "fix1 batched === fix2 cache_miss (same sample pool)",
+    "ping_p50": {
+      "ttfb": 112.16,
+      "connect": 68.75,
+      "edge": 42.22,
+      "tls": 41.48
+    },
+    "serial": {
+      "ttfb_p50": 670.02,
+      "function_p50": 546.18,
+      "sb_wall_p50": 466.13
+    },
+    "batched": {
+      "ttfb_p50": 468.75,
+      "function_p50": 307.71,
+      "sb_wall_p50": 222.67
+    },
+    "cache_hit": {
+      "ttfb_p50": 130.88,
+      "function_p50": 3.89
+    },
+    "board": {
+      "ttfb_p50": 179.09,
+      "function_p50": 40.81,
+      "sb_wall_p50": 40.29
+    },
+    "sqlite_local": {
+      "function_p50": 0.32,
+      "sb_wall_p50": 0.34
+    },
+    "sqlite_painted_ttfb": 111.58957500000135
+  },
+  "charts": [
+    "request-cascade-vercel-verified.svg",
+    "fix-fanout-cascade-vercel-verified.svg",
+    "fix-cache-cascade-vercel-verified.svg",
+    "fix-hw-compare-internet-vercel-verified.svg"
+  ]
+}

@@ -1,0 +1,198 @@
+{
+  "measured_at": "2026-10-27T01:41:24.769Z",
+  "rtt_ms": 70,
+  "tls_ms": 12,
+  "note": "Identical client turnarounds; compare function/db execution only.",
+  "cloud": {
+    "ttfb_ms": 157.95999999999998,
+    "function_ms": 67.66,
+    "db_wall_ms": 67.64
+  },
+  "own": {
+    "ttfb_ms": 90.81,
+    "function_ms": 0.51,
+    "db_wall_ms": 0.34
+  },
+  "speedup_ttfb": 1.7394560070476817,
+  "speedup_function": 132.66666666666666,
+  "packets": {
+    "cloud": {
+      "base": "synthetic-internet",
+      "label": "vercel-supabase",
+      "measured_at": "2026-10-27T01:41:24.767Z",
+      "rtt_ms": 70,
+      "tls_ms": 12,
+      "process_kind": "vercel",
+      "source": "node-supabase-rest",
+      "full": {
+        "url": "https://whoscooking.live/board",
+        "client": {
+          "http_code": 200,
+          "time_namelookup": 8,
+          "time_connect": 43,
+          "time_appconnect": 55,
+          "time_pretransfer": 55.3,
+          "time_starttransfer": 157.95999999999998,
+          "time_total": 163.60999999999999,
+          "size_download": 1273
+        },
+        "server": {
+          "ok": true,
+          "mode": "board",
+          "shape": "vercel-supabase",
+          "measured_at": "2026-10-27T01:41:24.768Z",
+          "region_hint": "synthetic-internet",
+          "payload": {
+            "date": "2026-09-29",
+            "limit": 50
+          },
+          "server": {
+            "function_ms": 67.66,
+            "phases": [
+              {
+                "label": "board",
+                "ms": 67.66,
+                "at": 67.66
+              }
+            ],
+            "supabase": {
+              "calls": 1,
+              "wait_ms_sum": 67.44,
+              "body_ms_sum": 0.2,
+              "total_ms_sum": 67.64,
+              "wall_ms": 67.64,
+              "min_wait_ms": 30,
+              "estimated_work_above_rtt_sum_ms": 37.44,
+              "note": "race board single-query cascade"
+            },
+            "app_cpu_ms": 0.03,
+            "spans": [
+              {
+                "name": "table:daily_stats",
+                "method": "GET",
+                "status": 200,
+                "started_at_ms": 0,
+                "wait_ms": 67.43714,
+                "body_ms": 0.2,
+                "total_ms": 67.63714,
+                "bytes": 1001,
+                "url_path": "/rest/v1/daily_stats?date=eq.2026-09-29&limit=50",
+                "estimated_network_floor_ms": 30,
+                "estimated_supabase_work_ms": 37.43714
+              }
+            ]
+          }
+        },
+        "derived": {
+          "client_ms": {
+            "dns": 8,
+            "tcp": 35,
+            "tls": 12,
+            "wait_after_tls": 102.95999999999998,
+            "ttfb": 157.95999999999998,
+            "download_body": 5.650000000000006,
+            "total": 163.60999999999999
+          },
+          "split_ms": {
+            "1_computer_to_vercel_tcp_tls": 55,
+            "2_edge_queue_and_return_path_estimate": 35.29999999999998,
+            "3_function_runtime": 67.66,
+            "4_supabase_http_wall": 67.64,
+            "4b_supabase_http_sum_parallel": 67.64,
+            "5_app_cpu_between_awaits": 0.03,
+            "note": "same synthetic 70 ms RTT (+12 ms TLS) on both ends; server timings from localhost measure"
+          }
+        }
+      }
+    },
+    "own": {
+      "base": "synthetic-internet",
+      "label": "own-sqlite",
+      "measured_at": "2026-10-27T01:41:24.768Z",
+      "rtt_ms": 70,
+      "tls_ms": 12,
+      "process_kind": "always-on",
+      "source": "node-sqlite",
+      "full": {
+        "url": "https://own-box.example/board",
+        "client": {
+          "http_code": 200,
+          "time_namelookup": 8,
+          "time_connect": 43,
+          "time_appconnect": 55,
+          "time_pretransfer": 55.3,
+          "time_starttransfer": 90.81,
+          "time_total": 96.46000000000001,
+          "size_download": 1294
+        },
+        "server": {
+          "ok": true,
+          "mode": "board",
+          "shape": "own-sqlite",
+          "measured_at": "2026-10-27T01:41:24.768Z",
+          "region_hint": "synthetic-internet",
+          "payload": {
+            "date": "2026-09-29",
+            "limit": 50
+          },
+          "server": {
+            "function_ms": 0.51,
+            "phases": [
+              {
+                "label": "board",
+                "ms": 0.51,
+                "at": 0.51
+              }
+            ],
+            "supabase": {
+              "calls": 1,
+              "wait_ms_sum": 0.32,
+              "body_ms_sum": 0.02,
+              "total_ms_sum": 0.34,
+              "wall_ms": 0.34,
+              "min_wait_ms": 0.02,
+              "estimated_work_above_rtt_sum_ms": 0.3,
+              "note": "race board single-query cascade"
+            },
+            "app_cpu_ms": 0.18,
+            "spans": [
+              {
+                "name": "sqlite:daily_stats",
+                "method": "QUERY",
+                "status": 200,
+                "started_at_ms": 0,
+                "wait_ms": 0.3152949999998782,
+                "body_ms": 0.02,
+                "total_ms": 0.3352949999998782,
+                "bytes": 1001,
+                "url_path": "sqlite://daily_stats?date=2026-09-29&limit=50",
+                "estimated_network_floor_ms": 0.02,
+                "estimated_supabase_work_ms": 0.2952949999998782
+              }
+            ]
+          }
+        },
+        "derived": {
+          "client_ms": {
+            "dns": 8,
+            "tcp": 35,
+            "tls": 12,
+            "wait_after_tls": 35.81,
+            "ttfb": 90.81,
+            "download_body": 5.650000000000006,
+            "total": 96.46000000000001
+          },
+          "split_ms": {
+            "1_computer_to_vercel_tcp_tls": 55,
+            "2_edge_queue_and_return_path_estimate": 35.300000000000004,
+            "3_function_runtime": 0.51,
+            "4_supabase_http_wall": 0.34,
+            "4b_supabase_http_sum_parallel": 0.34,
+            "5_app_cpu_between_awaits": 0.18,
+            "note": "same synthetic 70 ms RTT (+12 ms TLS) on both ends; server timings from localhost measure"
+          }
+        }
+      }
+    }
+  }
+}
