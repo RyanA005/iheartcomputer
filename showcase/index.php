@@ -48,16 +48,23 @@ new_render_header(
           </li>
           <li>
             <div class="list-row list-row-timeline">
-              <span class="list-num upper red" style="font-size: 0.95rem;">Nov 11</span>
+              <span class="list-num upper red" style="font-size: 0.95rem;">Nov 8</span>
               <strong class="list-title upper" style="display: block; font-size: 1.05rem; line-height: 1.25;">Apply to present</strong>
-              <span class="list-body" style="font-size: 0.95rem; color: #333;">Deadline to apply for a speaking / demo slot</span>
+              <span class="list-body" style="font-size: 0.95rem; color: #333;">Deadline to apply for a speaking / demo slot (Sun Nov 8, 11:59 PM)</span>
             </div>
           </li>
           <li>
             <div class="list-row list-row-timeline">
-              <span class="list-num upper" style="font-size: 0.95rem;">Nov 14</span>
-              <strong class="list-title upper" style="display: block; font-size: 1.05rem; line-height: 1.25;">Speakers confirmed</strong>
-              <span class="list-body" style="font-size: 0.95rem; color: #333;">Selected presenters notified and schedule locked</span>
+              <span class="list-num upper" style="font-size: 0.95rem;">Nov 10</span>
+              <strong class="list-title upper" style="display: block; font-size: 1.05rem; line-height: 1.25;">Presenters notified</strong>
+              <span class="list-body" style="font-size: 0.95rem; color: #333;">Selected presenters notified</span>
+            </div>
+          </li>
+          <li>
+            <div class="list-row list-row-timeline">
+              <span class="list-num upper" style="font-size: 0.95rem;">Nov 11</span>
+              <strong class="list-title upper" style="display: block; font-size: 1.05rem; line-height: 1.25;">Confirmations due</strong>
+              <span class="list-body" style="font-size: 0.95rem; color: #333;">Confirmations due 5 PM; schedule posted by 11:59 PM</span>
             </div>
           </li>
           <li>
@@ -124,7 +131,7 @@ new_render_header(
           </details>
           <details>
             <summary class="upper">How long is each talk?</summary>
-            <p>We hope to allow anything between 5-15 minutes, this may change depending on submission volume. We will keep everyone to their allotted time in order to keep it fair to all of our presenters.</p>
+            <p>Talk slots are 5, 10, or 15 minutes. We will keep everyone to their allotted time in order to keep it fair to all of our presenters.</p>
           </details>
           <details>
             <summary class="upper">Can you guys help me?</summary>
@@ -148,7 +155,7 @@ new_render_header(
           </details>
           <details>
             <summary class="upper">Does applying guarantee my spot?</summary>
-            <p>If we had infinite time, everyone could talk as long as they wanted. Sadly, we don't. We will notify selected presenters after the Nov 11 deadline if we select them. If there is a lot of demand and people enjoy the event, we will do another and anyone who didn't get selected the first time is first on deck!</p>
+            <p>If we had infinite time, everyone could talk as long as they wanted. Sadly, we don't. We will notify selected presenters after the Nov 8 deadline if we select them. If there is a lot of demand and people enjoy the event, we will do another and anyone who didn't get selected the first time is first on deck!</p>
           </details>
           <details>
             <summary class="upper">I have a question / weird idea. Who do I ask?</summary>
