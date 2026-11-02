@@ -126,11 +126,31 @@ function hits_normalize_referrer(?string $ref): string
 
 function hits_client_ip(): string
 {
-    $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
-    if ($ip !== '' && filter_var($ip, FILTER_VALIDATE_IP)) {
-        return $ip;
+    $remote = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    if ($remote === '' || !filter_var($remote, FILTER_VALIDATE_IP)) {
+        return '';
     }
-    return '';
+
+    // only trust forwarding headers from a loopback/private hop (nginx, cloudflared)
+    $public = filter_var($remote, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+    if ($public !== false) {
+        return $remote;
+    }
+
+    $xff = explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? ''));
+    $candidates = [
+        (string) ($_SERVER['HTTP_CF_CONNECTING_IP'] ?? ''),
+        $xff[0],
+        (string) ($_SERVER['HTTP_X_REAL_IP'] ?? ''),
+    ];
+    foreach ($candidates as $ip) {
+        $ip = trim($ip);
+        if ($ip !== '' && filter_var($ip, FILTER_VALIDATE_IP)) {
+            return $ip;
+        }
+    }
+
+    return $remote;
 }
 
 function hits_should_skip(string $path): bool
