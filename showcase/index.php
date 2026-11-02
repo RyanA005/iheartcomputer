@@ -11,7 +11,7 @@ new_render_header(
       <section style="margin-bottom: 2.25rem;">
         <h1 class="h1" style="margin-bottom: 0.2rem;">Student Showcase</h1>
         <p class="muted upper" style="margin: 0 0 1rem; font-size: 0.85rem; letter-spacing: 0.06em;">
-          Wed Nov 18, 2026 · 2:30–6:00 PM · Location TBA
+          Wed Nov 18, 2026 · 2:30–6:00 PM ET · GITC 4402
         </p>
         <p style="margin: 0 0 0.85rem; font-size: 1.05rem; line-height: 1.55; color: #333;">
           A chance for NJIT students to share what they have been building, 
@@ -71,7 +71,7 @@ new_render_header(
             <div class="list-row list-row-timeline">
               <span class="list-num upper" style="font-size: 0.95rem;">Nov 18</span>
               <strong class="list-title upper" style="display: block; font-size: 1.05rem; line-height: 1.25;">Showcase day</strong>
-              <span class="list-body" style="font-size: 0.95rem; color: #333;">2:30–6:00 PM · Location TBA</span>
+              <span class="list-body" style="font-size: 0.95rem; color: #333;">2:30–6:00 PM ET · GITC 4402</span>
             </div>
           </li>
         </ul>

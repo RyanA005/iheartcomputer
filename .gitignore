@@ -2,3 +2,5 @@
 *.log
 *:Zone.Identifier
 ctf-model-lock/
+/data/*
+!/data/.htaccess

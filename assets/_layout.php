@@ -1,7 +1,10 @@
 <?php
 
+require_once __DIR__ . '/hits.php';
+
 function new_render_header(string $title, string $description = 'IHEARTCOMPUTER - computer club at NJIT'): void
 {
+    hits_log();
     ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -20,7 +23,7 @@ function new_render_header(string $title, string $description = 'IHEARTCOMPUTER 
         <a href="/" class="upper" style="color: #111; font-size: clamp(1.75rem, 4vw, 2.5rem); letter-spacing: 0.02em; line-height: 1; text-decoration: none;">
           I<span class="red">♥</span>COMPUTER
         </a>
-        <span class="badge" aria-hidden="true" style="margin-top: 0.35rem;">WITH ACM NOW!</span>
+        <span class="badge" aria-hidden="true" style="margin-top: 0.35rem;">LOVING THE COMPUTER!</span>
       </div>
       <nav class="nav" aria-label="primary">
         <a href="/projects/">projects</a>
