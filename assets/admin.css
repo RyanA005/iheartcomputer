@@ -1,0 +1,282 @@
+.wrap { max-width: 86rem; }
+
+.admin-head {
+  margin-bottom: 1.35rem;
+}
+
+.admin-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.65rem;
+}
+
+.admin-note {
+  margin: 0.85rem 0 0;
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.2rem, 1fr));
+  gap: 0.75rem;
+  margin: 0 0 1.5rem;
+}
+
+.admin-stat {
+  padding: 0.85rem 0.95rem 0.95rem;
+}
+
+.admin-stat .panel {
+  padding: 0;
+}
+
+.admin-stat-label {
+  display: block;
+  font-size: 0.68rem;
+  margin-bottom: 0.3rem;
+}
+
+.admin-stat-value {
+  display: block;
+  font-size: 1.55rem;
+  line-height: 1.1;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-stat-sub {
+  display: block;
+  margin-top: 0.28rem;
+  font-size: 0.72rem;
+  color: #777;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-panel {
+  padding: 1rem 1.1rem 1.15rem;
+  margin-bottom: 1.25rem;
+}
+
+.admin-stat:hover,
+.admin-panel:hover {
+  background: #fafafa;
+}
+
+.admin-panel h2 {
+  margin: 0 0 0.85rem;
+  font-size: 0.82rem;
+}
+
+.admin-split {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 1.25rem;
+  align-items: stretch;
+  margin-bottom: 1.25rem;
+}
+
+.admin-chart {
+  position: relative;
+  height: 16rem;
+}
+
+.admin-chart-wide {
+  height: 18rem;
+}
+
+.admin-map {
+  height: 22rem;
+  width: 100%;
+  border: 1px solid #ddd;
+  background: #ecece8;
+}
+
+.admin-map .leaflet-container {
+  width: 100%;
+  height: 22rem;
+  background: #ecece8;
+  font: inherit;
+}
+
+.admin-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  margin: 0.75rem 0 0;
+  font-size: 0.72rem;
+  color: #555;
+}
+
+.admin-legend i {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-right: 0.35rem;
+  vertical-align: -0.05rem;
+  border: 1px solid #111;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.4rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+  border-top: 1px solid #ddd;
+}
+
+.admin-table th {
+  border-top: none;
+  border-bottom: 1px solid #111;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.admin-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-table th.sortable:hover {
+  color: #1a4fff;
+}
+
+.admin-table th[aria-sort="ascending"]::after {
+  content: " ^";
+}
+
+.admin-table th[aria-sort="descending"]::after {
+  content: " v";
+}
+
+.admin-table td.num,
+.admin-table th.num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-table .mono {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.admin-table .path,
+.admin-table .ref {
+  word-break: break-all;
+}
+
+.admin-table .ua {
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-table tr.legacy td {
+  color: #777;
+}
+
+.admin-tag {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid currentColor;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: 0.1rem;
+}
+
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.admin-search {
+  display: block;
+  width: min(22rem, 100%);
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #111;
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.admin-search:focus {
+  outline: 2px solid #1a4fff;
+  outline-offset: 1px;
+  border-color: #1a4fff;
+}
+
+.admin-login {
+  max-width: 22rem;
+  padding: 1.1rem 1.25rem;
+}
+
+.admin-login label {
+  display: block;
+  font-size: 0.75rem;
+  margin-bottom: 0.45rem;
+}
+
+.admin-login input[type="password"] {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.85rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #111;
+  font: inherit;
+}
+
+.admin-login button {
+  border: none;
+  cursor: pointer;
+}
+
+.admin-empty {
+  margin: 0;
+  color: #777;
+}
+
+.admin-more {
+  margin: 0.85rem 0 0;
+}
+
+.admin-more .chip:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+@media (max-width: 760px) {
+  .admin-split {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-table .ua {
+    max-width: 8rem;
+  }
+}

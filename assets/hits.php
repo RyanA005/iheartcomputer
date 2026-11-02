@@ -68,6 +68,22 @@ function hits_status(): array
         );
         $pdo->exec('CREATE INDEX IF NOT EXISTS hits_ts ON hits(ts)');
         $pdo->exec('CREATE INDEX IF NOT EXISTS hits_path_ts ON hits(path, ts)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS hits_ip ON hits(ip)');
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS ip_geo (
+                ip TEXT PRIMARY KEY,
+                looked_up_at INTEGER NOT NULL,
+                status TEXT NOT NULL,
+                country TEXT NOT NULL DEFAULT \'\',
+                country_code TEXT NOT NULL DEFAULT \'\',
+                city TEXT NOT NULL DEFAULT \'\',
+                lat REAL,
+                lon REAL,
+                asn TEXT NOT NULL DEFAULT \'\',
+                asn_org TEXT NOT NULL DEFAULT \'\',
+                org TEXT NOT NULL DEFAULT \'\'
+            )'
+        );
         $cached = ['ok' => true, 'error' => '', 'pdo' => $pdo];
     } catch (Throwable $e) {
         $cached = [
@@ -198,82 +214,801 @@ function hits_log(): void
     }
 }
 
+function hits_tz(): DateTimeZone
+{
+    static $tz = null;
+    return $tz ??= new DateTimeZone('America/New_York');
+}
+
+function hits_format_ts(int $ts, string $format = 'Y-m-d H:i'): string
+{
+    return (new DateTimeImmutable('@' . $ts))->setTimezone(hits_tz())->format($format);
+}
+
+function hits_ip_is_public(string $ip): bool
+{
+    if ($ip === '' || filter_var($ip, FILTER_VALIDATE_IP) === false) {
+        return false;
+    }
+
+    return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
+}
+
+function hits_ua_is_bot(string $ua): bool
+{
+    $ua = trim($ua);
+    if ($ua === '') {
+        return true;
+    }
+
+    return (bool) preg_match(
+        '/bot|crawler|crawl|spider|slurp|facebookexternalhit|facebot|internetmeasurement|uptimerobot|pingdom|headless|curl\/|wget\/|python-requests|python-urllib|go-http-client|libwww|httpie|okhttp|scrapy|semrush|ahrefs|bytespider|gptbot|claudebot|amazonbot|ia_archiver|discordbot|slackbot|telegram|whatsapp|linkedinbot|applebot|bingpreview|duckduckbot|yandex|mj12bot|dotbot|petalbot/i',
+        $ua
+    );
+}
+
 /**
- * @return array{
- *   hits: int,
- *   uniques: int,
- *   top_paths: list<array{path: string, hits: int}>,
- *   top_referrers: list<array{referrer: string, hits: int}>,
- *   recent: list<array{ts: int, path: string, ip: string, referrer: string, ua: string}>
- * }|null
+ * @return array{asn: string, asn_org: string}
  */
-function hits_summary(int $days = 7, int $limit = 15): ?array
+function hits_parse_as(string $as): array
+{
+    $as = trim($as);
+    if ($as === '') {
+        return ['asn' => '', 'asn_org' => ''];
+    }
+    if (preg_match('/^(AS\d+)\s*(.*)$/i', $as, $m) === 1) {
+        return ['asn' => strtoupper($m[1]), 'asn_org' => trim($m[2])];
+    }
+    return ['asn' => '', 'asn_org' => $as];
+}
+
+/**
+ * @return array<string, array{
+ *   ip: string,
+ *   looked_up_at: int,
+ *   status: string,
+ *   country: string,
+ *   country_code: string,
+ *   city: string,
+ *   lat: ?float,
+ *   lon: ?float,
+ *   asn: string,
+ *   asn_org: string,
+ *   org: string
+ * }>
+ */
+function hits_geo_all(PDO $db): array
+{
+    $out = [];
+    try {
+        foreach ($db->query('SELECT * FROM ip_geo') as $row) {
+            $ip = (string) $row['ip'];
+            $out[$ip] = [
+                'ip' => $ip,
+                'looked_up_at' => (int) $row['looked_up_at'],
+                'status' => (string) $row['status'],
+                'country' => (string) $row['country'],
+                'country_code' => (string) $row['country_code'],
+                'city' => (string) $row['city'],
+                'lat' => $row['lat'] !== null && $row['lat'] !== '' ? (float) $row['lat'] : null,
+                'lon' => $row['lon'] !== null && $row['lon'] !== '' ? (float) $row['lon'] : null,
+                'asn' => (string) $row['asn'],
+                'asn_org' => (string) $row['asn_org'],
+                'org' => (string) $row['org'],
+            ];
+        }
+    } catch (Throwable $e) {
+        return [];
+    }
+    return $out;
+}
+
+/**
+ * @param array{
+ *   status: string,
+ *   country?: string,
+ *   country_code?: string,
+ *   city?: string,
+ *   lat?: ?float,
+ *   lon?: ?float,
+ *   asn?: string,
+ *   asn_org?: string,
+ *   org?: string
+ * } $geo
+ */
+function hits_geo_upsert(PDO $db, string $ip, array $geo): void
+{
+    $stmt = $db->prepare(
+        'INSERT INTO ip_geo (ip, looked_up_at, status, country, country_code, city, lat, lon, asn, asn_org, org)
+         VALUES (:ip, :looked_up_at, :status, :country, :country_code, :city, :lat, :lon, :asn, :asn_org, :org)
+         ON CONFLICT(ip) DO UPDATE SET
+            looked_up_at = excluded.looked_up_at,
+            status = excluded.status,
+            country = excluded.country,
+            country_code = excluded.country_code,
+            city = excluded.city,
+            lat = excluded.lat,
+            lon = excluded.lon,
+            asn = excluded.asn,
+            asn_org = excluded.asn_org,
+            org = excluded.org'
+    );
+    $stmt->execute([
+        ':ip' => $ip,
+        ':looked_up_at' => time(),
+        ':status' => $geo['status'],
+        ':country' => $geo['country'] ?? '',
+        ':country_code' => $geo['country_code'] ?? '',
+        ':city' => $geo['city'] ?? '',
+        ':lat' => $geo['lat'] ?? null,
+        ':lon' => $geo['lon'] ?? null,
+        ':asn' => $geo['asn'] ?? '',
+        ':asn_org' => $geo['asn_org'] ?? '',
+        ':org' => $geo['org'] ?? '',
+    ]);
+}
+
+/**
+ * POST a batch to ip-api.com (HTTP, no key). Returns a list of result rows.
+ *
+ * @param list<string> $ips
+ * @return list<array<string, mixed>>
+ */
+function hits_geo_fetch_ip_api(array $ips): array
+{
+    if ($ips === []) {
+        return [];
+    }
+
+    $fields = 'status,message,country,countryCode,city,lat,lon,org,as,asname,query';
+    $ctx = stream_context_create([
+        'http' => [
+            'method' => 'POST',
+            'header' => "Content-Type: application/json\r\nUser-Agent: iheartcomputer.club-admin/1.0\r\n",
+            'content' => json_encode(array_values($ips), JSON_UNESCAPED_SLASHES),
+            'timeout' => 8,
+            'ignore_errors' => true,
+        ],
+    ]);
+    $raw = @file_get_contents('http://ip-api.com/batch?fields=' . $fields, false, $ctx);
+    if (!is_string($raw) || $raw === '') {
+        return [];
+    }
+    $data = json_decode($raw, true);
+    return is_array($data) ? $data : [];
+}
+
+/**
+ * HTTPS fallback, still no API key. One IP per request.
+ *
+ * @return array<string, mixed>|null
+ */
+function hits_geo_fetch_ipwho(string $ip): ?array
+{
+    $ctx = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'header' => "User-Agent: iheartcomputer.club-admin/1.0\r\nAccept: application/json\r\n",
+            'timeout' => 6,
+            'ignore_errors' => true,
+        ],
+        'ssl' => [
+            'verify_peer' => true,
+            'verify_peer_name' => true,
+        ],
+    ]);
+    $raw = @file_get_contents('https://ipwho.is/' . rawurlencode($ip), false, $ctx);
+    if (!is_string($raw) || $raw === '') {
+        return null;
+    }
+    $data = json_decode($raw, true);
+    return is_array($data) ? $data : null;
+}
+
+/**
+ * @param array<string, mixed> $row
+ * @return array{status: string, country: string, country_code: string, city: string, lat: ?float, lon: ?float, asn: string, asn_org: string, org: string}
+ */
+function hits_geo_from_ip_api_row(array $row): array
+{
+    if (($row['status'] ?? '') !== 'success') {
+        return [
+            'status' => 'fail',
+            'country' => '',
+            'country_code' => '',
+            'city' => '',
+            'lat' => null,
+            'lon' => null,
+            'asn' => '',
+            'asn_org' => '',
+            'org' => '',
+        ];
+    }
+
+    $parsed = hits_parse_as((string) ($row['as'] ?? ''));
+    $lat = isset($row['lat']) && is_numeric($row['lat']) ? (float) $row['lat'] : null;
+    $lon = isset($row['lon']) && is_numeric($row['lon']) ? (float) $row['lon'] : null;
+
+    return [
+        'status' => 'ok',
+        'country' => (string) ($row['country'] ?? ''),
+        'country_code' => strtoupper((string) ($row['countryCode'] ?? '')),
+        'city' => (string) ($row['city'] ?? ''),
+        'lat' => $lat,
+        'lon' => $lon,
+        'asn' => $parsed['asn'],
+        'asn_org' => $parsed['asn_org'] !== '' ? $parsed['asn_org'] : (string) ($row['asname'] ?? ''),
+        'org' => (string) ($row['org'] ?? ''),
+    ];
+}
+
+/**
+ * @param array<string, mixed> $row
+ * @return array{status: string, country: string, country_code: string, city: string, lat: ?float, lon: ?float, asn: string, asn_org: string, org: string}
+ */
+function hits_geo_from_ipwho_row(array $row): array
+{
+    if (empty($row['success'])) {
+        return [
+            'status' => 'fail',
+            'country' => '',
+            'country_code' => '',
+            'city' => '',
+            'lat' => null,
+            'lon' => null,
+            'asn' => '',
+            'asn_org' => '',
+            'org' => '',
+        ];
+    }
+
+    $conn = is_array($row['connection'] ?? null) ? $row['connection'] : [];
+    $asnNum = $conn['asn'] ?? '';
+    $asn = $asnNum !== '' && $asnNum !== null ? 'AS' . $asnNum : '';
+    $lat = isset($row['latitude']) && is_numeric($row['latitude']) ? (float) $row['latitude'] : null;
+    $lon = isset($row['longitude']) && is_numeric($row['longitude']) ? (float) $row['longitude'] : null;
+
+    return [
+        'status' => 'ok',
+        'country' => (string) ($row['country'] ?? ''),
+        'country_code' => strtoupper((string) ($row['country_code'] ?? '')),
+        'city' => (string) ($row['city'] ?? ''),
+        'lat' => $lat,
+        'lon' => $lon,
+        'asn' => $asn,
+        'asn_org' => (string) ($conn['org'] ?? $conn['isp'] ?? ''),
+        'org' => (string) ($conn['org'] ?? $conn['isp'] ?? ''),
+    ];
+}
+
+/**
+ * Look up unknown public IPs and cache them. Private/loopback IPs are labeled
+ * without a network call. Caps work per request so we stay under ip-api's 45/min.
+ *
+ * @return array{looked_up: int, pending: int}
+ */
+function hits_geo_refresh(PDO $db, int $maxLookups = 40): array
+{
+    $maxLookups = max(0, min(40, $maxLookups));
+    $now = time();
+    $lookedUp = 0;
+    $pending = 0;
+
+    try {
+        $ips = $db->query('SELECT DISTINCT ip FROM hits')->fetchAll(PDO::FETCH_COLUMN);
+    } catch (Throwable $e) {
+        return ['looked_up' => 0, 'pending' => 0];
+    }
+
+    $cached = hits_geo_all($db);
+    $needApi = [];
+
+    foreach ($ips as $ip) {
+        $ip = (string) $ip;
+        if ($ip === '') {
+            continue;
+        }
+
+        if (!hits_ip_is_public($ip)) {
+            $existing = $cached[$ip] ?? null;
+            if ($existing === null || $existing['status'] !== 'private') {
+                try {
+                    hits_geo_upsert($db, $ip, [
+                        'status' => 'private',
+                        'country' => '',
+                        'country_code' => '',
+                        'city' => '',
+                        'lat' => null,
+                        'lon' => null,
+                        'asn' => '',
+                        'asn_org' => '',
+                        'org' => '',
+                    ]);
+                } catch (Throwable $e) {
+                    // fail open
+                }
+            }
+            continue;
+        }
+
+        $existing = $cached[$ip] ?? null;
+        if ($existing !== null && $existing['status'] === 'ok') {
+            continue;
+        }
+        $staleFail = $existing !== null
+            && $existing['status'] === 'fail'
+            && ($now - $existing['looked_up_at']) > 86400;
+        if ($existing !== null && $existing['status'] === 'fail' && !$staleFail) {
+            continue;
+        }
+        $needApi[] = $ip;
+    }
+
+    $pending = count($needApi);
+    if ($maxLookups === 0 || $needApi === []) {
+        return ['looked_up' => 0, 'pending' => $pending];
+    }
+
+    $batch = array_slice($needApi, 0, $maxLookups);
+    $results = hits_geo_fetch_ip_api($batch);
+    $byQuery = [];
+    foreach ($results as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        $query = (string) ($row['query'] ?? '');
+        if ($query !== '') {
+            $byQuery[$query] = $row;
+        }
+    }
+
+    foreach ($batch as $ip) {
+        $geo = null;
+        if (isset($byQuery[$ip])) {
+            $geo = hits_geo_from_ip_api_row($byQuery[$ip]);
+        } else {
+            $who = hits_geo_fetch_ipwho($ip);
+            if ($who !== null) {
+                $geo = hits_geo_from_ipwho_row($who);
+            }
+        }
+        if ($geo === null) {
+            $geo = [
+                'status' => 'fail',
+                'country' => '',
+                'country_code' => '',
+                'city' => '',
+                'lat' => null,
+                'lon' => null,
+                'asn' => '',
+                'asn_org' => '',
+                'org' => '',
+            ];
+        }
+        try {
+            hits_geo_upsert($db, $ip, $geo);
+            $lookedUp++;
+            $pending--;
+        } catch (Throwable $e) {
+            // fail open
+        }
+    }
+
+    return ['looked_up' => $lookedUp, 'pending' => max(0, $pending)];
+}
+
+/**
+ * @return array<string, array{label: string, seconds: ?int}>
+ */
+function hits_ranges(): array
+{
+    return [
+        '24h' => ['label' => '24 hours', 'seconds' => 86400],
+        '7d' => ['label' => '7 days', 'seconds' => 7 * 86400],
+        '30d' => ['label' => '30 days', 'seconds' => 30 * 86400],
+        '365d' => ['label' => '365 days', 'seconds' => 365 * 86400],
+        'all' => ['label' => 'all time', 'seconds' => null],
+    ];
+}
+
+function hits_normalize_range(string $range): string
+{
+    return array_key_exists($range, hits_ranges()) ? $range : '24h';
+}
+
+function hits_range_label(string $range): string
+{
+    $range = hits_normalize_range($range);
+    return hits_ranges()[$range]['label'];
+}
+
+function hits_range_since(string $range, int $nowTs): ?int
+{
+    $range = hits_normalize_range($range);
+    $seconds = hits_ranges()[$range]['seconds'];
+    return $seconds === null ? null : $nowTs - $seconds;
+}
+
+/**
+ * @return array<string, mixed>|null
+ */
+/**
+ * @param array<string, mixed> $r
+ * @param array<string, array<string, mixed>> $geoByIp
+ * @return array<string, mixed>
+ */
+function hits_format_recent_row(array $r, array $geoByIp): array
+{
+    $ip = (string) ($r['ip'] ?? '');
+    $isPublic = hits_ip_is_public($ip);
+    $geo = $geoByIp[$ip] ?? null;
+    $legacy = !$isPublic;
+    $place = '';
+    if ($legacy) {
+        $place = 'legacy';
+    } elseif ($geo !== null && $geo['status'] === 'ok') {
+        $bits = array_filter([$geo['city'], $geo['country_code'] !== '' ? $geo['country_code'] : $geo['country']]);
+        $place = implode(', ', $bits);
+    } elseif ($geo !== null && $geo['status'] === 'fail') {
+        $place = 'lookup failed';
+    } else {
+        $place = 'pending';
+    }
+
+    return [
+        'id' => (int) ($r['id'] ?? 0),
+        'ts' => (int) ($r['ts'] ?? 0),
+        'when' => hits_format_ts((int) ($r['ts'] ?? 0)),
+        'path' => (string) ($r['path'] ?? ''),
+        'ip' => $ip,
+        'referrer' => (string) ($r['referrer'] ?? ''),
+        'ua' => (string) ($r['ua'] ?? ''),
+        'bot' => hits_ua_is_bot((string) ($r['ua'] ?? '')),
+        'legacy' => $legacy,
+        'place' => $place,
+    ];
+}
+
+/**
+ * Newest-first page of hits in the selected range. $beforeId is the oldest id
+ * already shown; 0 means the first page.
+ *
+ * @return array{rows: list<array<string, mixed>>, has_more: bool}
+ */
+function hits_recent_page(string $range, bool $hideBots, int $beforeId = 0, int $limit = 25): array
+{
+    $empty = ['rows' => [], 'has_more' => false];
+    $db = hits_db();
+    if ($db === null) {
+        return $empty;
+    }
+
+    $range = hits_normalize_range($range);
+    $limit = max(1, min(100, $limit));
+    $since = hits_range_since($range, time());
+    $geoByIp = hits_geo_all($db);
+
+    $sql = 'SELECT id, ts, path, ip, referrer, ua FROM hits';
+    $where = [];
+    $params = [];
+    if ($since !== null) {
+        $where[] = 'ts >= :since';
+        $params[':since'] = $since;
+    }
+    if ($beforeId > 0) {
+        $where[] = 'id < :before';
+        $params[':before'] = $beforeId;
+    }
+    if ($where !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+    }
+    $sql .= ' ORDER BY id DESC';
+
+    try {
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+    } catch (Throwable $e) {
+        return $empty;
+    }
+
+    $rows = [];
+    $hasMore = false;
+    while ($r = $stmt->fetch()) {
+        if ($hideBots && hits_ua_is_bot((string) ($r['ua'] ?? ''))) {
+            continue;
+        }
+        if (count($rows) >= $limit) {
+            $hasMore = true;
+            break;
+        }
+        $rows[] = hits_format_recent_row($r, $geoByIp);
+    }
+
+    return ['rows' => $rows, 'has_more' => $hasMore];
+}
+
+/**
+ * @return array<string, mixed>|null
+ */
+function hits_dashboard(string $range = '24h', bool $hideBots = false): ?array
 {
     $db = hits_db();
     if ($db === null) {
         return null;
     }
 
-    $days = max(1, min(90, $days));
-    $limit = max(1, min(50, $limit));
-    $since = time() - ($days * 86400);
+    $range = hits_normalize_range($range);
+    $hourly = $range === '24h';
+    $tz = hits_tz();
+    $now = new DateTimeImmutable('now', $tz);
+    $todayStart = $now->setTime(0, 0, 0)->getTimestamp();
+    $nowTs = time();
+    $since = hits_range_since($range, $nowTs);
+
+    $geoRefresh = ['looked_up' => 0, 'pending' => 0];
+    try {
+        $geoRefresh = hits_geo_refresh($db);
+    } catch (Throwable $e) {
+        $geoRefresh = ['looked_up' => 0, 'pending' => 0];
+    }
+    $geoByIp = hits_geo_all($db);
 
     try {
-        $totals = $db->prepare(
-            'SELECT COUNT(*) AS hits, COUNT(DISTINCT ip) AS uniques
-             FROM hits WHERE ts >= :since'
-        );
-        $totals->execute([':since' => $since]);
-        $row = $totals->fetch() ?: ['hits' => 0, 'uniques' => 0];
-
-        $paths = $db->prepare(
-            'SELECT path, COUNT(*) AS hits
-             FROM hits WHERE ts >= :since
-             GROUP BY path ORDER BY hits DESC LIMIT :lim'
-        );
-        $paths->bindValue(':since', $since, PDO::PARAM_INT);
-        $paths->bindValue(':lim', $limit, PDO::PARAM_INT);
-        $paths->execute();
-
-        $refs = $db->prepare(
-            'SELECT referrer, COUNT(*) AS hits
-             FROM hits
-             WHERE ts >= :since AND referrer != \'\'
-             GROUP BY referrer ORDER BY hits DESC LIMIT :lim'
-        );
-        $refs->bindValue(':since', $since, PDO::PARAM_INT);
-        $refs->bindValue(':lim', $limit, PDO::PARAM_INT);
-        $refs->execute();
-
-        $recent = $db->prepare(
-            'SELECT ts, path, ip, referrer, ua
-             FROM hits ORDER BY id DESC LIMIT 25'
-        );
-        $recent->execute();
-
-        return [
-            'hits' => (int) $row['hits'],
-            'uniques' => (int) $row['uniques'],
-            'top_paths' => array_map(
-                static fn(array $r): array => ['path' => (string) $r['path'], 'hits' => (int) $r['hits']],
-                $paths->fetchAll()
-            ),
-            'top_referrers' => array_map(
-                static fn(array $r): array => ['referrer' => (string) $r['referrer'], 'hits' => (int) $r['hits']],
-                $refs->fetchAll()
-            ),
-            'recent' => array_map(
-                static fn(array $r): array => [
-                    'ts' => (int) $r['ts'],
-                    'path' => (string) $r['path'],
-                    'ip' => (string) $r['ip'],
-                    'referrer' => (string) $r['referrer'],
-                    'ua' => (string) $r['ua'],
-                ],
-                $recent->fetchAll()
-            ),
-        ];
+        $rows = $db->query(
+            'SELECT ts, path, ip, referrer, ua FROM hits ORDER BY id ASC'
+        )->fetchAll();
     } catch (Throwable $e) {
         return null;
     }
+
+    $hitsAll = 0;
+    $hitsToday = 0;
+    $legacyHits = 0;
+    $botHits = 0;
+    $botHidden = 0;
+    $uniqAll = [];
+    $uniqToday = [];
+    $byPath = [];
+    $byRef = [];
+    $byBucketHits = [];
+    $byBucketUniq = [];
+    $byCountry = [];
+    $byCity = [];
+    $byIp = [];
+
+    foreach ($rows as $r) {
+        $ts = (int) $r['ts'];
+        if ($since !== null && $ts < $since) {
+            continue;
+        }
+
+        $path = (string) $r['path'];
+        $ip = (string) $r['ip'];
+        $ref = (string) $r['referrer'];
+        $ua = (string) $r['ua'];
+        $isBot = hits_ua_is_bot($ua);
+        $isPublic = hits_ip_is_public($ip);
+
+        if ($isBot) {
+            $botHits++;
+        }
+        if ($hideBots && $isBot) {
+            $botHidden++;
+            continue;
+        }
+
+        $hitsAll++;
+        if (!$isPublic) {
+            $legacyHits++;
+        }
+        if ($ts >= $todayStart) {
+            $hitsToday++;
+        }
+
+        $dt = (new DateTimeImmutable('@' . $ts))->setTimezone($tz);
+        $bucket = $hourly ? $dt->format('Y-m-d H:00') : $dt->format('Y-m-d');
+        $byBucketHits[$bucket] = ($byBucketHits[$bucket] ?? 0) + 1;
+
+        if ($isPublic) {
+            $uniqAll[$ip] = true;
+            $byBucketUniq[$bucket][$ip] = true;
+            if ($ts >= $todayStart) {
+                $uniqToday[$ip] = true;
+            }
+        }
+
+        $byPath[$path] = ($byPath[$path] ?? 0) + 1;
+        if ($ref !== '') {
+            $byRef[$ref] = ($byRef[$ref] ?? 0) + 1;
+        }
+
+        if (!isset($byIp[$ip])) {
+            $byIp[$ip] = 0;
+        }
+        $byIp[$ip]++;
+
+        $geo = $geoByIp[$ip] ?? null;
+        if ($isPublic && $geo !== null && $geo['status'] === 'ok' && $geo['country_code'] !== '') {
+            $cc = $geo['country_code'];
+            if (!isset($byCountry[$cc])) {
+                $byCountry[$cc] = [
+                    'code' => $cc,
+                    'name' => $geo['country'] !== '' ? $geo['country'] : $cc,
+                    'hits' => 0,
+                    'uniques' => [],
+                ];
+            }
+            $byCountry[$cc]['hits']++;
+            $byCountry[$cc]['uniques'][$ip] = true;
+
+            $cityKey = $cc . "\n" . $geo['city'];
+            if (!isset($byCity[$cityKey])) {
+                $byCity[$cityKey] = [
+                    'city' => $geo['city'] !== '' ? $geo['city'] : 'unknown',
+                    'country' => $geo['country'],
+                    'country_code' => $cc,
+                    'lat' => $geo['lat'],
+                    'lon' => $geo['lon'],
+                    'hits' => 0,
+                ];
+            }
+            $byCity[$cityKey]['hits']++;
+            if ($byCity[$cityKey]['lat'] === null && $geo['lat'] !== null) {
+                $byCity[$cityKey]['lat'] = $geo['lat'];
+                $byCity[$cityKey]['lon'] = $geo['lon'];
+            }
+        }
+
+    }
+
+    arsort($byPath);
+    $topPaths = [];
+    foreach ($byPath as $path => $count) {
+        $topPaths[] = ['path' => (string) $path, 'hits' => (int) $count];
+    }
+    $topPage = $topPaths[0] ?? null;
+
+    $pagesForChart = array_slice($topPaths, 0, 8);
+    $otherHits = 0;
+    foreach (array_slice($topPaths, 8) as $row) {
+        $otherHits += $row['hits'];
+    }
+    if ($otherHits > 0) {
+        $pagesForChart[] = ['path' => 'other', 'hits' => $otherHits];
+    }
+
+    arsort($byRef);
+    $topReferrers = [];
+    $n = 0;
+    foreach ($byRef as $referrer => $count) {
+        $topReferrers[] = ['referrer' => (string) $referrer, 'hits' => (int) $count];
+        if (++$n >= 15) {
+            break;
+        }
+    }
+
+    $countries = [];
+    foreach ($byCountry as $row) {
+        $countries[] = [
+            'code' => $row['code'],
+            'name' => $row['name'],
+            'hits' => (int) $row['hits'],
+            'uniques' => count($row['uniques']),
+        ];
+    }
+    usort($countries, static fn(array $a, array $b): int => $b['hits'] <=> $a['hits']);
+    $topCountry = $countries[0] ?? null;
+
+    $mapPoints = [];
+    foreach ($byCity as $row) {
+        if ($row['lat'] === null || $row['lon'] === null) {
+            continue;
+        }
+        $mapPoints[] = [
+            'city' => $row['city'],
+            'country' => $row['country'],
+            'country_code' => $row['country_code'],
+            'lat' => $row['lat'],
+            'lon' => $row['lon'],
+            'hits' => (int) $row['hits'],
+        ];
+    }
+    usort($mapPoints, static fn(array $a, array $b): int => $b['hits'] <=> $a['hits']);
+
+    $series = [];
+    try {
+        if ($hourly) {
+            $cursor = (new DateTimeImmutable('@' . ($since ?? ($nowTs - 86400))))->setTimezone($tz);
+            $cursor = $cursor->setTime((int) $cursor->format('H'), 0, 0);
+            $endHour = $now->setTime((int) $now->format('H'), 0, 0);
+            while ($cursor <= $endHour) {
+                $key = $cursor->format('Y-m-d H:00');
+                $series[] = [
+                    'day' => $key,
+                    'label' => $cursor->format('n/j H:00'),
+                    'hits' => (int) ($byBucketHits[$key] ?? 0),
+                    'uniques' => isset($byBucketUniq[$key]) ? count($byBucketUniq[$key]) : 0,
+                ];
+                $cursor = $cursor->modify('+1 hour');
+            }
+        } else {
+            if ($since !== null) {
+                $cursor = (new DateTimeImmutable('@' . $since))->setTimezone($tz)->setTime(0, 0, 0);
+            } elseif ($byBucketHits !== []) {
+                $first = min(array_keys($byBucketHits));
+                $cursor = new DateTimeImmutable($first, $tz);
+            } else {
+                $cursor = null;
+            }
+            $end = $now->setTime(0, 0, 0);
+            if ($cursor !== null) {
+                while ($cursor <= $end) {
+                    $key = $cursor->format('Y-m-d');
+                    $series[] = [
+                        'day' => $key,
+                        'label' => $key,
+                        'hits' => (int) ($byBucketHits[$key] ?? 0),
+                        'uniques' => isset($byBucketUniq[$key]) ? count($byBucketUniq[$key]) : 0,
+                    ];
+                    $cursor = $cursor->modify('+1 day');
+                }
+            }
+        }
+    } catch (Throwable $e) {
+        $series = [];
+    }
+
+    $asnRows = [];
+    foreach ($byIp as $ip => $count) {
+        $geo = $geoByIp[$ip] ?? null;
+        $isPublic = hits_ip_is_public((string) $ip);
+        $status = $geo['status'] ?? ($isPublic ? 'pending' : 'private');
+        $org = '';
+        if ($geo !== null) {
+            $org = $geo['org'] !== '' ? $geo['org'] : $geo['asn_org'];
+        }
+        $asnRows[] = [
+            'ip' => (string) $ip,
+            'asn' => $geo['asn'] ?? '',
+            'org' => $org,
+            'country' => $geo['country'] ?? '',
+            'country_code' => $geo['country_code'] ?? '',
+            'city' => $isPublic ? ($geo['city'] ?? '') : 'legacy',
+            'hits' => (int) $count,
+            'legacy' => !$isPublic,
+            'status' => $status,
+        ];
+    }
+    usort($asnRows, static fn(array $a, array $b): int => $b['hits'] <=> $a['hits']);
+
+    $recentPage = hits_recent_page($range, $hideBots, 0, 25);
+
+    return [
+        'range' => $range,
+        'range_label' => hits_range_label($range),
+        'bucket' => $hourly ? 'hour' : 'day',
+        'hide_bots' => $hideBots,
+        'geo_looked_up' => (int) $geoRefresh['looked_up'],
+        'geo_pending' => (int) $geoRefresh['pending'],
+        'headlines' => [
+            'hits' => $hitsAll,
+            'uniques' => count($uniqAll),
+            'hits_today' => $hitsToday,
+            'uniques_today' => count($uniqToday),
+            'top_page' => $topPage,
+            'top_country' => $topCountry,
+            'legacy_hits' => $legacyHits,
+            'bot_hits' => $botHits,
+            'bot_hidden' => $botHidden,
+        ],
+        'daily' => $series,
+        'pages' => $pagesForChart,
+        'top_paths' => array_slice($topPaths, 0, 15),
+        'top_referrers' => $topReferrers,
+        'countries' => $countries,
+        'map_points' => $mapPoints,
+        'asn_rows' => $asnRows,
+        'recent' => $recentPage['rows'],
+        'recent_has_more' => $recentPage['has_more'],
+    ];
 }

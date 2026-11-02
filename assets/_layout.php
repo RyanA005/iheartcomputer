@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/hits.php';
 
-function new_render_header(string $title, string $description = 'IHEARTCOMPUTER - computer club at NJIT'): void
+function new_render_header(string $title, string $description = 'IHEARTCOMPUTER - computer club at NJIT', string $extraHead = ''): void
 {
     hits_log();
     ?>
@@ -15,6 +15,9 @@ function new_render_header(string $title, string $description = 'IHEARTCOMPUTER 
   <title><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?></title>
   <link rel="icon" type="image/x-icon" href="/assets/logo.png">
   <link rel="stylesheet" href="/style.css">
+<?php if ($extraHead !== ''): ?>
+  <?= $extraHead . "\n" ?>
+<?php endif; ?>
 </head>
 <body>
   <div class="wrap">
