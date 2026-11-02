@@ -31,8 +31,8 @@ function new_render_header(string $title, string $description = 'IHEARTCOMPUTER 
       <nav class="nav" aria-label="primary">
         <a href="/projects/">projects</a>
         <a href="/about/">about</a>
-        <a href="https://discord.gg/JpRw84Ybwg">discord</a>
-        <a href="https://www.instagram.com/iheartcomputer.club/">instagram</a>
+        <a href="/discord">discord</a>
+        <a href="/instagram">instagram</a>
       </nav>
     </header>
     <main style="padding-top: 1.5rem;">
@@ -51,8 +51,8 @@ function new_render_footer(): void
         <nav class="nav" aria-label="footer">
           <a href="/projects/">projects</a>
           <a href="/about/">about</a>
-          <a href="https://discord.gg/JpRw84Ybwg">discord</a>
-          <a href="https://www.instagram.com/iheartcomputer.club/">instagram</a>
+          <a href="/discord">discord</a>
+          <a href="/instagram">instagram</a>
         </nav>
       </footer>
     </main>

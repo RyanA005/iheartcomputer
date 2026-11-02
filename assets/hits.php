@@ -274,7 +274,7 @@ function hits_path_is_site(string $path): bool
         return true;
     }
 
-    static $prefixes = ['/about', '/showcase', '/projects', '/sites', '/discord', '/assets', '/error', '/old'];
+    static $prefixes = ['/about', '/showcase', '/projects', '/sites', '/discord', '/instagram', '/assets', '/error', '/old'];
     foreach ($prefixes as $pre) {
         if ($path === $pre || str_starts_with($path, $pre . '/')) {
             return true;

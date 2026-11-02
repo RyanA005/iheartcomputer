@@ -15,7 +15,7 @@ new_render_header('IHEARTCOMPUTER');
           <h1 class="h1">Computer Club at NJIT</h1>
           <p class="muted" style="margin: 0 0 1.1rem;">Weekly projects, demos, workshops, and whatever else we feel like. Come make cool stuff with us!</p>
           <div class="row" style="justify-content: flex-start; gap: 1rem 1.25rem;">
-            <a class="btn" href="https://discord.gg/JpRw84Ybwg">join discord →</a>
+            <a class="btn" href="/discord">join discord →</a>
             <a class="upper blue" href="/about/" style="font-size: 0.85rem;">about us →</a>
           </div>
           <p class="nca-aside" style="margin: 1.1rem 0 0;">
@@ -24,7 +24,7 @@ new_render_header('IHEARTCOMPUTER');
         </div>
       </section>
 
-      <a class="panel band" href="https://discord.gg/JpRw84Ybwg" style="padding: 1.1rem 1.1rem 1.1rem 1.25rem; margin-bottom: 2rem;">
+      <a class="panel band" href="/discord" style="padding: 1.1rem 1.1rem 1.1rem 1.25rem; margin-bottom: 2rem;">
         <div>
           <span class="upper red" style="display: block; font-size: 0.75rem; margin-bottom: 0.35rem;">next meeting</span>
           <strong class="upper" style="display: block; font-size: 1.35rem; line-height: 1.15;">From Code to Project: Building Software That Scales</strong>

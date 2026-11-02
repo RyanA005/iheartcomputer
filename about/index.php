@@ -50,7 +50,7 @@ new_render_header('About - IHEARTCOMPUTER', 'IHEARTCOMPUTER - About the club and
           All experience levels. All majors. Anyone can join, anyone can
           present, we got no rules.
         </p>
-        <a class="upper blue" href="https://discord.gg/JpRw84Ybwg" style="font-size: 0.85rem;">come to a meeting →</a>
+        <a class="upper blue" href="/discord" style="font-size: 0.85rem;">come to a meeting →</a>
       </section>
 
       <hr>

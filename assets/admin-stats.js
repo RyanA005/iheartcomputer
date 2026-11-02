@@ -82,7 +82,8 @@
     if (pagesCanvas && allPages.length) {
       var pagePalette = palette.concat(['#b35a00', '#5a2d82', '#0d7377', '#8a1a1a']);
       var fit = 12;
-      if (pagesLegend) {
+      var stacked = window.matchMedia && window.matchMedia('(max-width: 760px)').matches;
+      if (pagesLegend && !stacked) {
         pagesLegend.innerHTML = '';
         var probe = document.createElement('li');
         probe.innerHTML = '<i></i><span class="path">/measure</span>';
