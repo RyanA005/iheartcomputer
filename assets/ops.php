@@ -283,12 +283,18 @@ function ops_status(string $root = '', bool $fetch = true): array
         $git['error'] = ops_explain_git_error($dirty['output']) ?: $dirty['output'];
     }
 
-    if ($fetch) {
+    // Pull on this host uses sudo /usr/local/sbin/iheartcomputer-pull as root.
+    // git fetch as the php-fpm user fails (no known_hosts / deploy key) and
+    // must not be reported as "cannot reach GitHub" when the wrapper exists.
+    $hasWrapper = is_file(ops_pull_wrapper()) && is_executable(ops_pull_wrapper());
+    if ($fetch && !$hasWrapper) {
         $fetched = ops_git(['fetch', '--prune', 'origin'], $root, 20);
         $git['fetched'] = $fetched['ok'];
         if (!$fetched['ok']) {
             $git['fetch_error'] = ops_explain_git_error($fetched['output']) ?: $fetched['output'];
         }
+    } elseif ($hasWrapper) {
+        $git['fetched'] = true;
     }
 
     $counts = ops_git(['rev-list', '--left-right', '--count', 'HEAD...origin/main'], $root, 8);

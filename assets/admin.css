@@ -73,31 +73,120 @@
   font-size: 0.82rem;
 }
 
-.admin-disclosure {
-  margin: 0.75rem 0 0;
-  font-size: 0.82rem;
-}
-
-.admin-disclosure summary {
-  cursor: pointer;
-  color: #555;
-  font-size: 0.78rem;
-}
-
-.admin-disclosure summary:hover {
-  color: #1a4fff;
-}
-
-.admin-disclosure .admin-table-wrap {
-  margin-top: 0.55rem;
-}
-
 .admin-split {
   display: grid;
   grid-template-columns: 1fr 1.15fr;
   gap: 1.25rem;
   align-items: stretch;
   margin-bottom: 1.25rem;
+}
+
+.admin-split-geo,
+.admin-split-threats {
+  align-items: start;
+}
+
+.admin-split-threats > div {
+  min-width: 0;
+}
+
+.admin-pages {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  gap: 0.65rem;
+  height: 16rem;
+  align-items: stretch;
+}
+
+.admin-page-legend-wrap {
+  position: relative;
+  height: 16rem;
+  max-width: 12.5rem;
+}
+
+.admin-page-legend-wrap:has(details[open]) {
+  margin-bottom: 14.5rem;
+}
+
+.admin-page-legend {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: space-evenly;
+  height: 16rem;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.admin-page-legend li {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.15em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.admin-page-legend li.admin-legend-other {
+  overflow: visible;
+}
+
+.admin-page-legend i {
+  flex: 0 0 0.7rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 1px solid #111;
+  background: #ddd;
+}
+
+.admin-page-legend .path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-legend-other details {
+  min-width: 0;
+}
+
+.admin-legend-other summary {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  list-style: none;
+  white-space: nowrap;
+}
+
+.admin-legend-other summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-legend-other summary:hover {
+  color: #1a4fff;
+}
+
+.admin-other-panel {
+  display: none;
+}
+
+.admin-legend-other details[open] .admin-other-panel {
+  display: block;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 14rem;
+  max-height: 14rem;
+  overflow: auto;
+  margin-top: 0.25rem;
+  padding: 0.35rem 0.45rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  z-index: 6;
 }
 
 .admin-chart {
@@ -109,8 +198,13 @@
   height: 18rem;
 }
 
+.admin-geo {
+  position: relative;
+  height: 16rem;
+}
+
 .admin-map {
-  height: 22rem;
+  height: 16rem;
   width: 100%;
   border: 1px solid #ddd;
   background: #ecece8;
@@ -118,7 +212,7 @@
 
 .admin-map .leaflet-container {
   width: 100%;
-  height: 22rem;
+  height: 16rem;
   background: #ecece8;
   font: inherit;
 }
@@ -130,6 +224,17 @@
   margin: 0.75rem 0 0;
   font-size: 0.72rem;
   color: #555;
+}
+
+.admin-geo .admin-legend {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 0.3rem 0.5rem;
+  background: rgba(250, 250, 250, 0.9);
+  z-index: 400;
 }
 
 .admin-legend i {
@@ -333,6 +438,10 @@
 @media (max-width: 760px) {
   .admin-split {
     grid-template-columns: 1fr;
+  }
+
+  .admin-pages {
+    grid-template-columns: minmax(0, 1fr) max-content;
   }
 
   .admin-table .ua {

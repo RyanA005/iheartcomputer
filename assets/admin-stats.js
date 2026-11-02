@@ -73,20 +73,54 @@
       });
     }
 
-    var pages = stats.pages || [];
     var pagesCanvas = document.getElementById('pages-chart');
-    if (pagesCanvas && pages.length) {
-      var pageColors = pages.map(function (p, i) {
-        if (p.kind === 'probes') return '#8a1a1a';
+    var pagesLegend = document.getElementById('pages-legend');
+    var allPages = stats.pages_all || [];
+    if (allPages.length === 0 && stats.pages && stats.pages.length) {
+      allPages = stats.pages.filter(function (p) { return p.kind !== 'other'; }).concat(stats.pages_other || []);
+    }
+    if (pagesCanvas && allPages.length) {
+      var pagePalette = palette.concat(['#b35a00', '#5a2d82', '#0d7377', '#8a1a1a']);
+      var fit = 12;
+      if (pagesLegend) {
+        pagesLegend.innerHTML = '';
+        var probe = document.createElement('li');
+        probe.innerHTML = '<i></i><span class="path">/measure</span>';
+        pagesLegend.appendChild(probe);
+        var itemH = probe.getBoundingClientRect().height || 18;
+        var avail = pagesLegend.clientHeight || pagesLegend.getBoundingClientRect().height || 256;
+        pagesLegend.innerHTML = '';
+        if (itemH > 0) {
+          fit = Math.max(1, Math.min(12, Math.floor(avail / itemH)));
+        }
+      }
+      var named;
+      var rest;
+      if (allPages.length <= fit) {
+        named = allPages;
+        rest = [];
+      } else {
+        named = allPages.slice(0, Math.max(1, fit - 1));
+        rest = allPages.slice(named.length);
+      }
+      var slices = named.map(function (p) {
+        return { path: p.path, hits: p.hits, kind: 'page' };
+      });
+      if (rest.length) {
+        var otherHits = 0;
+        rest.forEach(function (p) { otherHits += p.hits; });
+        slices.push({ path: 'other', hits: otherHits, kind: 'other' });
+      }
+      var pageColors = slices.map(function (p, i) {
         if (p.kind === 'other') return '#777777';
-        return palette[i % palette.length];
+        return pagePalette[i % pagePalette.length];
       });
       new Chart(pagesCanvas, {
         type: 'doughnut',
         data: {
-          labels: pages.map(function (p) { return p.path; }),
+          labels: slices.map(function (p) { return p.path; }),
           datasets: [{
-            data: pages.map(function (p) { return p.hits; }),
+            data: slices.map(function (p) { return p.hits; }),
             backgroundColor: pageColors,
             borderColor: '#fafafa',
             borderWidth: 2,
@@ -96,13 +130,35 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: {
-              position: 'bottom',
-              labels: { boxWidth: 10, font: { size: 11 } },
-            },
+            legend: { display: false },
           },
         },
       });
+      if (pagesLegend) {
+        named.forEach(function (p, i) {
+          var li = document.createElement('li');
+          li.innerHTML = '<i></i><span class="path"></span>';
+          li.querySelector('i').style.background = pageColors[i];
+          li.querySelector('.path').textContent = p.path;
+          pagesLegend.appendChild(li);
+        });
+        if (rest.length) {
+          var otherLi = document.createElement('li');
+          otherLi.className = 'admin-legend-other';
+          otherLi.innerHTML = '<details id="pages-other"><summary><i></i><span class="path"></span></summary><div class="admin-other-panel"><table class="admin-table"><tbody></tbody></table></div></details>';
+          otherLi.querySelector('summary i').style.background = '#777777';
+          otherLi.querySelector('summary .path').textContent = 'other: ' + rest.length + ' paths';
+          var tbody = otherLi.querySelector('tbody');
+          rest.forEach(function (p) {
+            var tr = document.createElement('tr');
+            tr.innerHTML = '<td class="path"></td><td class="num"></td>';
+            tr.cells[0].textContent = p.path;
+            tr.cells[1].textContent = String(p.hits);
+            tbody.appendChild(tr);
+          });
+          pagesLegend.appendChild(otherLi);
+        }
+      }
     }
   }
 
@@ -182,17 +238,64 @@
       .catch(function () {});
   }
 
+  var PAGE_SIZE = 20;
+  var tablePagers = [];
+
+  function attachTablePager(button) {
+    var box = button.closest('.admin-more');
+    var wrap = box ? box.previousElementSibling : null;
+    var table = wrap && wrap.querySelector ? wrap.querySelector('table.admin-table') : null;
+    var tbody = table && table.tBodies[0];
+    if (!box || !table || !tbody) return null;
+    var shown = PAGE_SIZE;
+
+    function apply() {
+      var n = 0;
+      Array.prototype.forEach.call(tbody.rows, function (tr) {
+        if (tr.getAttribute('data-nomatch') === '1') {
+          tr.hidden = true;
+          return;
+        }
+        tr.hidden = n >= shown;
+        n += 1;
+      });
+      box.hidden = n <= shown;
+    }
+
+    button.addEventListener('click', function () {
+      shown += PAGE_SIZE;
+      apply();
+    });
+    apply();
+    var pager = { table: table, apply: apply, reset: function () { shown = PAGE_SIZE; apply(); } };
+    tablePagers.push(pager);
+    return pager;
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.js-table-more'), function (button) {
+    attachTablePager(button);
+  });
+
   var table = document.getElementById('asn-table');
   var search = document.getElementById('asn-search');
   if (table && table.tBodies[0]) {
     var tbody = table.tBodies[0];
+    var asnPager = null;
+    tablePagers.forEach(function (pager) {
+      if (pager.table === table) asnPager = pager;
+    });
 
     if (search) {
       search.addEventListener('input', function () {
         var q = search.value.toLowerCase().trim();
         Array.prototype.forEach.call(tbody.rows, function (tr) {
-          tr.hidden = q !== '' && tr.textContent.toLowerCase().indexOf(q) === -1;
+          if (q !== '' && tr.textContent.toLowerCase().indexOf(q) === -1) {
+            tr.setAttribute('data-nomatch', '1');
+          } else {
+            tr.removeAttribute('data-nomatch');
+          }
         });
+        if (asnPager) asnPager.reset();
       });
     }
 
@@ -221,6 +324,7 @@
           return 0;
         });
         rows.forEach(function (row) { tbody.appendChild(row); });
+        if (asnPager) asnPager.apply();
       });
     });
   }

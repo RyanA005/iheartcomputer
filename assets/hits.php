@@ -350,14 +350,18 @@ function hits_path_is_probe(string $path): bool
 
 /**
  * @param array<string, true> $scannerIps
+ * @param array<string, true> $trustedIps
  * @return 'human'|'crawler'|'scanner'
  */
-function hits_hit_kind(string $ua, string $path, string $ip, array $scannerIps): string
+function hits_hit_kind(string $ua, string $path, string $ip, array $scannerIps, array $trustedIps = []): string
 {
+    if ($ip !== '' && isset($trustedIps[$ip])) {
+        return 'human';
+    }
     if ($ip !== '' && isset($scannerIps[$ip])) {
         return 'scanner';
     }
-    if (hits_path_is_probe($path) || hits_ua_is_scanner($ua)) {
+    if (hits_path_looks_like_exploit($path) || hits_ua_is_scanner($ua)) {
         return 'scanner';
     }
     if (hits_ua_is_crawler($ua)) {
@@ -368,7 +372,22 @@ function hits_hit_kind(string $ua, string $path, string $ip, array $scannerIps):
 }
 
 /**
- * IPs that hit a probe path or used a scanner UA, all-time.
+ * IPs to treat as human (the logged-in admin viewing stats).
+ *
+ * @return array<string, true>
+ */
+function hits_trusted_admin_ips(): array
+{
+    $ip = hits_client_ip();
+    if ($ip === '') {
+        return [];
+    }
+    return [$ip => true];
+}
+
+/**
+ * IPs that hit an exploit/probe-pattern path or used a scanner UA, all-time.
+ * A one-off unknown 404 does not flag the whole IP.
  *
  * @return array<string, true>
  */
@@ -392,7 +411,7 @@ function hits_scanner_ips(?PDO $db = null): array
             if ($ip === '') {
                 continue;
             }
-            if (hits_path_is_probe((string) ($r['path'] ?? '')) || hits_ua_is_scanner((string) ($r['ua'] ?? ''))) {
+            if (hits_path_looks_like_exploit((string) ($r['path'] ?? '')) || hits_ua_is_scanner((string) ($r['ua'] ?? ''))) {
                 $cached[$ip] = true;
             }
         }
@@ -791,7 +810,7 @@ function hits_range_since(string $range, int $nowTs): ?int
  * @param array<string, true> $scannerIps
  * @return array<string, mixed>
  */
-function hits_format_recent_row(array $r, array $geoByIp, array $scannerIps = []): array
+function hits_format_recent_row(array $r, array $geoByIp, array $scannerIps = [], array $trustedIps = []): array
 {
     $ip = (string) ($r['ip'] ?? '');
     $path = (string) ($r['path'] ?? '');
@@ -811,7 +830,7 @@ function hits_format_recent_row(array $r, array $geoByIp, array $scannerIps = []
         $place = 'pending';
     }
 
-    $kind = hits_hit_kind($ua, $path, $ip, $scannerIps);
+    $kind = hits_hit_kind($ua, $path, $ip, $scannerIps, $trustedIps);
 
     return [
         'id' => (int) ($r['id'] ?? 0),
@@ -829,13 +848,18 @@ function hits_format_recent_row(array $r, array $geoByIp, array $scannerIps = []
     ];
 }
 
+function hits_table_page_size(): int
+{
+    return 20;
+}
+
 /**
  * Newest-first page of hits in the selected range. $beforeId is the oldest id
  * already shown; 0 means the first page.
  *
  * @return array{rows: list<array<string, mixed>>, has_more: bool}
  */
-function hits_recent_page(string $range, bool $hideBots, int $beforeId = 0, int $limit = 25): array
+function hits_recent_page(string $range, bool $hideBots, int $beforeId = 0, int $limit = 0): array
 {
     $empty = ['rows' => [], 'has_more' => false];
     $db = hits_db();
@@ -844,6 +868,9 @@ function hits_recent_page(string $range, bool $hideBots, int $beforeId = 0, int 
     }
 
     $range = hits_normalize_range($range);
+    if ($limit <= 0) {
+        $limit = hits_table_page_size();
+    }
     $limit = max(1, min(100, $limit));
     $since = hits_range_since($range, time());
     $geoByIp = hits_geo_all($db);
@@ -872,6 +899,7 @@ function hits_recent_page(string $range, bool $hideBots, int $beforeId = 0, int 
     }
 
     $scannerIps = hits_scanner_ips($db);
+    $trustedIps = hits_trusted_admin_ips();
     $rows = [];
     $hasMore = false;
     while ($r = $stmt->fetch()) {
@@ -879,7 +907,8 @@ function hits_recent_page(string $range, bool $hideBots, int $beforeId = 0, int 
             (string) ($r['ua'] ?? ''),
             (string) ($r['path'] ?? ''),
             (string) ($r['ip'] ?? ''),
-            $scannerIps
+            $scannerIps,
+            $trustedIps
         );
         if ($hideBots && $kind !== 'human') {
             continue;
@@ -888,7 +917,7 @@ function hits_recent_page(string $range, bool $hideBots, int $beforeId = 0, int 
             $hasMore = true;
             break;
         }
-        $rows[] = hits_format_recent_row($r, $geoByIp, $scannerIps);
+        $rows[] = hits_format_recent_row($r, $geoByIp, $scannerIps, $trustedIps);
     }
 
     return ['rows' => $rows, 'has_more' => $hasMore];
@@ -929,6 +958,7 @@ function hits_dashboard(string $range = '24h', bool $hideBots = false): ?array
     }
 
     $scannerIps = hits_scanner_ips($db);
+    $trustedIps = hits_trusted_admin_ips();
 
     $hitsAll = 0;
     $hitsToday = 0;
@@ -958,7 +988,7 @@ function hits_dashboard(string $range = '24h', bool $hideBots = false): ?array
         $ip = (string) $r['ip'];
         $ref = (string) $r['referrer'];
         $ua = (string) $r['ua'];
-        $kind = hits_hit_kind($ua, $path, $ip, $scannerIps);
+        $kind = hits_hit_kind($ua, $path, $ip, $scannerIps, $trustedIps);
         $isProbe = hits_path_is_probe($path);
         $isPublic = hits_ip_is_public($ip);
 
@@ -999,9 +1029,7 @@ function hits_dashboard(string $range = '24h', bool $hideBots = false): ?array
             }
         }
 
-        if (!$isProbe) {
-            $byPath[$path] = ($byPath[$path] ?? 0) + 1;
-        }
+        $byPath[$path] = ($byPath[$path] ?? 0) + 1;
         if ($ref !== '') {
             $byRef[$ref] = ($byRef[$ref] ?? 0) + 1;
         }
@@ -1052,8 +1080,9 @@ function hits_dashboard(string $range = '24h', bool $hideBots = false): ?array
     }
     $topPage = $topPaths[0] ?? null;
 
+    $sliceLimit = 12;
     $pagesForChart = [];
-    foreach (array_slice($topPaths, 0, 8) as $row) {
+    foreach (array_slice($topPaths, 0, $sliceLimit) as $row) {
         $pagesForChart[] = [
             'path' => $row['path'],
             'hits' => $row['hits'],
@@ -1062,7 +1091,7 @@ function hits_dashboard(string $range = '24h', bool $hideBots = false): ?array
     }
     $pagesOther = [];
     $otherHits = 0;
-    foreach (array_slice($topPaths, 8) as $row) {
+    foreach (array_slice($topPaths, $sliceLimit) as $row) {
         $pagesOther[] = $row;
         $otherHits += $row['hits'];
     }
@@ -1080,13 +1109,6 @@ function hits_dashboard(string $range = '24h', bool $hideBots = false): ?array
     foreach ($byProbePath as $path => $count) {
         $probePaths[] = ['path' => (string) $path, 'hits' => (int) $count];
         $probeHits += (int) $count;
-    }
-    if ($probeHits > 0 && !$hideBots) {
-        $pagesForChart[] = [
-            'path' => 'probes',
-            'hits' => $probeHits,
-            'kind' => 'probes',
-        ];
     }
 
     $threatIpRows = [];
@@ -1213,7 +1235,7 @@ function hits_dashboard(string $range = '24h', bool $hideBots = false): ?array
     }
     usort($asnRows, static fn(array $a, array $b): int => $b['hits'] <=> $a['hits']);
 
-    $recentPage = hits_recent_page($range, $hideBots, 0, 25);
+    $recentPage = hits_recent_page($range, $hideBots, 0, hits_table_page_size());
 
     return [
         'range' => $range,
@@ -1237,16 +1259,17 @@ function hits_dashboard(string $range = '24h', bool $hideBots = false): ?array
         ],
         'daily' => $series,
         'pages' => $pagesForChart,
+        'pages_all' => $topPaths,
         'pages_other' => $pagesOther,
-        'top_paths' => array_slice($topPaths, 0, 40),
+        'top_paths' => $topPaths,
         'top_referrers' => $topReferrers,
         'threats' => [
             'hits' => $scannerHits,
             'ips' => count($threatIps),
             'probe_hits' => $probeHits,
             'probe_paths' => count($probePaths),
-            'top_ips' => array_slice($threatIpRows, 0, 15),
-            'top_paths' => array_slice($probePaths, 0, 20),
+            'top_ips' => $threatIpRows,
+            'top_paths' => $probePaths,
         ],
         'countries' => $countries,
         'map_points' => $mapPoints,
