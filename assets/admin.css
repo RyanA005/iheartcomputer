@@ -73,6 +73,25 @@
   font-size: 0.82rem;
 }
 
+.admin-disclosure {
+  margin: 0.75rem 0 0;
+  font-size: 0.82rem;
+}
+
+.admin-disclosure summary {
+  cursor: pointer;
+  color: #555;
+  font-size: 0.78rem;
+}
+
+.admin-disclosure summary:hover {
+  color: #1a4fff;
+}
+
+.admin-disclosure .admin-table-wrap {
+  margin-top: 0.55rem;
+}
+
 .admin-split {
   display: grid;
   grid-template-columns: 1fr 1.15fr;

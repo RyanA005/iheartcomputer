@@ -76,13 +76,18 @@
     var pages = stats.pages || [];
     var pagesCanvas = document.getElementById('pages-chart');
     if (pagesCanvas && pages.length) {
+      var pageColors = pages.map(function (p, i) {
+        if (p.kind === 'probes') return '#8a1a1a';
+        if (p.kind === 'other') return '#777777';
+        return palette[i % palette.length];
+      });
       new Chart(pagesCanvas, {
         type: 'doughnut',
         data: {
           labels: pages.map(function (p) { return p.path; }),
           datasets: [{
             data: pages.map(function (p) { return p.hits; }),
-            backgroundColor: pages.map(function (_, i) { return palette[i % palette.length]; }),
+            backgroundColor: pageColors,
             borderColor: '#fafafa',
             borderWidth: 2,
           }],
@@ -232,9 +237,7 @@
         load_recent: '1',
         before: more.getAttribute('data-before') || '0',
       });
-      if (more.getAttribute('data-hide-bots') === '1') {
-        params.set('hide_bots', '1');
-      }
+      params.set('hide_bots', more.getAttribute('data-hide-bots') === '0' ? '0' : '1');
       fetch('/admin/?' + params.toString(), { credentials: 'same-origin' })
         .then(function (res) {
           if (!res.ok) throw new Error('load failed');

@@ -156,13 +156,13 @@ function ops_explain_git_error(string $output): string
 {
     $low = strtolower($output);
     if (str_contains($low, 'dubious ownership') || str_contains($low, 'safe.directory')) {
-        return 'git refuses this checkout (dubious ownership). Add a safe.directory entry for the site path, or make the php-fpm user own the checkout.';
+        return 'git refuses this checkout (dubious ownership).';
     }
     if (str_contains($low, 'host key verification failed') || str_contains($low, 'no ed25519 host key')) {
-        return 'cannot reach GitHub over SSH: github.com is not in this user\'s known_hosts (php-fpm user has no home/ssh).';
+        return 'cannot reach GitHub over SSH.';
     }
     if (str_contains($low, 'permission denied (publickey)') || str_contains($low, 'could not read from remote')) {
-        return 'cannot authenticate to GitHub as this user (no deploy key / ssh agent).';
+        return 'cannot authenticate to GitHub as this user.';
     }
     if (str_contains($low, 'permission denied') || str_contains($low, 'cannot lock') || str_contains($low, 'unable to write')) {
         return 'this user cannot write .git or the working tree.';

@@ -73,10 +73,15 @@ function h(?string $value): string
 function admin_url(string $range, bool $hideBots): string
 {
     $q = ['range' => $range];
-    if ($hideBots) {
-        $q['hide_bots'] = 1;
+    if (!$hideBots) {
+        $q['hide_bots'] = 0;
     }
     return '/admin/?' . http_build_query($q);
+}
+
+function admin_hide_bots(): bool
+{
+    return (string) ($_GET['hide_bots'] ?? '1') !== '0';
 }
 
 function admin_requested_range(): string
@@ -186,7 +191,8 @@ function admin_recent_row_html(array $row): string
                         <td class="mono">
                           <?= h($row['ip']) ?>
                           <?php if (!empty($row['legacy'])): ?><span class="admin-tag">legacy</span><?php endif; ?>
-                          <?php if (!empty($row['bot'])): ?><span class="admin-tag">bot</span><?php endif; ?>
+                          <?php if (($row['kind'] ?? '') === 'scanner'): ?><span class="admin-tag">scanner</span>
+                          <?php elseif (($row['kind'] ?? '') === 'crawler'): ?><span class="admin-tag">crawler</span><?php endif; ?>
                         </td>
                         <td><?= h($row['place'] !== '' ? $row['place'] : '—') ?></td>
                         <td class="ua" title="<?= h($row['ua']) ?>"><?= h($row['ua'] !== '' ? $row['ua'] : '—') ?></td>
@@ -199,12 +205,12 @@ function admin_recent_row_html(array $row): string
 $authed = !empty($_SESSION['admin_authed']);
 $view = $authed ? admin_view() : 'stats';
 $range = '24h';
-$hideBots = false;
+$hideBots = true;
 $ops = null;
 $opsFlash = null;
 if ($authed) {
     $range = admin_requested_range();
-    $hideBots = (string) ($_GET['hide_bots'] ?? '') === '1';
+    $hideBots = admin_hide_bots();
     if ($view === 'operations') {
         $ops = ops_status();
         if (isset($_SESSION['ops_flash']) && is_array($_SESSION['ops_flash'])) {
@@ -440,18 +446,13 @@ $hl = is_array($summary['headlines'] ?? null) ? $summary['headlines'] : null;
           <div class="panel admin-panel">
             <h2 class="upper">pull from github</h2>
             <p style="margin: 0 0 0.85rem; font-size: 0.9rem;">
-              fetches origin and fast-forwards <span class="mono">main</span> only. refuses a dirty tree or a diverging history.
+              fetches origin and fast-forwards <span class="mono">main</span>.
             </p>
             <form method="post" action="/admin/?view=operations">
               <input type="hidden" name="csrf" value="<?= h(admin_csrf_token()) ?>">
               <input type="hidden" name="action" value="pull">
               <button class="btn" type="submit" <?= $canPull ? '' : 'disabled' ?>>pull from github</button>
             </form>
-            <?php if ($pullBlock !== ''): ?>
-              <p class="red" style="margin: 0.85rem 0 0; font-size: 0.85rem;"><?= h($pullBlock) ?></p>
-            <?php elseif (!empty($ops['wrapper'])): ?>
-              <p class="admin-note">will run <?= h((string) $ops['wrapper_path']) ?> via sudo -n</p>
-            <?php endif; ?>
           </div>
         <?php else: ?>
         <div class="admin-controls" style="margin-bottom: 1.15rem;">
@@ -503,9 +504,6 @@ $hl = is_array($summary['headlines'] ?? null) ? $summary['headlines'] : null;
 
           <?php
             $bucketWord = ($summary['bucket'] ?? 'day') === 'hour' ? 'hour' : 'day';
-            $chartNote = ($summary['bucket'] ?? 'day') === 'hour'
-                ? 'rolling 24 hours, hourly buckets in America/New_York. unique visitors skip loopback/private IPs.'
-                : $summary['range_label'] . ', by America/New_York calendar day. unique visitors skip loopback/private IPs.';
           ?>
           <div class="panel admin-panel">
             <h2 class="upper">hits and unique visitors per <?= h($bucketWord) ?></h2>
@@ -515,7 +513,6 @@ $hl = is_array($summary['headlines'] ?? null) ? $summary['headlines'] : null;
               <div class="admin-chart admin-chart-wide">
                 <canvas id="daily-chart" aria-label="hits and unique visitors per <?= h($bucketWord) ?>"></canvas>
               </div>
-              <p class="admin-note"><?= h($chartNote) ?></p>
             <?php endif; ?>
           </div>
 
@@ -528,6 +525,33 @@ $hl = is_array($summary['headlines'] ?? null) ? $summary['headlines'] : null;
                 <div class="admin-chart">
                   <canvas id="pages-chart" aria-label="hits by page"></canvas>
                 </div>
+                <?php
+                  $otherPages = is_array($summary['pages_other'] ?? null) ? $summary['pages_other'] : [];
+                  $otherHits = 0;
+                  foreach ($otherPages as $row) {
+                      $otherHits += (int) $row['hits'];
+                  }
+                ?>
+                <?php if ($otherPages !== []): ?>
+                  <details class="admin-disclosure">
+                    <summary>other: <?= number_format($otherHits) ?> hits across <?= number_format(count($otherPages)) ?> paths</summary>
+                    <div class="admin-table-wrap">
+                      <table class="admin-table">
+                        <tbody>
+                          <?php foreach ($otherPages as $row): ?>
+                            <tr>
+                              <td class="path"><?= h($row['path']) ?></td>
+                              <td class="num"><?= number_format((int) $row['hits']) ?></td>
+                            </tr>
+                          <?php endforeach; ?>
+                        </tbody>
+                      </table>
+                    </div>
+                  </details>
+                <?php endif; ?>
+                <?php if (!$hideBots && (int) ($summary['threats']['probe_hits'] ?? 0) > 0): ?>
+                  <p class="admin-note">probe paths are grouped as probes. see threats / scanners below.</p>
+                <?php endif; ?>
               <?php endif; ?>
             </div>
             <div class="panel admin-panel" style="margin-bottom: 0;">
@@ -678,6 +702,73 @@ $hl = is_array($summary['headlines'] ?? null) ? $summary['headlines'] : null;
               <?php endif; ?>
             <?php endif; ?>
           </div>
+
+          <?php
+            $threats = is_array($summary['threats'] ?? null) ? $summary['threats'] : [];
+            $threatHits = (int) ($threats['hits'] ?? 0);
+          ?>
+          <?php if ($threatHits > 0): ?>
+            <div class="panel admin-panel">
+              <h2 class="upper">threats / scanners</h2>
+              <div class="admin-split" style="margin-bottom: 0;">
+                <div>
+                  <?php if (empty($threats['top_ips'])): ?>
+                    <p class="admin-empty">none</p>
+                  <?php else: ?>
+                    <div class="admin-table-wrap">
+                      <table class="admin-table">
+                        <thead>
+                          <tr>
+                            <th class="upper">IP / ASN</th>
+                            <th class="upper">org</th>
+                            <th class="upper num">hits</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <?php foreach ($threats['top_ips'] as $row): ?>
+                            <?php
+                              $ipAsn = $row['ip'];
+                              if ($row['asn'] !== '') {
+                                  $ipAsn .= ' · ' . $row['asn'];
+                              }
+                            ?>
+                            <tr>
+                              <td class="mono"><?= h($ipAsn) ?></td>
+                              <td>
+                                <?= h($row['org'] !== '' ? $row['org'] : '—') ?>
+                                <?php if ($row['country_code'] !== ''): ?>
+                                  <span class="muted"><?= h($row['country_code']) ?></span>
+                                <?php endif; ?>
+                              </td>
+                              <td class="num"><?= number_format((int) $row['hits']) ?></td>
+                            </tr>
+                          <?php endforeach; ?>
+                        </tbody>
+                      </table>
+                    </div>
+                  <?php endif; ?>
+                </div>
+                <div>
+                  <?php if (empty($threats['top_paths'])): ?>
+                    <p class="admin-empty">none</p>
+                  <?php else: ?>
+                    <div class="admin-table-wrap">
+                      <table class="admin-table">
+                        <tbody>
+                          <?php foreach ($threats['top_paths'] as $row): ?>
+                            <tr>
+                              <td class="path"><?= h($row['path']) ?></td>
+                              <td class="num"><?= number_format((int) $row['hits']) ?></td>
+                            </tr>
+                          <?php endforeach; ?>
+                        </tbody>
+                      </table>
+                    </div>
+                  <?php endif; ?>
+                </div>
+              </div>
+            </div>
+          <?php endif; ?>
 
           <script type="application/json" id="stats-data"><?= json_encode(
               [

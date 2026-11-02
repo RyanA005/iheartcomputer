@@ -234,17 +234,173 @@ function hits_ip_is_public(string $ip): bool
     return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
 }
 
-function hits_ua_is_bot(string $ua): bool
+function hits_ua_is_scanner(string $ua): bool
+{
+    $ua = trim($ua);
+    if ($ua === '') {
+        return false;
+    }
+
+    return (bool) preg_match(
+        '/nuclei|sqlmap|nmap(?:\/|\s)|wpscan|nikto|dirbuster|gobuster|feroxbuster|\bffuf\b|httpx(?:\/|\s)|masscan|zgrab|nessus|openvas|acunetix|burpsuite|owasp.?zap|\bw3af\b|havij|zmeu|libredtail|python-nmap|scanbot|wp.?vuln|masscan|zgrab2/i',
+        $ua
+    );
+}
+
+function hits_ua_is_crawler(string $ua): bool
 {
     $ua = trim($ua);
     if ($ua === '') {
         return true;
     }
+    if (hits_ua_is_scanner($ua)) {
+        return false;
+    }
 
     return (bool) preg_match(
-        '/bot|crawler|crawl|spider|slurp|facebookexternalhit|facebot|internetmeasurement|uptimerobot|pingdom|headless|curl\/|wget\/|python-requests|python-urllib|go-http-client|libwww|httpie|okhttp|scrapy|semrush|ahrefs|bytespider|gptbot|claudebot|amazonbot|ia_archiver|discordbot|slackbot|telegram|whatsapp|linkedinbot|applebot|bingpreview|duckduckbot|yandex|mj12bot|dotbot|petalbot/i',
+        '/bot|crawler|crawl|spider|slurp|indexer|externalhit|externalagent|facebookcatalog|facebot|internetmeasurement|uptimerobot|pingdom|headless|curl\/|wget\/|python-requests|python-urllib|go-http-client|libwww|httpie\/|okhttp|scrapy|semrush|ahrefs|bytespider|chatgpt-user|gptbot|claude-user|claude-search|claudebot|amazonbot|ia_archiver|discordbot|slackbot|telegram|whatsapp|linkedinbot|applebot|bingpreview|duckduck|yandex|mj12bot|dotbot|petalbot|perplexity|meta-webindexer|meta-external|duckassist|oai-|youbot|hunyuan|grokbot|deepseek|qwenbot|moonshot|bravebot|adsbot|searchbot|preview/i',
         $ua
     );
+}
+
+function hits_ua_is_bot(string $ua): bool
+{
+    return hits_ua_is_crawler($ua) || hits_ua_is_scanner($ua);
+}
+
+function hits_path_is_site(string $path): bool
+{
+    if ($path === '/' || $path === '/style.css') {
+        return true;
+    }
+
+    static $prefixes = ['/about', '/showcase', '/projects', '/sites', '/discord', '/assets', '/error', '/old'];
+    foreach ($prefixes as $pre) {
+        if ($path === $pre || str_starts_with($path, $pre . '/')) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function hits_path_is_benign_unknown(string $path): bool
+{
+    $p = strtolower($path);
+    if (
+        $p === '/robots.txt'
+        || $p === '/favicon.ico'
+        || $p === '/sitemap.xml'
+        || $p === '/sitemap_index.xml'
+        || $p === '/ads.txt'
+        || $p === '/humans.txt'
+        || $p === '/security.txt'
+    ) {
+        return true;
+    }
+    if (str_starts_with($p, '/apple-touch-icon')) {
+        return true;
+    }
+    if (str_starts_with($p, '/.well-known/')) {
+        return true;
+    }
+
+    return false;
+}
+
+function hits_path_looks_like_exploit(string $path): bool
+{
+    $p = strtolower($path);
+
+    return (bool) preg_match(
+        '#(?:' .
+            '(?:^|/)(?:wp-admin|wp-login(?:\.php)?|wp-content|wp-includes|wp-config|xmlrpc\.php|' .
+            'phpmyadmin|pma(?:/|$)|adminer(?:/|$)|phpinfo(?:\.php)?|eval-stdin|' .
+            'cgi-bin|vendor/phpunit|telescope|_debugbar|_profiler|server-status|' .
+            'server-info|actuator|solr(?:/|$)|graphql(?:/|$)|phpmyadmin)' .
+            '|' .
+            '(?:^|/)\.(?:env(?:\.|$)|git(?:/|$)|svn(?:/|$)|aws(?:/|$)|htpasswd|htaccess|' .
+            'ds_store|bash(?:rc|_history|_profile)|zshrc|npmrc|docker(?:/|$))' .
+            '|' .
+            '(?:aws.?credentials|\.aws/|service.?account|credentials\.json|secrets\.(?:env|json|ya?ml)|' .
+            'docker-compose|\.tfvars|terraform\.tfstate|id_rsa|\.pem$|\.key$|proc/self|' .
+            'kubernetes\.io|phpinfo|_environment)' .
+            '|' .
+            '(?:^|/)(?:\.env|config\.env|config\.py|settings\.py|local_settings\.py|' .
+            'web\.config|wp-config)' .
+        ')#',
+        $p
+    );
+}
+
+function hits_path_is_probe(string $path): bool
+{
+    if ($path === '') {
+        return false;
+    }
+    if (hits_path_looks_like_exploit($path)) {
+        return true;
+    }
+    if (hits_path_is_site($path) || hits_path_is_benign_unknown($path)) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @param array<string, true> $scannerIps
+ * @return 'human'|'crawler'|'scanner'
+ */
+function hits_hit_kind(string $ua, string $path, string $ip, array $scannerIps): string
+{
+    if ($ip !== '' && isset($scannerIps[$ip])) {
+        return 'scanner';
+    }
+    if (hits_path_is_probe($path) || hits_ua_is_scanner($ua)) {
+        return 'scanner';
+    }
+    if (hits_ua_is_crawler($ua)) {
+        return 'crawler';
+    }
+
+    return 'human';
+}
+
+/**
+ * IPs that hit a probe path or used a scanner UA, all-time.
+ *
+ * @return array<string, true>
+ */
+function hits_scanner_ips(?PDO $db = null): array
+{
+    static $cached = null;
+    if ($cached !== null) {
+        return $cached;
+    }
+
+    $cached = [];
+    $db = $db ?? hits_db();
+    if ($db === null) {
+        return $cached;
+    }
+
+    try {
+        $q = $db->query('SELECT DISTINCT ip, path, ua FROM hits');
+        foreach ($q as $r) {
+            $ip = (string) ($r['ip'] ?? '');
+            if ($ip === '') {
+                continue;
+            }
+            if (hits_path_is_probe((string) ($r['path'] ?? '')) || hits_ua_is_scanner((string) ($r['ua'] ?? ''))) {
+                $cached[$ip] = true;
+            }
+        }
+    } catch (Throwable $e) {
+        return $cached;
+    }
+
+    return $cached;
 }
 
 /**
@@ -630,16 +786,16 @@ function hits_range_since(string $range, int $nowTs): ?int
 }
 
 /**
- * @return array<string, mixed>|null
- */
-/**
  * @param array<string, mixed> $r
  * @param array<string, array<string, mixed>> $geoByIp
+ * @param array<string, true> $scannerIps
  * @return array<string, mixed>
  */
-function hits_format_recent_row(array $r, array $geoByIp): array
+function hits_format_recent_row(array $r, array $geoByIp, array $scannerIps = []): array
 {
     $ip = (string) ($r['ip'] ?? '');
+    $path = (string) ($r['path'] ?? '');
+    $ua = (string) ($r['ua'] ?? '');
     $isPublic = hits_ip_is_public($ip);
     $geo = $geoByIp[$ip] ?? null;
     $legacy = !$isPublic;
@@ -655,15 +811,19 @@ function hits_format_recent_row(array $r, array $geoByIp): array
         $place = 'pending';
     }
 
+    $kind = hits_hit_kind($ua, $path, $ip, $scannerIps);
+
     return [
         'id' => (int) ($r['id'] ?? 0),
         'ts' => (int) ($r['ts'] ?? 0),
         'when' => hits_format_ts((int) ($r['ts'] ?? 0)),
-        'path' => (string) ($r['path'] ?? ''),
+        'path' => $path,
         'ip' => $ip,
         'referrer' => (string) ($r['referrer'] ?? ''),
-        'ua' => (string) ($r['ua'] ?? ''),
-        'bot' => hits_ua_is_bot((string) ($r['ua'] ?? '')),
+        'ua' => $ua,
+        'kind' => $kind,
+        'bot' => $kind !== 'human',
+        'probe' => hits_path_is_probe($path),
         'legacy' => $legacy,
         'place' => $place,
     ];
@@ -711,17 +871,24 @@ function hits_recent_page(string $range, bool $hideBots, int $beforeId = 0, int 
         return $empty;
     }
 
+    $scannerIps = hits_scanner_ips($db);
     $rows = [];
     $hasMore = false;
     while ($r = $stmt->fetch()) {
-        if ($hideBots && hits_ua_is_bot((string) ($r['ua'] ?? ''))) {
+        $kind = hits_hit_kind(
+            (string) ($r['ua'] ?? ''),
+            (string) ($r['path'] ?? ''),
+            (string) ($r['ip'] ?? ''),
+            $scannerIps
+        );
+        if ($hideBots && $kind !== 'human') {
             continue;
         }
         if (count($rows) >= $limit) {
             $hasMore = true;
             break;
         }
-        $rows[] = hits_format_recent_row($r, $geoByIp);
+        $rows[] = hits_format_recent_row($r, $geoByIp, $scannerIps);
     }
 
     return ['rows' => $rows, 'has_more' => $hasMore];
@@ -761,20 +928,25 @@ function hits_dashboard(string $range = '24h', bool $hideBots = false): ?array
         return null;
     }
 
+    $scannerIps = hits_scanner_ips($db);
+
     $hitsAll = 0;
     $hitsToday = 0;
     $legacyHits = 0;
-    $botHits = 0;
+    $crawlerHits = 0;
+    $scannerHits = 0;
     $botHidden = 0;
     $uniqAll = [];
     $uniqToday = [];
     $byPath = [];
+    $byProbePath = [];
     $byRef = [];
     $byBucketHits = [];
     $byBucketUniq = [];
     $byCountry = [];
     $byCity = [];
     $byIp = [];
+    $threatIps = [];
 
     foreach ($rows as $r) {
         $ts = (int) $r['ts'];
@@ -786,13 +958,23 @@ function hits_dashboard(string $range = '24h', bool $hideBots = false): ?array
         $ip = (string) $r['ip'];
         $ref = (string) $r['referrer'];
         $ua = (string) $r['ua'];
-        $isBot = hits_ua_is_bot($ua);
+        $kind = hits_hit_kind($ua, $path, $ip, $scannerIps);
+        $isProbe = hits_path_is_probe($path);
         $isPublic = hits_ip_is_public($ip);
 
-        if ($isBot) {
-            $botHits++;
+        if ($kind === 'crawler') {
+            $crawlerHits++;
+        } elseif ($kind === 'scanner') {
+            $scannerHits++;
+            if ($ip !== '') {
+                $threatIps[$ip] = ($threatIps[$ip] ?? 0) + 1;
+            }
+            if ($isProbe) {
+                $byProbePath[$path] = ($byProbePath[$path] ?? 0) + 1;
+            }
         }
-        if ($hideBots && $isBot) {
+
+        if ($hideBots && $kind !== 'human') {
             $botHidden++;
             continue;
         }
@@ -817,7 +999,9 @@ function hits_dashboard(string $range = '24h', bool $hideBots = false): ?array
             }
         }
 
-        $byPath[$path] = ($byPath[$path] ?? 0) + 1;
+        if (!$isProbe) {
+            $byPath[$path] = ($byPath[$path] ?? 0) + 1;
+        }
         if ($ref !== '') {
             $byRef[$ref] = ($byRef[$ref] ?? 0) + 1;
         }
@@ -868,14 +1052,62 @@ function hits_dashboard(string $range = '24h', bool $hideBots = false): ?array
     }
     $topPage = $topPaths[0] ?? null;
 
-    $pagesForChart = array_slice($topPaths, 0, 8);
+    $pagesForChart = [];
+    foreach (array_slice($topPaths, 0, 8) as $row) {
+        $pagesForChart[] = [
+            'path' => $row['path'],
+            'hits' => $row['hits'],
+            'kind' => 'page',
+        ];
+    }
+    $pagesOther = [];
     $otherHits = 0;
     foreach (array_slice($topPaths, 8) as $row) {
+        $pagesOther[] = $row;
         $otherHits += $row['hits'];
     }
     if ($otherHits > 0) {
-        $pagesForChart[] = ['path' => 'other', 'hits' => $otherHits];
+        $pagesForChart[] = [
+            'path' => 'other',
+            'hits' => $otherHits,
+            'kind' => 'other',
+        ];
     }
+
+    arsort($byProbePath);
+    $probePaths = [];
+    $probeHits = 0;
+    foreach ($byProbePath as $path => $count) {
+        $probePaths[] = ['path' => (string) $path, 'hits' => (int) $count];
+        $probeHits += (int) $count;
+    }
+    if ($probeHits > 0 && !$hideBots) {
+        $pagesForChart[] = [
+            'path' => 'probes',
+            'hits' => $probeHits,
+            'kind' => 'probes',
+        ];
+    }
+
+    $threatIpRows = [];
+    foreach ($threatIps as $ip => $count) {
+        $geo = $geoByIp[$ip] ?? null;
+        $org = '';
+        $asn = '';
+        if (is_array($geo)) {
+            $asn = (string) ($geo['asn'] ?? '');
+            $org = $geo['org'] !== '' ? (string) $geo['org'] : (string) ($geo['asn_org'] ?? '');
+        }
+        $threatIpRows[] = [
+            'ip' => (string) $ip,
+            'hits' => (int) $count,
+            'asn' => $asn,
+            'org' => $org,
+            'country' => is_array($geo) ? (string) ($geo['country'] ?? '') : '',
+            'country_code' => is_array($geo) ? (string) ($geo['country_code'] ?? '') : '',
+        ];
+    }
+    usort($threatIpRows, static fn(array $a, array $b): int => $b['hits'] <=> $a['hits']);
 
     arsort($byRef);
     $topReferrers = [];
@@ -998,13 +1230,24 @@ function hits_dashboard(string $range = '24h', bool $hideBots = false): ?array
             'top_page' => $topPage,
             'top_country' => $topCountry,
             'legacy_hits' => $legacyHits,
-            'bot_hits' => $botHits,
+            'crawler_hits' => $crawlerHits,
+            'scanner_hits' => $scannerHits,
+            'bot_hits' => $crawlerHits + $scannerHits,
             'bot_hidden' => $botHidden,
         ],
         'daily' => $series,
         'pages' => $pagesForChart,
-        'top_paths' => array_slice($topPaths, 0, 15),
+        'pages_other' => $pagesOther,
+        'top_paths' => array_slice($topPaths, 0, 40),
         'top_referrers' => $topReferrers,
+        'threats' => [
+            'hits' => $scannerHits,
+            'ips' => count($threatIps),
+            'probe_hits' => $probeHits,
+            'probe_paths' => count($probePaths),
+            'top_ips' => array_slice($threatIpRows, 0, 15),
+            'top_paths' => array_slice($probePaths, 0, 20),
+        ],
         'countries' => $countries,
         'map_points' => $mapPoints,
         'asn_rows' => $asnRows,
