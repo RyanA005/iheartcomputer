@@ -26,6 +26,7 @@ session_start();
 
 require dirname(__DIR__) . '/assets/_layout.php';
 require_once dirname(__DIR__) . '/assets/hits.php';
+require_once dirname(__DIR__) . '/assets/ops.php';
 
 function load_dotenv(string $path): array
 {
@@ -88,6 +89,27 @@ function admin_requested_range(): string
     return hits_normalize_range($range !== '' ? $range : '24h');
 }
 
+function admin_view(): string
+{
+    $view = strtolower((string) ($_GET['view'] ?? 'stats'));
+    return in_array($view, ['operations', 'ops'], true) ? 'operations' : 'stats';
+}
+
+function admin_csrf_token(): string
+{
+    if (empty($_SESSION['csrf']) || !is_string($_SESSION['csrf'])) {
+        $_SESSION['csrf'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf'];
+}
+
+function admin_csrf_ok(): bool
+{
+    $got = (string) ($_POST['csrf'] ?? '');
+    $want = (string) ($_SESSION['csrf'] ?? '');
+    return $got !== '' && $want !== '' && hash_equals($want, $got);
+}
+
 $env = load_dotenv(dirname(__DIR__) . '/.env');
 $password = $env['PASSWORD'] ?? '';
 
@@ -117,12 +139,37 @@ if (isset($_GET['logout'])) {
 }
 
 $error = '';
+$authed = !empty($_SESSION['admin_authed']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = (string) ($_POST['action'] ?? '');
+    if ($action === 'pull') {
+        if (!$authed) {
+            http_response_code(403);
+            echo 'forbidden';
+            exit;
+        }
+        if (!admin_csrf_ok()) {
+            $_SESSION['ops_flash'] = [
+                'ok' => false,
+                'output' => 'csrf check failed; reload and try again.',
+                'reason' => 'csrf',
+                'from' => '',
+                'to' => '',
+            ];
+            header('Location: /admin/?view=operations');
+            exit;
+        }
+        $_SESSION['ops_flash'] = ops_pull();
+        header('Location: /admin/?view=operations');
+        exit;
+    }
+
     $submitted = (string) ($_POST['password'] ?? '');
     if (hash_equals($password, $submitted)) {
         session_regenerate_id(true);
         $_SESSION['admin_authed'] = true;
+        unset($_SESSION['csrf']);
         header('Location: /admin/');
         exit;
     }
@@ -150,11 +197,21 @@ function admin_recent_row_html(array $row): string
 }
 
 $authed = !empty($_SESSION['admin_authed']);
+$view = $authed ? admin_view() : 'stats';
 $range = '24h';
 $hideBots = false;
+$ops = null;
+$opsFlash = null;
 if ($authed) {
     $range = admin_requested_range();
     $hideBots = (string) ($_GET['hide_bots'] ?? '') === '1';
+    if ($view === 'operations') {
+        $ops = ops_status();
+        if (isset($_SESSION['ops_flash']) && is_array($_SESSION['ops_flash'])) {
+            $opsFlash = $_SESSION['ops_flash'];
+            unset($_SESSION['ops_flash']);
+        }
+    }
 }
 
 if ((string) ($_GET['load_recent'] ?? '') === '1') {
@@ -186,24 +243,33 @@ if ((string) ($_GET['load_recent'] ?? '') === '1') {
     exit;
 }
 
-$hitsStatus = $authed ? hits_status() : null;
+$hitsStatus = ($authed && $view === 'stats') ? hits_status() : null;
 $summary = ($hitsStatus !== null && $hitsStatus['ok']) ? hits_dashboard($range, $hideBots) : null;
 
 $extraHead = '<link rel="stylesheet" href="/assets/admin.css">';
-if ($authed) {
+if ($authed && $view === 'stats') {
     $extraHead = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">' . "\n  " . $extraHead;
 }
 
-new_render_header('Stats - IHEARTCOMPUTER', 'IHEARTCOMPUTER - Admin', $extraHead);
+$pageTitle = $view === 'operations' ? 'Operations - IHEARTCOMPUTER' : 'Stats - IHEARTCOMPUTER';
+new_render_header($pageTitle, 'IHEARTCOMPUTER - Admin', $extraHead);
 
 $hl = is_array($summary['headlines'] ?? null) ? $summary['headlines'] : null;
 ?>
 
       <div class="admin-head">
         <div class="row" style="align-items: baseline;">
-          <h1 class="h1" style="margin: 0;">Stats</h1>
           <?php if ($authed): ?>
+            <h1 class="h1" style="margin: 0;">
+              <?php if ($view === 'stats'): ?>
+                <span class="admin-current">stats</span><span class="muted"> / </span><a class="admin-switch" href="/admin/?view=operations">operations</a>
+              <?php else: ?>
+                <a class="admin-switch" href="/admin/">stats</a><span class="muted"> / </span><span class="admin-current">operations</span>
+              <?php endif; ?>
+            </h1>
             <a class="upper blue" href="/admin/?logout=1" style="font-size: 0.85rem;">logout →</a>
+          <?php else: ?>
+            <h1 class="h1" style="margin: 0;">Admin</h1>
           <?php endif; ?>
         </div>
       </div>
@@ -225,6 +291,169 @@ $hl = is_array($summary['headlines'] ?? null) ? $summary['headlines'] : null;
           <?php endif; ?>
         </form>
       <?php else: ?>
+        <?php if ($view === 'operations'): ?>
+          <?php
+            $g = is_array($ops['git'] ?? null) ? $ops['git'] : [];
+            $onMain = !empty($g['on_main']);
+            $dirty = !empty($g['dirty']);
+            $ahead = $g['ahead'];
+            $behind = $g['behind'];
+            $diverged = is_int($ahead) && is_int($behind) && $ahead > 0 && $behind > 0;
+            $canPull = !empty($g['ok']) && $onMain && !$dirty && !$diverged;
+            $pullBlock = '';
+            if (!$onMain) {
+                $pullBlock = 'HEAD is not main.';
+            } elseif ($dirty) {
+                $pullBlock = 'working tree has local changes.';
+            } elseif ($diverged) {
+                $pullBlock = 'local and origin/main have diverged; fast-forward is not possible.';
+            }
+          ?>
+
+          <?php if (is_array($opsFlash)): ?>
+            <div class="panel admin-panel <?= !empty($opsFlash['ok']) ? 'admin-flash-ok' : 'admin-flash-bad' ?>">
+              <h2 class="upper"><?= !empty($opsFlash['ok']) ? 'pull ok' : 'pull failed' ?></h2>
+              <?php if (!empty($opsFlash['reason'])): ?>
+                <p style="margin: 0 0 0.7rem;"><?= h((string) $opsFlash['reason']) ?></p>
+              <?php endif; ?>
+              <?php
+                $fromH = substr((string) ($opsFlash['from'] ?? ''), 0, 7);
+                $toH = substr((string) ($opsFlash['to'] ?? ''), 0, 7);
+              ?>
+              <?php if ($fromH !== '' || $toH !== ''): ?>
+                <p class="mono" style="margin: 0 0 0.7rem;">
+                  <?= h($fromH !== '' ? $fromH : '?') ?>
+                  →
+                  <?php if ($toH !== '' && !empty($opsFlash['to'])): ?>
+                    <a href="<?= h(ops_commit_url((string) $opsFlash['to'])) ?>"><?= h($toH) ?></a>
+                  <?php else: ?>
+                    <?= h($toH !== '' ? $toH : '?') ?>
+                  <?php endif; ?>
+                </p>
+              <?php endif; ?>
+              <?php if ((string) ($opsFlash['output'] ?? '') !== ''): ?>
+                <pre class="admin-pre"><?= h((string) $opsFlash['output']) ?></pre>
+              <?php endif; ?>
+            </div>
+          <?php endif; ?>
+
+          <div class="admin-split">
+            <div class="panel admin-panel" style="margin-bottom: 0;">
+              <h2 class="upper">deployed commit</h2>
+              <?php if (empty($g['ok'])): ?>
+                <p class="admin-empty"><?= h((string) ($g['error'] ?? 'git status unavailable')) ?></p>
+              <?php else: ?>
+                <table class="admin-table">
+                  <tbody>
+                    <tr>
+                      <td class="upper muted" style="width: 7.5rem;">commit</td>
+                      <td class="mono">
+                        <?php if (!empty($g['url'])): ?>
+                          <a href="<?= h($g['url']) ?>"><?= h($g['hash']) ?></a>
+                        <?php else: ?>
+                          <?= h($g['hash']) ?>
+                        <?php endif; ?>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="upper muted">message</td>
+                      <td><?= h($g['subject']) ?></td>
+                    </tr>
+                    <tr>
+                      <td class="upper muted">author</td>
+                      <td><?= h($g['author']) ?></td>
+                    </tr>
+                    <tr>
+                      <td class="upper muted">date</td>
+                      <td class="mono"><?= h($g['date']) ?></td>
+                    </tr>
+                    <tr>
+                      <td class="upper muted">branch</td>
+                      <td class="mono"><?= h($g['branch']) ?></td>
+                    </tr>
+                    <tr>
+                      <td class="upper muted">tree</td>
+                      <td><?= $dirty ? '<span class="red">dirty</span>' : 'clean' ?></td>
+                    </tr>
+                    <tr>
+                      <td class="upper muted">vs origin</td>
+                      <td>
+                        <?php if (is_int($ahead) && is_int($behind)): ?>
+                          <?= (int) $ahead ?> ahead · <?= (int) $behind ?> behind
+                          <?= !empty($g['fetched']) ? '' : ' <span class="muted">(local origin/main)</span>' ?>
+                        <?php else: ?>
+                          <span class="muted">unknown</span>
+                        <?php endif; ?>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <?php if (!empty($g['fetch_error'])): ?>
+                  <p class="admin-note"><?= h((string) $g['fetch_error']) ?></p>
+                <?php endif; ?>
+                <?php if ($dirty && $g['dirty_summary'] !== ''): ?>
+                  <pre class="admin-pre" style="margin-top: 0.75rem;"><?= h((string) $g['dirty_summary']) ?></pre>
+                <?php endif; ?>
+              <?php endif; ?>
+            </div>
+            <div class="panel admin-panel" style="margin-bottom: 0;">
+              <h2 class="upper">server</h2>
+              <table class="admin-table">
+                <tbody>
+                  <tr>
+                    <td class="upper muted" style="width: 7.5rem;">host</td>
+                    <td class="mono"><?= h((string) ($ops['host'] ?? '')) ?></td>
+                  </tr>
+                  <tr>
+                    <td class="upper muted">php user</td>
+                    <td class="mono"><?= h((string) ($ops['user'] ?? '')) ?></td>
+                  </tr>
+                  <tr>
+                    <td class="upper muted">php</td>
+                    <td class="mono"><?= h((string) ($ops['php'] ?? '')) ?> · <?= h((string) ($ops['sapi'] ?? '')) ?></td>
+                  </tr>
+                  <tr>
+                    <td class="upper muted">uptime</td>
+                    <td><?= h((string) ($ops['uptime'] !== '' ? $ops['uptime'] : '—')) ?></td>
+                  </tr>
+                  <tr>
+                    <td class="upper muted">load</td>
+                    <td class="mono"><?= h((string) ($ops['load'] !== '' ? $ops['load'] : '—')) ?></td>
+                  </tr>
+                  <tr>
+                    <td class="upper muted">disk free</td>
+                    <td><?= h((string) ($ops['disk_free'] !== '' ? $ops['disk_free'] : '—')) ?>
+                      <?php if (!empty($ops['disk_total'])): ?>
+                        <span class="muted"> / <?= h((string) $ops['disk_total']) ?></span>
+                      <?php endif; ?>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="upper muted">hits db</td>
+                    <td><?= h((string) ($ops['hits_size'] !== '' ? $ops['hits_size'] : '—')) ?></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel admin-panel">
+            <h2 class="upper">pull from github</h2>
+            <p style="margin: 0 0 0.85rem; font-size: 0.9rem;">
+              fetches origin and fast-forwards <span class="mono">main</span> only. refuses a dirty tree or a diverging history.
+            </p>
+            <form method="post" action="/admin/?view=operations">
+              <input type="hidden" name="csrf" value="<?= h(admin_csrf_token()) ?>">
+              <input type="hidden" name="action" value="pull">
+              <button class="btn" type="submit" <?= $canPull ? '' : 'disabled' ?>>pull from github</button>
+            </form>
+            <?php if ($pullBlock !== ''): ?>
+              <p class="red" style="margin: 0.85rem 0 0; font-size: 0.85rem;"><?= h($pullBlock) ?></p>
+            <?php elseif (!empty($ops['wrapper'])): ?>
+              <p class="admin-note">will run <?= h((string) $ops['wrapper_path']) ?> via sudo -n</p>
+            <?php endif; ?>
+          </div>
+        <?php else: ?>
         <div class="admin-controls" style="margin-bottom: 1.15rem;">
           <?php foreach (hits_ranges() as $key => $info): ?>
             <a class="chip<?= $range === $key ? ' chip-on' : '' ?>" href="<?= h(admin_url($key, $hideBots)) ?>"><?= h($info['label']) ?></a>
@@ -463,6 +692,7 @@ $hl = is_array($summary['headlines'] ?? null) ? $summary['headlines'] : null;
           <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
           <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
           <script src="/assets/admin-stats.js"></script>
+        <?php endif; ?>
         <?php endif; ?>
       <?php endif; ?>
 
