@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Take a one-file classroom assignment to a collaborative, testable, releasable software project. A field guide to structure, Git, builds, packages, testing, and CI/CD.">
+  <meta name="theme-color" content="#101827">
+  <title>From Code to Project - IHEARTCOMPUTER</title>
+  <link rel="icon" href="/assets/logo.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#contents">Skip to chapters</a>
+  <div class="page" id="top">
+    <header class="bar">
+      <a class="brand" href="/" aria-label="IHEARTCOMPUTER home">I<span>♥</span>COMPUTER</a>
+      <nav aria-label="Club"><a href="/projects/">projects</a><a href="/about/">about</a><a href="https://discord.gg/JpRw84Ybwg">discord</a></nav>
+    </header>
+    <main>
+      <header class="hero">
+        <h2>From Code To Project:</h2>
+        <h1>Building <em>Scalable</em> Software.</h1>
+        <p class="sub">How to turn a one-file classroom assignment into a large project that other people can build, change, test, and ship.</p>
+        <p class="by"><a href="../../about/#armen-deroian">Armen Deroian</a> · IHEARTCOMPUTER · November 4, 2026</p>
+      </header>
+      <nav id="contents" class="contents" aria-label="Presentation chapters"><a href="#why">01 Why it matters</a><a href="#one-file">02 Structure</a><a href="#git">03 Git</a><a href="#build">04 Build systems</a><a href="#packages">05 Packages & tools</a><a href="#testing">06 Testing</a><a href="#ci">07 CI / CD</a><a href="#exercise">08 Next steps</a></nav>
+      <section id="why" class="" aria-labelledby="why-title">
+  <div class="tag"><span>01</span><span>01 / why it matters</span></div>
+  <div class="body">
+    <h2 id="why-title">"It works on my machine"</h2>
+    <p class="lead">Famous last words. You can build and run the project on your machine, but your teammate cannot.</p>
+    <dl class="three">
+    <div><dt>“Module not found”</dt><dd>You installed something globally and forgot to record it.</dd></div>
+    <div><dt>“What command do I run?”</dt><dd>The steps are in your memory, not in the repository.</dd></div>
+    <div><dt>“Where is the data?”</dt><dd>Your code assumes a file, local server, or environment variable exists.</dd></div>
+    </dl>
+  </div>
+</section>
+<section id="promise" class="" aria-labelledby="promise-title">
+  <div class="tag"><span>02</span><span>01 / why it matters</span></div>
+  <div class="body">
+    <h2 id="promise-title">The five promises of a real project</h2>
+    <p class="lead">A new contributor should be able to answer five questions without calling the original author.</p>
+    <ol class="steps">
+    <li><strong>Understand</strong>: What does the app do, and where does the important logic live?</li>
+    <li><strong>Run</strong>: What environment and commands reproduce it locally?</li>
+    <li><strong>Change</strong>: How can I make one feature safely?</li>
+    <li><strong>Verify</strong>: How do I know I did not break something?</li>
+    <li><strong>Ship</strong>: How does tested code become a release?</li>
+    </ol>
+    <p>Project structure, Git, dependency management, builds, tests, and pipelines each solve part of that contract.</p>
+  </div>
+</section>
+<section id="roadmap" class="" aria-labelledby="roadmap-title">
+  <div class="tag"><span>03</span><span>01 / why it matters</span></div>
+  <div class="body">
+    <h2 id="roadmap-title">Presentation example: a campus events application</h2>
+    <p>We will scale one imagined application from a script that lists campus events into a small, maintainable project. We will revisit this <strong>same imagined project</strong> in each chapter.</p>
+    <div class="columns"><div><h3>Now: one script</h3><p>Read a JSON file, filter events by day, print results in a terminal.</p></div><div><h3>Later: a product</h3><p>Reusable event logic, an API or UI, persistence, tests, and a documented release process.</p></div></div>
+    <ol class="pipeline"><li><strong>Code</strong> → isolate responsibilities</li><li><strong>Structure &amp; Git</strong> → collaborate on changes</li><li><strong>Build &amp; packages</strong> → make setup predictable</li><li><strong>Tests</strong> → catch regressions</li><li><strong>CI/CD</strong> → automate verification and release</li></ol>
+  </div>
+</section>
+<section id="one-file" class="" aria-labelledby="one-file-title">
+  <div class="tag"><span>04</span><span>02 / structure</span></div>
+  <div class="body">
+    <h2 id="one-file-title">The "one-file" solution</h2>
+    <p>There is nothing inherently wrong with one file. It becomes a problem when input, business rules, and storage become difficult to change independently.</p>
+    <pre><code># campus_events.py - simplified starting point
+    import json
+    from pathlib import Path
+
+    records = json.loads(Path(&quot;events.json&quot;).read_text())
+    requested_day = input(&quot;Event date (YYYY-MM-DD): &quot;)
+
+    for event in records:
+        if event[&quot;date&quot;] == requested_day:
+            print(event[&quot;title&quot;])</code></pre>
+    <p><strong>Hidden assumptions:</strong> execution starts in a specific directory, the JSON file exists, and every event has a <code>date</code> and <code>title</code>.</p>
+    <p class="takeaway">Our first refactor is not to randomly create folders, but to create groups of meaningful ownership and responsibility.</p>
+  </div>
+</section>
+<section id="boundaries" class="" aria-labelledby="boundaries-title">
+  <div class="tag"><span>05</span><span>02 / structure</span></div>
+  <div class="body">
+    <h2 id="boundaries-title">Split by ownership &amp; responsibility, not by file length</h2>
+    <dl><div><dt>Domain logic</dt><dd>Rules about events: filtering, validation, duplicate detection. Ideally unaware of the terminal or database.</dd></div>
+    <div><dt>Input / output</dt><dd>CLI commands or HTTP routes. Translate user input into calls to domain logic.</dd></div>
+    <div><dt>Infrastructure</dt><dd>Read JSON, query a database, or call another service. These details can change independently.</dd></div></dl>
+    <p>A <strong>module</strong> groups related code. A <strong>package</strong> makes code importable or distributable. An <strong>application</strong> is the runnable product. These concepts overlap but are not interchangeable.</p>
+    <p class="exercise">If the app gains a web page tomorrow, should event filtering be rewritten?</p>
+  </div>
+</section>
+<section id="tree" class="" aria-labelledby="tree-title">
+  <div class="tag"><span>06</span><span>02 / structure</span></div>
+  <div class="body">
+    <h2 id="tree-title">A small project needs a small structure</h2>
+    <p>Important: this is an <strong>example layout</strong> for the campus events Python app and is not a universal template.</p>
+    <pre><code>campus-events/
+    ├── README.md                   # what, requirements, commands
+    ├── pyproject.toml              # metadata, dependencies, tools
+    ├── uv.lock                     # resolved dependencies
+    ├── .python-version             # runtime choice
+    ├── .gitignore                  # local/generated files to omit
+    ├── .env.example                # safe configuration example
+    ├── data/events.example.json   # non-sensitive sample data
+    ├── src/campus_events/
+    │   ├── __init__.py
+    │   ├── cli.py                  # terminal entry point
+    │   ├── events.py               # domain rules
+    │   └── storage.py              # persistence
+    ├── tests/test_events.py
+    └── .github/workflows/ci.yml</code></pre>
+    <p><strong>Guideline:</strong> start with the smallest arrangement that makes navigation obvious; introduce subpackages only when a genuine boundary appears.</p>
+  </div>
+</section>
+<section id="interfaces" class="" aria-labelledby="interfaces-title">
+  <div class="tag"><span>07</span><span>02 / structure</span></div>
+  <div class="body">
+    <h2 id="interfaces-title">Put the behavior behind a reusable function</h2>
+    <pre><code># src/campus_events/events.py
+
+    def events_on_date(events: list[dict], day: str) -&gt; list[dict]:
+        &quot;&quot;&quot;Return events whose ISO date equals day, preserving order.&quot;&quot;&quot;
+        return [event for event in events if event[&quot;date&quot;] == day]</code></pre>
+    <p>Now the CLI and a future web route can both call <code>events_on_date</code>. The function has no terminal prompts, filesystem reads, or HTTP objects.</p>
+    <pre><code># Conceptual call flow
+    CLI:  parse arguments -&gt; events_on_date(...) -&gt; print results
+    API:  parse request   -&gt; events_on_date(...) -&gt; return JSON</code></pre>
+    <p><strong>Contract to document:</strong> dates are <code>YYYY-MM-DD</code> strings, records have a <code>date</code> key, and invalid input is validated at the boundary. Decide what the function promises before optimizing it.</p>
+  </div>
+</section>
+<section id="repo-choice" class="" aria-labelledby="repo-choice-title">
+  <div class="tag"><span>08</span><span>02 / structure</span></div>
+  <div class="body">
+    <h2 id="repo-choice-title">Folders, monorepos, and multiple repos are different decisions</h2>
+    <div class="table-wrap"><table><caption>Choose repository boundaries based on change patterns, ownership, and releases.</caption><thead><tr><th scope="col">Layout</th><th scope="col">Good fit</th><th scope="col">Trade-off</th></tr></thead><tbody><tr><th scope="row">One application / one repo</th><td>A CLI, website, or service with one release cycle</td><td>Simple to navigate; avoid inventing packages before they help</td></tr><tr><th scope="row">Monorepo / several projects</th><td>Web + API + shared contracts that change together</td><td>Easy atomic changes; more workspace/build coordination</td></tr><tr><th scope="row">Multiple repositories</th><td>Independently owned, secured, or released components</td><td>Clear release boundaries; cross-repo compatibility work</td></tr></tbody></table></div>
+    <p><strong>Neither a monorepo nor microservices are requirements for “production quality.”</strong> You can run a very large application from one repository.</p>
+  </div>
+</section>
+<section id="personal-case" class="" aria-labelledby="personal-case-title">
+  <div class="tag"><span>09</span><span>02 / structure</span></div>
+  <div class="body">
+    <h2 id="personal-case-title">Real example: one fullstack app</h2>
+    <p><a href="https://github.com/aderoian/personal-website">aderoian/personal-website</a> is a SvelteKit project. Its repository documents Node, npm, a dev command, checks, and deployment.</p>
+    <pre><code># Simplified map based on the repository README
+    src/                  # application code and routes
+    src/lib/schemas/      # validation shared across features
+    static/assets/        # public assets
+    data/                 # JSON-backed content
+    package.json          # script and dependency interface
+    package-lock.json     # npm lockfile
+    Dockerfile            # runtime image recipe</code></pre>
+    <p>Examples of commands from its manifest: <code>npm run dev</code>, <code>npm run check</code>, <code>npm run lint</code>, <code>npm test</code>, and <code>npm run build</code>.</p>
+    <p class="takeaway">“Fullstack” describes what the app does, not how many repositories you need.</p>
+    <p class="source">Source: <a href="https://github.com/aderoian/personal-website/blob/stable/README.md">README</a> and <a href="https://github.com/aderoian/personal-website/blob/stable/package.json">manifest</a>.</p>
+  </div>
+</section>
+<section id="readme" class="" aria-labelledby="readme-title">
+  <div class="tag"><span>10</span><span>02 / structure</span></div>
+  <div class="body">
+    <h2 id="readme-title">README: your first teammate’s first five minutes</h2>
+    <p class="lead">Write the instructions for someone who knows the language but knows nothing about your laptop.</p>
+    <ol><li><strong>Purpose:</strong> one paragraph, plus a screenshot or small usage example if useful.</li>
+    <li><strong>Prerequisites:</strong> supported runtime, package manager, database or system tools.</li>
+    <li><strong>Setup:</strong> one reliable install command and a safe <code>.env.example</code>.</li>
+    <li><strong>Work loop:</strong> commands to run, test, lint, build, and reset local data.</li>
+    <li><strong>Contributing:</strong> where to change a feature and how to propose it.</li></ol>
+    <p>Include sample data and migrations if needed. Do not assume local credentials or production resources.</p>
+    <p class="exercise">Checkpoint: could someone who missed today’s talk start the project using only this file?</p>
+  </div>
+</section>
+<section id="git" class="" aria-labelledby="git-title">
+  <div class="tag"><span>11</span><span>03 / git</span></div>
+  <div class="body">
+    <h2 id="git-title">Git turns edits into inspectable history</h2>
+    <p>Git is version control; GitHub and GitLab are collaboration platforms built around Git repositories.</p>
+    <pre><code># For a new, unversioned project
+    git init
+    git status
+
+    git switch -c feature/date-filter
+    # edit events.py, tests, and README
+    git diff
+    git add src/ tests/ README.md
+    git diff --staged
+    git commit -m &quot;Add date filtering for campus events&quot;
+
+    # After adding a remote named origin
+    git push -u origin feature/date-filter</code></pre>
+    <p>Open a pull request with <strong>what changed, why, and how it was tested</strong>. Review the diff before staging. Use your team’s branching and merge convention.</p>
+    <p class="takeaway">The unit of collaboration is a small, understandable change, not a week-long mystery commit.</p>
+  </div>
+</section>
+<section id="gitignore" class="" aria-labelledby="gitignore-title">
+  <div class="tag"><span>12</span><span>03 / git</span></div>
+  <div class="body">
+    <h2 id="gitignore-title">"Oh no! The Intern committed the .env file" - Use .gitignore</h2>
+    <div class="columns"><div><h3>Commit</h3><p>Source, tests, README, configuration, project metadata, lockfiles for applications, migrations, and safe fixtures.</p></div>
+    <div><h3>Ignore</h3><p>Virtual environments, downloaded dependencies, caches, logs, generated builds, credentials, and machine-specific settings.</p></div></div>
+    <pre><code># Example .gitignore - choose entries that match your stack
+    .venv/
+    __pycache__/
+    .pytest_cache/
+    .ruff_cache/
+    node_modules/
+    dist/
+    build/
+    .env
+    .env.*
+    !.env.example</code></pre>
+    <p><code>.gitignore</code> does not untrack existing commits. Use <code>git rm --cached &lt;path&gt;</code> to stop tracking a file. A leaked token must be revoked or rotated even if you later delete its file.</p>
+  </div>
+</section>
+<section id="review" class="" aria-labelledby="review-title">
+  <div class="tag"><span>13</span><span>03 / git</span></div>
+  <div class="body">
+    <h2 id="review-title">A pull request is more than a merge button</h2>
+    <ol class="pipeline"><li><strong>Create</strong> a focused branch and commit.</li><li><strong>Explain</strong> the intended behavior and link the issue or requirement.</li><li><strong>Verify</strong> by running local checks and reading the CI results.</li><li><strong>Review</strong> interfaces, test cases, documentation, and unintended changes.</li><li><strong>Merge</strong> when required checks pass; keep the main branch releasable.</li></ol>
+    <p>Example PR description: “Adds optional event-date filtering to CLI output. Updated tests for matching and non-matching dates. Verified with <code>uv run pytest</code>.”</p>
+    <p class="exercise">What would you expect a reviewer to ask if the filter uses your computer’s local timezone?</p>
+  </div>
+</section>
+<section id="build" class="" aria-labelledby="build-title">
+  <div class="tag"><span>14</span><span>04 / build systems</span></div>
+  <div class="body">
+    <h2 id="build-title">What is a build system actually doing?</h2>
+    <p class="lead">A build is a repeatable transformation from inputs to outputs. A build system coordinates the steps and their dependencies.</p>
+    <dl><div><dt>Inputs</dt><dd>Source files, configuration, dependencies, assets, compiler/runtime versions.</dd></div>
+    <div><dt>Tasks</dt><dd>Generate code, compile, link, bundle, optimize, validate, package.</dd></div>
+    <div><dt>Outputs</dt><dd>Executables, <code>dist/</code> sites, wheels, JARs, or container images.</dd></div></dl>
+    <p>Some languages interpret source directly. They still need tasks for linting, testing, packaging, and deployment. <strong>A development server is not the same as a production build.</strong></p>
+  </div>
+</section>
+<section id="build-graph" class="" aria-labelledby="build-graph-title">
+  <div class="tag"><span>15</span><span>04 / build systems</span></div>
+  <div class="body">
+    <h2 id="build-graph-title">A dependency graph saves time and prevents bad ordering</h2>
+    <pre><code># Conceptual C++ target graph
+    src/events.cpp --&gt; events.o --+
+                                +--&gt; link --&gt; campus-events
+    src/main.cpp   --&gt; main.o ----+</code></pre><pre><code># CMake configures a build; Ninja/Make execute it
+    cmake -S . -B build -G Ninja
+    cmake --build build</code></pre>
+    <p>If only <code>events.cpp</code> changes, an incremental build may recompile it and relink, rather than rebuild everything. This depends on accurate dependency tracking.</p>
+    <p>Other examples: Vite bundles client assets; Gradle orchestrates JVM tasks; Cargo resolves Rust dependencies and builds crates. <strong>Some tools combine roles.</strong></p>
+    <p class="source">Reference: <a href="https://cmake.org/cmake/help/latest/guide/tutorial/index.html">CMake tutorial</a>.</p>
+  </div>
+</section>
+<section id="command-surface" class="" aria-labelledby="command-surface-title">
+  <div class="tag"><span>16</span><span>04 / build systems</span></div>
+  <div class="body">
+    <h2 id="command-surface-title">Project commands are a public interface</h2>
+    <p>Developers, editors, and CI should be able to run the same named operations.</p>
+    <pre><code>// Teaching example: package.json script definitions
+    &quot;scripts&quot;: {
+      &quot;dev&quot;: &quot;vite&quot;,
+      &quot;build&quot;: &quot;vite build&quot;,
+      &quot;check&quot;: &quot;tsc --noEmit&quot;,
+      &quot;lint&quot;: &quot;eslint .&quot;,
+      &quot;test&quot;: &quot;vitest run&quot;
+    }</code></pre>
+    <p><code>npm run dev</code> starts a local work loop; <code>npm run build</code> creates the distribution; <code>npm test</code> runs automated checks. The real <a href="https://github.com/aderoian/personal-website/blob/stable/package.json">personal-website manifest</a> provides a similar developer command surface, using Svelte-specific checking.</p>
+    <p>Also document where the artifact lands, how to preview it, and which operating systems and runtimes are supported.</p>
+  </div>
+</section>
+<section id="tool-map" class="" aria-labelledby="tool-map-title">
+  <div class="tag"><span>17</span><span>04 / build systems</span></div>
+  <div class="body">
+    <h2 id="tool-map-title">Same problems; different ecosystems</h2>
+    <div class="table-wrap"><table><caption>These are common choices, not required stacks.</caption><thead><tr><th scope="col">Language / runtime</th><th scope="col">Dependency management</th><th scope="col">Build / tasks</th><th scope="col">Common tests</th></tr></thead><tbody><tr><th scope="row">JavaScript / TS</th><td>npm · pnpm · Yarn</td><td>Vite · npm scripts · Next.js</td><td>Vitest · Playwright</td></tr><tr><th scope="row">Python</th><td>pip + venv · uv · Poetry</td><td>Build backends · uv run · task runners</td><td>pytest</td></tr><tr><th scope="row">Java / Kotlin</th><td>Maven · Gradle</td><td>Maven · Gradle</td><td>JUnit</td></tr><tr><th scope="row">C / C++</th><td>vcpkg · Conan</td><td>CMake + Ninja / Make · Meson</td><td>CTest · GoogleTest</td></tr><tr><th scope="row">Rust</th><td>Cargo</td><td>Cargo</td><td>cargo test</td></tr><tr><th scope="row">Go</th><td>Go modules</td><td>go build</td><td>go test</td></tr><tr><th scope="row">.NET</th><td>NuGet</td><td>dotnet · MSBuild</td><td>dotnet test</td></tr></tbody></table></div>
+    <p>Learn the <strong>responsibility</strong> of a tool before memorizing its syntax. Gradle and Cargo, for example, both manage dependencies and orchestrate builds.</p>
+  </div>
+</section>
+<section id="packages" class="" aria-labelledby="packages-title">
+  <div class="tag"><span>18</span><span>05 / packages & tools</span></div>
+  <div class="body">
+    <h2 id="packages-title">A manifest is the shopping list; a lockfile is the receipt</h2>
+    <dl><div><dt>Manifest</dt><dd>Declares direct packages, allowed versions, project metadata, and sometimes executable tasks.</dd></div>
+    <div><dt>Lockfile</dt><dd>Records the resolved dependency graph at versions chosen by the package manager.</dd></div>
+    <div><dt>Runtime / environment</dt><dd>Specifies interpreter, compiler, OS/system libraries, services, and configuration.</dd></div></dl>
+    <pre><code># Simplified Python pyproject.toml fragment
+    [project]
+    name = &quot;campus-events&quot;
+    version = &quot;0.1.0&quot;
+    requires-python = &quot;&gt;=3.12&quot;
+    dependencies = []
+
+    # uv.lock: generated by uv; commit for this application
+    # .python-version: selected interpreter version</code></pre>
+    <p>The lockfile makes application installs more predictable, but it cannot pin your OS, native toolchain, external APIs, or secrets. Do not manually edit generated lockfiles.</p>
+  </div>
+</section>
+<section id="setup" class="" aria-labelledby="setup-title">
+  <div class="tag"><span>19</span><span>05 / packages & tools</span></div>
+  <div class="body">
+    <h2 id="setup-title">One setup path: from script to Python project</h2>
+    <p>For our running example, <a href="https://docs.astral.sh/uv/guides/projects/">uv</a> can initialize project metadata, manage a local environment, and create a lockfile.</p>
+    <pre><code># One-time project setup; run outside an existing project
+    uv init --package campus-events --python 3.12
+    cd campus-events
+    uv add --dev pytest ruff
+
+    # Move your event logic into src/campus_events/
+    # Add test files under tests/
+
+    # Day-to-day work
+    uv sync --locked
+    uv run --locked pytest
+    uv run --locked ruff check .
+    uv build                    # creates distribution files in dist/</code></pre>
+    <p>The initialization command creates starter files; <strong>you still need to implement the real CLI, logic, and tests.</strong> On an existing project, read its README and use its chosen package manager rather than re-initializing it.</p>
+    <p class="source">Reference: <a href="https://docs.astral.sh/uv/concepts/projects/init/">uv project initialization</a>, <a href="https://docs.astral.sh/uv/concepts/projects/sync/">locking and syncing</a>.</p>
+  </div>
+</section>
+<section id="locked-installs" class="" aria-labelledby="locked-installs-title">
+  <div class="tag"><span>20</span><span>05 / packages & tools</span></div>
+  <div class="body">
+    <h2 id="locked-installs-title">The same idea in four languages</h2>
+    <pre><code># JavaScript / TypeScript, with package-lock.json
+    npm ci
+    npm run build
+
+    # Python, with uv.lock
+    uv sync --locked
+    uv run --locked pytest
+
+    # Rust, with Cargo.lock
+    cargo build --locked
+    cargo test --locked
+
+    # Java, with the project Gradle wrapper
+    ./gradlew build</code></pre>
+    <p><code>npm ci</code> expects a lockfile and rejects a manifest mismatch; <code>uv --locked</code> rejects an outdated lockfile. Gradle dependency locking is available but is not automatically enabled for every project.</p>
+    <p>Before adding a library, consider its maintenance, license, transitive dependencies, and security posture. <strong>Install only what the project needs.</strong></p>
+    <p class="source">References: <a href="https://docs.npmjs.com/cli/v11/commands/npm-ci/">npm ci</a>, <a href="https://docs.astral.sh/uv/concepts/projects/sync/">uv sync</a>, <a href="https://doc.rust-lang.org/cargo/">Cargo</a>, <a href="https://docs.gradle.org/current/userguide/dependency_locking.html">Gradle dependency locking</a>.</p>
+  </div>
+</section>
+<section id="dev-tools" class="" aria-labelledby="dev-tools-title">
+  <div class="tag"><span>21</span><span>05 / packages & tools</span></div>
+  <div class="body">
+    <h2 id="dev-tools-title">The development environment is bigger than dependencies</h2>
+    <dl><div><dt>Editor + language server</dt><dd>Completion, navigation, refactoring, diagnostics. Examples: VS Code, IntelliJ IDEA, clangd, Pyright.</dd></div>
+    <div><dt>Formatter + linter</dt><dd>Consistent formatting and automated code-quality feedback. Examples: Prettier, ESLint, Ruff, clang-format.</dd></div>
+    <div><dt>Debugger + profiler</dt><dd>Investigate state and measure slow paths rather than guessing.</dd></div>
+    <div><dt>Local services</dt><dd>Docker Compose can provide a disposable database or mail server, without hardcoding production credentials.</dd></div></dl>
+    <p><strong>Application package manager ≠ machine package manager.</strong> npm or uv installs project dependencies; apt, Homebrew, or winget installs machine-level tools.</p>
+    <p class="exercise">Which tools must be on every contributor’s computer, and which can the project supply?</p>
+  </div>
+</section>
+<section id="testing" class="" aria-labelledby="testing-title">
+  <div class="tag"><span>22</span><span>06 / testing</span></div>
+  <div class="body">
+    <h2 id="testing-title">A test specifies behavior, not implementation</h2>
+    <p class="lead">Once the event logic is a pure function, checking it is cheap and repeatable.</p>
+    <pre><code># tests/test_events.py - runnable with pytest
+    from campus_events.events import events_on_date
+
+    def test_matching_day_is_included():
+        events = [
+            {&quot;title&quot;: &quot;Club night&quot;, &quot;date&quot;: &quot;2026-11-04&quot;},
+            {&quot;title&quot;: &quot;Hackathon&quot;, &quot;date&quot;: &quot;2026-11-05&quot;},
+        ]
+        assert events_on_date(events, &quot;2026-11-04&quot;) == [events[0]]
+
+    def test_no_matches():
+        assert events_on_date([], &quot;2026-11-04&quot;) == []</code></pre>
+    <p>A good test names a promise and checks its result. Add cases for empty inputs, invalid records (if validation is in scope), duplicates, date boundaries, and previously reported bugs.</p>
+  </div>
+</section>
+<section id="test-levels" class="" aria-labelledby="test-levels-title">
+  <div class="tag"><span>23</span><span>06 / testing</span></div>
+  <div class="body">
+    <h2 id="test-levels-title">Different tests protect different boundaries</h2>
+    <div class="table-wrap"><table><thead><tr><th scope="col">Kind</th><th scope="col">Campus events example</th><th scope="col">What it catches</th></tr></thead><tbody><tr><th scope="row">Unit</th><td>Filter a small list by date</td><td>Incorrect business logic</td></tr><tr><th scope="row">Integration</th><td>Save an event and load it from temporary storage</td><td>Broken interaction with database/file layer</td></tr><tr><th scope="row">End-to-end</th><td>Open the site, submit an event, see it in a list</td><td>A user workflow failing across systems</td></tr><tr><th scope="row">Static checks</th><td>Run type checker, linter, formatter check</td><td>Problems tests may not exercise</td></tr></tbody></table></div>
+    <p>A sensible progression: many fast unit tests, focused integration tests, and a smaller number of slower browser journeys. Do not use production accounts, clocks, or live third-party APIs in ordinary unit tests.</p>
+    <p><strong>Coverage is a clue, not a quality score.</strong> Executing a line does not guarantee an assertion checked the correct behavior.</p>
+  </div>
+</section>
+<section id="regression" class="" aria-labelledby="regression-title">
+  <div class="tag"><span>24</span><span>06 / testing</span></div>
+  <div class="body">
+    <h2 id="regression-title">Reproduce → fix → prevent recurrence</h2>
+    <ol class="pipeline"><li><strong>Describe</strong> the bug using a concrete input and expected output.</li><li><strong>Write</strong> a test that fails for the bug.</li><li><strong>Fix</strong> the code with the smallest clear change.</li><li><strong>Run</strong> the focused test and the wider project checks.</li><li><strong>Commit</strong> the fix and regression test together.</li></ol>
+    <p>Example: students in different time zones see the same event on different calendar days. The real problem might be an inconsistent interpretation of a timestamp, not the filtering loop itself.</p>
+    <p class="exercise">What is the difference between a calendar date (“Nov 4”) and a timestamp (“Nov 4 at 9 PM UTC”)? Where should that rule be defined?</p>
+  </div>
+</section>
+<section id="ci" class="" aria-labelledby="ci-title">
+  <div class="tag"><span>25</span><span>07 / ci / cd</span></div>
+  <div class="body">
+    <h2 id="ci-title">CI is your project on a computer that knows nothing about you</h2>
+    <p class="lead">Continuous integration runs a documented set of checks when code is pushed or proposed for merging.</p>
+    <pre><code>commit / pull request
+            |
+       fresh checkout
+            |
+       install runtime
+            |
+      install locked dependencies
+            |
+      lint + type check -&gt; tests -&gt; build
+            |
+         pass / fail
+            |
+          review &amp; merge</code></pre>
+    <p>A local green test is useful. A clean CI run also reveals missing setup steps, uncommitted files, and environment-dependent assumptions.</p>
+    <p>Popular orchestrators: <strong>GitHub Actions, GitLab CI/CD, Jenkins, Azure Pipelines</strong>. Jobs generally run in isolated workers and expose logs and statuses.</p>
+  </div>
+</section>
+<section id="workflow" class="" aria-labelledby="workflow-title">
+  <div class="tag"><span>26</span><span>07 / ci / cd</span></div>
+  <div class="body">
+    <h2 id="workflow-title">A working starter GitHub Actions workflow</h2>
+    <p>This is <strong>actual workflow YAML</strong> for the Python example-not pipeline pseudocode. It assumes the generated Python project, <code>uv.lock</code>, Ruff, and pytest have been committed.</p>
+    <pre><code># .github/workflows/ci.yml
+    name: CI
+
+    on:
+      pull_request:
+      push:
+        branches: [main]
+
+    permissions:
+      contents: read
+
+    jobs:
+      verify:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v7
+          - uses: astral-sh/setup-uv@v9
+            with:
+              enable-cache: true
+          - run: uv python install
+          - run: uv sync --locked
+          - run: uv run --locked ruff check .
+          - run: uv run --locked pytest -q
+          - run: uv build</code></pre>
+    <p>For higher supply-chain assurance, pin actions to full commit SHAs and manage upgrades deliberately. Protect the default branch with required status checks.</p>
+    <p class="source">References: <a href="https://docs.astral.sh/uv/guides/integration/github/">uv on GitHub Actions</a>; <a href="https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax">workflow syntax</a>.</p>
+  </div>
+</section>
+<section id="real-ci" class="" aria-labelledby="real-ci-title">
+  <div class="tag"><span>27</span><span>07 / ci / cd</span></div>
+  <div class="body">
+    <h2 id="real-ci-title">Real case study: a publication with multi-stage checks</h2>
+    <p>The <a href="https://github.com/aderoian/armen-articles">armen-articles</a> repository is an Astro publication. Its CI workflow separates a <strong>validation/build job</strong> from a dependent <strong>browser-test job</strong>.</p>
+    <ol class="pipeline">
+    <li><strong>Validate:</strong> <code>npm ci</code> → type/content checks → lint → format check → unit tests → production build → integration/link tests.</li>
+    <li><strong>Store artifact:</strong> upload the built <code>dist/</code> directory.</li>
+    <li><strong>Browser tests:</strong> download that artifact, install Chromium, run Playwright, preserve a failure report.</li>
+    </ol>
+    <p><strong>Cache vs artifact:</strong> a dependency cache speeds repeated work; a build artifact carries a specific result between jobs.</p>
+    <p class="source">Source: <a href="https://github.com/aderoian/armen-articles/blob/main/.github/workflows/ci.yml">CI workflow</a> and <a href="https://github.com/aderoian/armen-articles/blob/main/package.json">package scripts</a>.</p>
+  </div>
+</section>
+<section id="cd" class="" aria-labelledby="cd-title">
+  <div class="tag"><span>28</span><span>07 / ci / cd</span></div>
+  <div class="body">
+    <h2 id="cd-title">CI, delivery, and deployment are not synonyms</h2>
+    <dl><div><dt>Continuous integration</dt><dd>Every proposed change is built and checked frequently.</dd></div>
+    <div><dt>Continuous delivery</dt><dd>Passing changes are kept release-ready; production promotion may require approval.</dd></div>
+    <div><dt>Continuous deployment</dt><dd>Passing changes are automatically promoted to production without a routine manual release decision.</dd></div></dl>
+    <pre><code>proposed change -&gt; CI checks -&gt; tested artifact
+                                      |
+                                   staging
+                                      |
+                               approval (optional)
+                                      |
+                                   production
+                                      |
+                              smoke test + monitor</code></pre>
+    <p>For <code>armen-articles</code>, a separate workflow triggers on pushes to <code>main</code> and manual runs, repeats several checks, then deploys with Wrangler. It does <strong>not</strong> depend directly on the full CI browser-test job; that is a meaningful release-gating decision.</p>
+    <p class="source">Source: <a href="https://github.com/aderoian/armen-articles/blob/main/.github/workflows/deploy.yml">deployment workflow</a>.</p>
+  </div>
+</section>
+<section id="shipping" class="" aria-labelledby="shipping-title">
+  <div class="tag"><span>29</span><span>07 / ci / cd</span></div>
+  <div class="body">
+    <h2 id="shipping-title">A release is not done when the upload finishes</h2>
+    <ol class="pipeline"><li><strong>Deploy</strong> to an explicitly chosen environment using least-privilege credentials.</li><li><strong>Verify</strong> with a smoke test: does the app load and perform one critical task?</li><li><strong>Observe</strong> structured logs, errors, latency, and health checks.</li><li><strong>Recover</strong> by rolling back the app or promoting the previous known-good artifact when possible.</li></ol>
+    <p>Keep secrets out of builds from untrusted pull requests. Use protected environments where appropriate. Database migrations need separate compatibility and backup plans: rolling back code does not automatically reverse changed data.</p>
+    <p class="takeaway">The simplest reliable deployment is better than an impressive pipeline nobody can debug.</p>
+  </div>
+</section>
+<section id="minimal-path" class="" aria-labelledby="minimal-path-title">
+  <div class="tag"><span>30</span><span>08 / next steps</span></div>
+  <div class="body">
+    <h2 id="minimal-path-title">Add complexity when a real problem appears</h2>
+    <div class="table-wrap"><table><thead><tr><th scope="col">Pain you encounter</th><th scope="col">Next useful step</th><th scope="col">Usually unnecessary at first</th></tr></thead><tbody><tr><th scope="row">One file is hard to edit</th><td>Extract modules around responsibilities</td><td>Ten layers of abstractions</td></tr><tr><th scope="row">Others cannot run the app</th><td>README, runtime pin, lockfile, sample config</td><td>Containerize everything</td></tr><tr><th scope="row">Changes break old behavior</th><td>Automated tests and CI</td><td>An elaborate test platform</td></tr><tr><th scope="row">Builds are slow</th><td>Measure then cache / parallelize</td><td>Bazel / a distributed build farm</td></tr><tr><th scope="row">Releases keep failing</th><td>Staging, smoke tests, rollback</td><td>Microservices or Kubernetes</td></tr></tbody></table></div>
+    <p><strong>Professional engineering is choosing the smallest tool that makes the next change safer.</strong> There is no award for the most YAML files.</p>
+  </div>
+</section>
+<section id="closing" class="" aria-labelledby="closing-title">
+  <div class="tag"><span>31</span><span>08 / next steps</span></div>
+  <div class="body">
+    <h2 id="closing-title">The real finish line</h2>
+    <blockquote>Can somebody who has never met you clone your project, get it running, make a small improvement, verify the change, and trust the release process?</blockquote>
+    <p>When the answer is yes, you have moved beyond “code that runs” toward <strong>software that can be maintained.</strong></p>
+    <p class="takeaway">Make it understandable. Make it reproducible. Make it testable. Then make it releasable.</p>
+    <p class="exercise">One action to take tonight: improve the README of a project you already wrote.</p>
+  </div>
+</section>
+<section id="resources" class="" aria-labelledby="resources-title">
+  <div class="tag"><span>32</span><span>reference</span></div>
+  <div class="body">
+    <h2 id="resources-title">Repositories and references</h2>
+    <ul class="resources">
+    <li><a href="https://github.com/aderoian/personal-website">personal-website</a> - compact fullstack application and developer command surface</li>
+    <li><a href="https://github.com/aderoian/armen-articles">armen-articles</a> - production CI, build artifacts, Playwright and separate deployment</li>
+    <li><a href="https://git-scm.com/book/en/v2">Pro Git</a> - Git fundamentals</li>
+    <li><a href="https://docs.astral.sh/uv/guides/projects/">uv project guide</a> and <a href="https://docs.npmjs.com/cli/v11/commands/npm-ci/">npm ci</a> - dependency setup</li>
+    <li><a href="https://cmake.org/cmake/help/latest/guide/tutorial/index.html">CMake tutorial</a> and <a href="https://vite.dev/guide/">Vite guide</a> - build systems and tooling</li>
+    <li><a href="https://docs.pytest.org/en/stable/">pytest</a> and <a href="https://playwright.dev/docs/intro">Playwright</a> - automated tests</li>
+    <li><a href="https://docs.github.com/en/actions">GitHub Actions</a> - CI/CD workflows</li>
+    </ul>
+  </div>
+</section>
+    </main>
+    <footer><a href="#top">Back to top ↑</a><span>I♥COMPUTER / from code to project</span><a href="/projects/">More presentations</a></footer>
+  </div>
+</body>
+</html>

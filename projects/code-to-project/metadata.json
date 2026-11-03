@@ -1,0 +1,11 @@
+{
+  "title": "From Code to Project: Building Software That Scales",
+  "subtitle": "Project structure, Git, build systems, package managers, testing, and CI/CD.",
+  "topics": [
+    "Development",
+    "Tools",
+    "CI/CD"
+  ],
+  "author": "armen-deroian",
+  "date": "2026-11-04"
+}
