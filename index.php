@@ -27,14 +27,14 @@ new_render_header('IHEARTCOMPUTER');
       <a class="panel band" href="/discord" style="padding: 1.1rem 1.1rem 1.1rem 1.25rem; margin-bottom: 2rem;">
         <div>
           <span class="upper red" style="display: block; font-size: 0.75rem; margin-bottom: 0.35rem;">next meeting</span>
-          <strong class="upper" style="display: block; font-size: 1.35rem; line-height: 1.15;">From Code to Project: Building Software That Scales</strong>
+          <strong class="upper" style="display: block; font-size: 1.35rem; line-height: 1.15;">How to get a j*b</strong>
         </div>
         <ul class="upper" style="list-style: none; margin: 0; padding: 0; font-size: 0.85rem;">
-          <li style="margin: 0.15rem 0;">date/time: 11/04 - 2:30pm</li>
+          <li style="margin: 0.15rem 0;">date/time: 11/11 - 2:30pm</li>
           <li style="margin: 0.15rem 0;">room: GITC 3600</li>
         </ul>
         <p style="margin: 0; font-size: 0.9rem; color: #333;">
-          explore package managers, build systems, development tools, and CI/CD pipelines, focusing on popular tools across multiple programming languages and environments.
+          a quick talk about the application and interview process, then some real technical interview practice, working through some fun examples in teams as part of a jeopardy-style game.
         </p>
         <p class="upper">
           DO NOT MISS IT...
