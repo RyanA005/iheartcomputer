@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interview Jeopardy answer key. Select a cell, choose question A or B, then read the expected answer.">
+  <meta name="theme-color" content="#060CE9">
+  <title>Interview Jeopardy Answer Key - IHEARTCOMPUTER</title>
+  <link rel="icon" href="/assets/logo.png">
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page">
+    <header class="bar">
+      <a class="brand" href="/">I<span class="heart">&lt;3</span>COMPUTER</a>
+      <nav>
+        <a href="../">board</a>
+        <a href="/projects/interviews/">back</a>
+        <a href="/projects/">projects</a>
+      </nav>
+    </header>
+
+    <header class="hero">
+      <h1>Answer Key</h1>
+    </header>
+
+    <div id="board" class="board board-select" aria-label="Select a Jeopardy cell"></div>
+
+    <section id="picker" class="picker" hidden>
+      <div class="picker-meta" id="picker-meta"></div>
+      <div class="picker-choices" id="picker-choices"></div>
+    </section>
+
+    <section id="answer" class="answer" hidden></section>
+  </div>
+
+  <script src="answers.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
